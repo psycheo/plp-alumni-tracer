@@ -1,0 +1,301 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    background-color: #f0fdf4; 
+    color: #1f2937;
+}
+
+/* 1. The Main White Bar (This was missing!) */
+.navbar {
+    background: white;
+    padding: 15px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    border-bottom: 1px solid #e5e7eb;
+}
+
+/* 2. The Logo and Title Group */
+.nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.nav-brand i {
+    background: #0d5c34;
+    color: white;
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 1.2rem;
+}
+
+.nav-brand div {
+    display: flex;
+    flex-direction: column;
+}
+
+.nav-brand strong {
+    font-size: 1.2rem;
+    color: #111827;
+}
+
+.nav-brand span {
+    font-size: 0.8rem;
+    color: #6b7280;
+}
+
+/* 3. The Links and Buttons Container */
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+/* 4. The Light Gray Pill Slider */
+.nav-links-container {
+    position: relative;
+    display: flex;
+    background-color: #f3f4f6; 
+    padding: 6px;
+    border-radius: 12px;
+    z-index: 1;
+}
+
+/* The actual links */
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: #475569; 
+    font-weight: 500;
+    font-size: 0.95rem;
+    padding: 10px 20px;
+    border-radius: 8px;
+    transition: color 0.3s ease;
+    cursor: pointer;
+    z-index: 2; 
+}
+
+/* Active and Hover states */
+.nav-link:hover {
+    color: #0d5c34;
+}
+
+.nav-link.active {
+    color: #0d5c34;
+    font-weight: 600;
+}
+
+/* The White Sliding Box */
+.nav-slider {
+    position: absolute;
+    top: 6px;
+    bottom: 6px;
+    left: 0;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.06);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+    z-index: -1; 
+}
+
+/* Logout Button */
+.btn-logout {
+    background-color: #dc2626;
+    color: white !important;
+    text-decoration: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-logout:hover {
+    background-color: #b91c1c;
+}
+
+/* Dashboard Content */
+.dashboard-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 25px;
+}
+
+.header-icon {
+    color: #0d5c34;
+    font-size: 1.5rem;
+}
+
+/* Grid Layout */
+.program-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.program-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+
+.program-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 15px rgba(0,0,0,0.05);
+    border-color: #10b981;
+}
+
+.program-card h3 {
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+    color: #111827;
+}
+
+.college {
+    color: #6b7280;
+    font-size: 0.85rem;
+    margin-bottom: 15px;
+}
+
+.stats {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 0.9rem;
+}
+
+.stat {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #4b5563;
+}
+
+.green-stat {
+    color: #059669;
+}
+
+/* Analytics Section */
+.analytics-section {
+    margin-top: 50px;
+    padding-top: 30px;
+    border-top: 2px dashed #cbd5e1;
+}
+
+.hidden {
+    display: none;
+}
+
+.analytics-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #0d5c34;
+    margin-bottom: 10px;
+}
+
+.recommendations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.rec-card {
+    background: white;
+    padding: 15px;
+    border-left: 4px solid #0d5c34;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    cursor: pointer;
+}
+
+.rec-card h4 {
+    margin-bottom: 5px;
+}
+
+/* Modal Popup */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0,0,0,0.5);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 10% auto;
+    padding: 30px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    position: relative;
+    box-shadow: 0 20px 25px rgba(0,0,0,0.1);
+}
+
+.close-btn {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-btn:hover {
+    color: #333;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #0d5c34;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+}
+
+.modal-body p {
+    margin-bottom: 15px;
+}
+
+.highlight-text {
+    color: #059669;
+    font-weight: 600;
+}
+
+.modal-desc {
+    background: #f9fafb;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #eee;
+}
