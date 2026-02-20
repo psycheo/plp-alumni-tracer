@@ -5,7 +5,7 @@ session_start();
 $error = "";
 
 // Hardcoded credentials based on your image
-$valid_email = "admin@plp.edu.ph";
+$valid_email = "admin@plpasig.edu.ph";
 $valid_password = "plp2024";
 
 // Check if form is submitted
@@ -81,7 +81,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             <div class="credentials-box">
                 <strong>Default Login Credentials:</strong>
-                <p>Email: <span class="mono">admin@plp.edu.ph</span></p>
+                <p>Email: <span class="mono">admin@plpasig.edu.ph</span></p>
                 <p>Password: <span class="mono">plp2024</span></p>
             </div>
         </div>

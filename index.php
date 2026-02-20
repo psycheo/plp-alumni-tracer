@@ -52,10 +52,8 @@
                     <span>Career Paths</span>
                 </div>
             </div>
-        </div>
-    </section>
 
-    <section class="section-white">
+        </div> </section> <section class="section-white">
         <div class="container">
             <div class="section-title">
                 <h2>How PLP Alumni Tracer Works</h2>

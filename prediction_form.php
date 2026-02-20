@@ -107,11 +107,12 @@ $programs = $conn->query("SELECT * FROM programs");
                             </div>
                             <div class="input-group">
                                 <label>Company Name</label>
-                                <input type="text" name="current_company" placeholder="e.g. Tech Corp">
+                                <input type="text" name="current_company" id="req_comp" placeholder="e.g. Tech Corp">
                             </div>
                             <div class="input-group">
                                 <label>Monthly Salary Range</label>
-                                <select name="current_salary">
+                                <select name="current_salary" id="req_sal">
+                                    <option value="">Select Range...</option>
                                     <option value="Below 20k">Below ₱20,000</option>
                                     <option value="20k-40k">₱20,000 - ₱40,000</option>
                                     <option value="40k-60k">₱40,000 - ₱60,000</option>
@@ -120,7 +121,7 @@ $programs = $conn->query("SELECT * FROM programs");
                             </div>
                             <div class="input-group">
                                 <label>Years of Experience</label>
-                                <input type="number" name="years_experience" placeholder="e.g. 2" min="0">
+                                <input type="number" name="years_experience" id="req_exp" placeholder="e.g. 2" min="0">
                             </div>
                         </div>
                     </div>
@@ -187,17 +188,20 @@ $programs = $conn->query("SELECT * FROM programs");
 
     <script>
         function nextStep(step) {
-            // Basic validation check before moving forward
+            const status = document.getElementById('empStatus').value;
+
+            // --- VALIDATION FOR LEAVING STEP 1 ---
             if (step === 2) {
                 const name = document.querySelector('input[name="name"]').value;
                 const prog = document.querySelector('select[name="program_id"]').value;
-                const status = document.getElementById('empStatus').value;
-                if(!name || !prog || !status) {
-                    alert("Please fill out all required fields.");
-                    return;
+                const grad = document.querySelector('input[name="grad_year"]').value;
+                
+                if(!name || !prog || !grad || !status) {
+                    alert("Please fill out all required fields in Step 1 before continuing.");
+                    return; // Stop them from moving forward
                 }
                 
-                // Set up Step 2 based on Employment Status
+                // Set up Step 2 UI based on Employment Status
                 const employedFields = document.getElementById('employed-fields');
                 const unemployedFields = document.getElementById('unemployed-fields');
                 
@@ -206,21 +210,49 @@ $programs = $conn->query("SELECT * FROM programs");
                     document.getElementById('step2-desc').innerText = "Tell us about your current profession.";
                     employedFields.style.display = 'block';
                     unemployedFields.style.display = 'none';
-                    document.getElementById('req_pos').required = true;
                 } else {
                     document.getElementById('step2-title').innerText = "Skills Assessment";
                     document.getElementById('step2-desc').innerText = "Assess your current skill levels to match with jobs.";
                     employedFields.style.display = 'none';
                     unemployedFields.style.display = 'block';
-                    document.getElementById('req_pos').required = false;
                 }
-                
-                // Make shared fields required
-                document.getElementById('req_gpa').required = true;
-                document.getElementById('req_ojt').required = true;
             }
 
-            // Update UI
+            // --- VALIDATION FOR LEAVING STEP 2 ---
+            if (step === 3) {
+                const gpa = document.getElementById('req_gpa').value;
+                const ojt = document.getElementById('req_ojt').value;
+                
+                if (!gpa || !ojt) {
+                    alert("Please provide your Final GPA and OJT grades.");
+                    return;
+                }
+
+                if (status === 'Employed') {
+                    // Check Employed Fields
+                    const pos = document.getElementById('req_pos').value;
+                    const comp = document.getElementById('req_comp').value;
+                    const sal = document.getElementById('req_sal').value;
+                    const exp = document.getElementById('req_exp').value;
+                    
+                    if(!pos || !comp || !sal || !exp) {
+                        alert("Please fill out all employment details before continuing.");
+                        return;
+                    }
+                } else {
+                    // Check Not Employed Likert Scales (Radio Buttons)
+                    const ss1 = document.querySelector('input[name="ss1"]:checked');
+                    const ss2 = document.querySelector('input[name="ss2"]:checked');
+                    const hs1 = document.querySelector('input[name="hs1"]:checked');
+                    
+                    if(!ss1 || !ss2 || !hs1) {
+                        alert("Please complete all skills assessment ratings before continuing.");
+                        return;
+                    }
+                }
+            }
+
+            // If everything is filled out, move to the next step
             document.querySelectorAll('.wizard-step').forEach(el => el.classList.remove('active'));
             document.getElementById('step' + step).classList.add('active');
             
