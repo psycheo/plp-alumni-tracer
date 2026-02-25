@@ -39,6 +39,7 @@
 
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 
+
 /* --- 2. MULTI-STEP WIZARD STYLES --- */
 .wizard-wrapper {
     max-width: 700px;

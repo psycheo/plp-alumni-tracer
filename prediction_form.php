@@ -26,11 +26,11 @@ $programs = $conn->query("SELECT * FROM programs");
         <div class="nav-actions">
             <div class="nav-links-container">
                 <div class="nav-slider"></div> 
-                <a href="#" class="nav-link"><i class="fas fa-home"></i> Home</a>
+                <a href="dashboard.php" class="nav-link"><i class="fas fa-home"></i> Home</a>
                 <a href="prediction_form.php" class="nav-link active"><i class="far fa-user"></i> My Career Path</a>
-                <a href="dashboard.php" class="nav-link"><i class="fas fa-chart-line"></i> View Analytics</a>
+                <a href="analytics.php" class="nav-link"><i class="fas fa-chart-line"></i> View Analytics</a>
             </div>
-            <a href="login.php" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            <a href="index.php" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
         </div>
     </nav>
 
