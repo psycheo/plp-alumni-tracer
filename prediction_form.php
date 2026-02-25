@@ -8,7 +8,7 @@ $programs = $conn->query("SELECT * FROM programs");
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Find Your Perfect Career Match</title>
+    <title>PLP Alumni Employability Tracer</title>
     <link rel="stylesheet" href="dashboard-style.css">
     <link rel="stylesheet" href="prediction-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -26,9 +26,9 @@ $programs = $conn->query("SELECT * FROM programs");
         <div class="nav-actions">
             <div class="nav-links-container">
                 <div class="nav-slider"></div> 
-                <a href="dashboard.php" class="nav-link"><i class="fas fa-home"></i> Home</a>
+                <a href="#" class="nav-link"><i class="fas fa-home"></i> Home</a>
                 <a href="prediction_form.php" class="nav-link active"><i class="far fa-user"></i> My Career Path</a>
-                <a href="#" class="nav-link"><i class="fas fa-chart-line"></i> View Analytics</a>
+                <a href="dashboard.php" class="nav-link"><i class="fas fa-chart-line"></i> View Analytics</a>
             </div>
             <a href="login.php" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
         </div>
@@ -66,7 +66,7 @@ $programs = $conn->query("SELECT * FROM programs");
                                 <i class="fas fa-exclamation-circle"></i>
                             </span>
                         </label>
-                        <input type="text" id="nameInput" name="name" required placeholder="e.g. Juan Dela Cruz">
+                        <input type="text" id="nameInput" name="name" required placeholder="e.g. Juan Dela Cruz" maxlength="50">
                     </div>
 
                     <div class="input-group">
@@ -83,18 +83,27 @@ $programs = $conn->query("SELECT * FROM programs");
                         <div class="input-group">
                             <label>
                                 Graduation Year
-                                <span class="error-icon" id="yearError" title="Graduation year cannot be in the future.">
+                                <span class="error-icon" id="yearError" title="Please select a valid year.">
                                     <i class="fas fa-exclamation-circle"></i>
                                 </span>
                             </label>
-                            <input type="number" id="gradYearInput" name="grad_year" required min="2000" placeholder="e.g. 2026">
+                            <select name="grad_year" id="gradYearInput" required>
+                                <option value="">Select Year...</option>
+                                <?php 
+                                    $current_year = date('Y');
+                                    for($y = $current_year; $y >= 2004; $y--): 
+                                ?>
+                                    <option value="<?= $y ?>"><?= $y ?></option>
+                                <?php endfor; ?>
+                            </select>
                         </div>
+
                         <div class="input-group">
                             <label>Current Employment Status</label>
                             <select name="employment_status" id="empStatus" required>
                                 <option value="">Select Status...</option>
-                                <option value="Employed">Currently Employed</option>
-                                <option value="Not Employed">Not Currently Employed</option>
+                                <option value="Employed">Employed</option>
+                                <option value="Unemployed">Unemployed</option>
                             </select>
                         </div>
                     </div>
@@ -118,7 +127,7 @@ $programs = $conn->query("SELECT * FROM programs");
                                         <i class="fas fa-exclamation-circle"></i>
                                     </span>
                                 </label>
-                                <input type="text" name="current_position" id="req_pos" placeholder="e.g. Software Engineer">
+                                <input type="text" name="current_position" id="req_pos" placeholder="e.g. Software Engineer" maxlength="100">
                             </div>
                             <div class="input-group">
                                 <label>
@@ -127,7 +136,7 @@ $programs = $conn->query("SELECT * FROM programs");
                                         <i class="fas fa-exclamation-circle"></i>
                                     </span>
                                 </label>
-                                <input type="text" name="current_company" id="req_comp" placeholder="e.g. Tech Corp">
+                                <input type="text" name="current_company" id="req_comp" placeholder="e.g. Tech Corp" maxlength="100">
                             </div>
                             <div class="input-group">
                                 <label>Monthly Salary Range</label>
@@ -146,7 +155,7 @@ $programs = $conn->query("SELECT * FROM programs");
                                         <i class="fas fa-exclamation-circle"></i>
                                     </span>
                                 </label>
-                                <input type="number" name="years_experience" id="req_exp" placeholder="e.g. 2" min="0" max="50">
+                                <input type="number" name="years_experience" id="req_exp" placeholder="e.g. 2" min="0" max="50" onkeydown="if(['e', 'E', '+', '-'].includes(event.key)) event.preventDefault();">
                             </div>
                         </div>
                     </div>
@@ -246,10 +255,16 @@ $programs = $conn->query("SELECT * FROM programs");
         });
 
         // --- GLOBAL VARIABLES ---
-        // Defined globally so we can access them in all functions
         let nameInput, nameError, yearInput, yearError;
         let posInput, posError, compInput, compError, expInput, expError;
         let gpaInput, gpaError, ojtInput, ojtError;
+
+        // Title Case Formatter Function
+        function toTitleCase(str) {
+            return str.replace(/\w\S*/g, function(txt) {
+                return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+            });
+        }
 
         function initValidation() {
             // Step 1 Elements
@@ -273,9 +288,18 @@ $programs = $conn->query("SELECT * FROM programs");
             const currentYear = new Date().getFullYear();
             yearInput.max = currentYear;
 
-            // --- REAL-TIME LISTENERS (Keep icons updated as they type) ---
+            // --- REAL-TIME LISTENERS ---
             
-            // Name & Text Fields
+            // Apply Title Case when the user clicks out of the text fields (blur event)
+            const formatFields = [nameInput, posInput, compInput];
+            formatFields.forEach(input => {
+                if(!input) return;
+                input.addEventListener("blur", function() {
+                    this.value = toTitleCase(this.value.trim());
+                });
+            });
+
+            // Name & Text Fields (Remove invalid chars as they type)
             const textFields = [[nameInput, nameError], [posInput, posError], [compInput, compError]];
             textFields.forEach(([input, error]) => {
                 if(!input) return;
@@ -308,7 +332,6 @@ $programs = $conn->query("SELECT * FROM programs");
                 input.addEventListener("input", function() {
                     if (this.value.length > 4) this.value = this.value.slice(0, 4);
                     const val = parseFloat(this.value);
-                    // Real-time: only show error if they finished typing a valid number that is out of range
                     if (this.value.length >= 3 && (val < 1.00 || val > 5.00)) {
                         showError(this, input === gpaInput ? gpaError : ojtError);
                     } else {
@@ -330,12 +353,10 @@ $programs = $conn->query("SELECT * FROM programs");
         }
 
         // --- NAVIGATION & VALIDATION ON CLICK ---
-        
         function nextStep(step) {
             let isValid = true;
             let firstInvalidInput = null;
 
-            // Helper to mark a field invalid during button click
             function markInvalid(input, icon) {
                 showError(input, icon);
                 isValid = false;
@@ -347,10 +368,8 @@ $programs = $conn->query("SELECT * FROM programs");
                 const progInput = document.getElementById('progInput');
                 const empStatus = document.getElementById('empStatus');
 
-                // 1. Check Name
                 if (!nameInput.value.trim()) markInvalid(nameInput, nameError);
                 
-                // 2. Check Program
                 if (!progInput.value) {
                     progInput.classList.add("input-error"); 
                     isValid = false;
@@ -359,11 +378,9 @@ $programs = $conn->query("SELECT * FROM programs");
                     progInput.classList.remove("input-error");
                 }
 
-                // 3. Check Year
                 const currentYear = new Date().getFullYear();
                 if (!yearInput.value || yearInput.value > currentYear) markInvalid(yearInput, yearError);
 
-                // 4. Check Status
                 if (!empStatus.value) {
                     empStatus.classList.add("input-error");
                     isValid = false;
@@ -384,21 +401,17 @@ $programs = $conn->query("SELECT * FROM programs");
             if (step === 3) {
                 const empStatus = document.getElementById('empStatus').value;
 
-                // 1. GPA Check
                 const gpaVal = parseFloat(gpaInput.value);
                 if (!gpaInput.value || gpaVal < 1.00 || gpaVal > 5.00) markInvalid(gpaInput, gpaError);
 
-                // 2. OJT Check
                 const ojtVal = parseFloat(ojtInput.value);
                 if (!ojtInput.value || ojtVal < 1.00 || ojtVal > 5.00) markInvalid(ojtInput, ojtError);
 
-                // 3. Employment Checks
                 if (empStatus === 'Employed') {
                     if (!posInput.value.trim()) markInvalid(posInput, posError);
                     if (!compInput.value.trim()) markInvalid(compInput, compError);
                     if (!expInput.value || expInput.value > 50) markInvalid(expInput, expError);
                     
-                    // Salary Dropdown
                     const salInput = document.getElementById('req_sal');
                     if (!salInput.value) {
                         salInput.classList.add("input-error");
@@ -408,30 +421,23 @@ $programs = $conn->query("SELECT * FROM programs");
                         salInput.classList.remove("input-error");
                     }
                 } 
-                // 4. Unemployed Checks (Radio Buttons)
                 else {
                     const checkRadio = (name) => document.querySelector(`input[name="${name}"]:checked`);
                     
-                    // Reset asterisks first
                     document.getElementById('error_ss1').style.display = 'none';
                     document.getElementById('error_ss2').style.display = 'none';
                     document.getElementById('error_hs1').style.display = 'none';
 
-                    // Check 1: Communication
                     if (!checkRadio('ss1')) {
                         document.getElementById('error_ss1').style.display = 'inline';
                         isValid = false;
                         if(!firstInvalidInput) firstInvalidInput = document.getElementById('likertTable');
                     }
-                    
-                    // Check 2: Teamwork
                     if (!checkRadio('ss2')) {
                         document.getElementById('error_ss2').style.display = 'inline';
                         isValid = false;
                         if(!firstInvalidInput) firstInvalidInput = document.getElementById('likertTable');
                     }
-
-                    // Check 3: Hard Skills
                     if (!checkRadio('hs1')) {
                         document.getElementById('error_hs1').style.display = 'inline';
                         isValid = false;
@@ -452,22 +458,35 @@ $programs = $conn->query("SELECT * FROM programs");
             updateWizardUI(step);
         }
 
+        // --- UPDATED FIELD HINDERING ---
         function configureStep2(status) {
             const employedFields = document.getElementById('employed-fields');
             const unemployedFields = document.getElementById('unemployed-fields');
             const stepTitle = document.getElementById('step2-title');
             const stepDesc = document.getElementById('step2-desc');
 
+            // Select all inputs within the specific containers
+            const empInputs = employedFields.querySelectorAll('input, select');
+            const unempInputs = unemployedFields.querySelectorAll('input, select');
+
             if (status === 'Employed') {
                 stepTitle.innerText = "Current Job Details";
                 stepDesc.innerText = "Tell us about your current profession.";
                 employedFields.style.display = 'block';
                 unemployedFields.style.display = 'none';
+                
+                // Enable employed fields, strictly disable unemployed fields
+                empInputs.forEach(i => i.disabled = false);
+                unempInputs.forEach(i => i.disabled = true);
             } else {
                 stepTitle.innerText = "Skills Assessment";
                 stepDesc.innerText = "Assess your current skill levels.";
                 employedFields.style.display = 'none';
                 unemployedFields.style.display = 'block';
+                
+                // Disable employed fields, strictly enable unemployed fields
+                empInputs.forEach(i => i.disabled = true);
+                unempInputs.forEach(i => i.disabled = false);
             }
         }
 
@@ -475,7 +494,6 @@ $programs = $conn->query("SELECT * FROM programs");
             document.querySelectorAll('.wizard-step').forEach(el => el.classList.remove('active'));
             document.getElementById('step' + step).classList.add('active');
 
-            // Update Progress Bar
             let percent = step === 1 ? 33 : (step === 2 ? 67 : 100);
             document.getElementById('progress-fill').style.width = percent + '%';
             document.getElementById('step-text').innerText = 'Step ' + step + ' of 3';
