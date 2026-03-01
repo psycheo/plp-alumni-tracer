@@ -24,6 +24,9 @@
                 <a href="analytics.php" class="nav-link <?= ($currentPage == 'analytics.php') ? 'active' : '' ?>">
                     <i class="fas fa-chart-line"></i> View Analytics
                 </a>
+                <a href="settings.php" class="nav-link <?= ($currentPage == 'settings.php') ? 'active' : '' ?>">
+                    <i class="fas fa-gear"></i> Settings
+                </a>
             </div>
 
             <a href="index.php" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
