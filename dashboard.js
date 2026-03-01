@@ -1,10 +1,8 @@
-// --- Navigation Slider Animation ---
 document.addEventListener("DOMContentLoaded", () => {
     const slider = document.querySelector('.nav-slider');
-    const activeLink = document.querySelector('.nav-link.active');
-    const navContainer = document.querySelector('.nav-links-container'); // Grab the container
+    const navContainer = document.querySelector('.nav-links-container');
+    const allLinks = document.querySelectorAll('.nav-link');
 
-    // Function to move the slider to the active link
     function moveSliderTo(element) {
         if (slider && element) {
             slider.style.width = element.offsetWidth + 'px';
@@ -12,23 +10,35 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Set initial position on page load
-    if (activeLink) {
-        setTimeout(() => moveSliderTo(activeLink), 50); 
-    }
+    // 1. Initial Position (Wait for fonts so width is accurate)
+    document.fonts.ready.then(() => {
+        const activeLink = document.querySelector('.nav-link.active');
+        if (activeLink) {
+            moveSliderTo(activeLink); // Snap to position
+            
+            // 2. Enable animation ONLY after the initial snap
+            setTimeout(() => {
+                slider.classList.add('animated');
+            }, 50);
+        }
+    });
 
-    // Optional: Make it slide when hovering over other links
-    const allLinks = document.querySelectorAll('.nav-link');
+    // 3. Hover & Click Logic
     allLinks.forEach(link => {
-        link.addEventListener('mouseenter', (e) => {
-            moveSliderTo(e.target);
+        link.addEventListener('mouseenter', (e) => moveSliderTo(e.currentTarget));
+        
+        link.addEventListener('click', (e) => {
+            // This allows the slider to move before the browser navigates
+            allLinks.forEach(l => l.classList.remove('active'));
+            e.currentTarget.classList.add('active');
+            moveSliderTo(e.currentTarget);
         });
     });
 
-    // Added ONCE to the parent container, outside the loop
     if (navContainer) {
         navContainer.addEventListener('mouseleave', () => {
-            moveSliderTo(document.querySelector('.nav-link.active'));
+            const currentActive = document.querySelector('.nav-link.active');
+            if (currentActive) moveSliderTo(currentActive);
         });
     }
 });
