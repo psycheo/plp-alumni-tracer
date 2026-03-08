@@ -1,0 +1,164 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    background-color: #f4f7f6;
+    color: #333;
+    display: flex;
+}
+
+/* =========================================
+   SIDEBAR STYLES
+   ========================================= */
+.admin-sidebar {
+    width: 260px;
+    background-color: #0d5c34; /* PLP Dark Green */
+    color: white;
+    height: 100vh;
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+}
+
+.sidebar-brand {
+    padding: 25px 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.sidebar-brand i {
+    font-size: 24px;
+    background: white;
+    color: #0d5c34;
+    padding: 10px;
+    border-radius: 50%;
+}
+
+.sidebar-brand span {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.sidebar-menu {
+    list-style: none;
+    padding: 20px 0;
+    flex: 1;
+}
+
+.sidebar-menu li a {
+    display: flex;
+    align-items: center;
+    padding: 15px 25px;
+    color: rgba(255,255,255,0.8);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    gap: 15px;
+}
+
+.sidebar-menu li a i {
+    width: 20px;
+    text-align: center;
+    font-size: 1.1rem;
+}
+
+.sidebar-menu li a:hover, 
+.sidebar-menu li a.active {
+    background-color: #10b981; /* Lighter Green */
+    color: white;
+    border-left: 4px solid white;
+}
+
+.sidebar-footer {
+    padding: 20px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+/* =========================================
+   MAIN CONTENT & LAYOUT
+   ========================================= */
+.admin-main {
+    margin-left: 260px;
+    width: calc(100% - 260px);
+    padding: 30px 40px;
+}
+
+.page-title {
+    margin-bottom: 25px;
+}
+
+.page-title h1 {
+    font-size: 1.8rem;
+    color: #1f2937;
+    margin-bottom: 5px;
+}
+
+.page-title p {
+    color: #6b7280;
+    font-size: 0.95rem;
+}
+
+/* Base Card Style */
+.admin-card {
+    background: white;
+    border-radius: 10px;
+    padding: 25px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+    border: 1px solid #e5e7eb;
+    margin-bottom: 25px;
+}
+
+/* Tables */
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.admin-table th, .admin-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 0.9rem;
+}
+
+.admin-table th {
+    background-color: #f9fafb;
+    color: #4b5563;
+    font-weight: 600;
+}
+
+/* Buttons */
+.btn-upload {
+    background-color: #0d5c34;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.btn-upload:hover { background-color: #059669; }
+
+/* Drag & Drop Zone */
+.drop-zone {
+    border: 2px dashed #10b981;
+    border-radius: 10px;
+    padding: 40px;
+    text-align: center;
+    background: #f0fdf4;
+    color: #0d5c34;
+    margin: 20px 0;
+    cursor: pointer;
+}
+.drop-zone i { font-size: 3rem; margin-bottom: 15px; }

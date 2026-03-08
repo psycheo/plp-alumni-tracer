@@ -711,3 +711,68 @@ body {
     transform: translateY(-2px);
     box-shadow: 0 4px 6px rgba(13, 92, 52, 0.3);
 }
+
+/* =========================================
+   FLOATING FEEDBACK BUTTON & MODAL
+   ========================================= */
+.floating-feedback-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background-color: #0d5c34;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(13, 92, 52, 0.3);
+    cursor: pointer;
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: transform 0.2s, background-color 0.2s;
+}
+
+.floating-feedback-btn:hover {
+    background-color: #059669;
+    transform: translateY(-3px);
+}
+
+/* Star Rating System */
+.star-rating-input {
+    display: flex;
+    flex-direction: row-reverse;
+    justify-content: flex-end;
+    gap: 5px;
+    margin-bottom: 15px;
+}
+
+.star-rating-input input {
+    display: none;
+}
+
+.star-rating-input label {
+    font-size: 2rem;
+    color: #d1d5db;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.star-rating-input label:hover,
+.star-rating-input label:hover ~ label,
+.star-rating-input input:checked ~ label {
+    color: #f59e0b; /* Golden Yellow */
+}
+
+#feedback-success {
+    display: none;
+    background: #d1fae5;
+    color: #065f46;
+    padding: 10px;
+    border-radius: 8px;
+    margin-top: 15px;
+    text-align: center;
+    font-weight: 600;
+}

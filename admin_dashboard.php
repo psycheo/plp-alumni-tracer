@@ -1,11 +1,6 @@
 <?php
 session_start();
-
-// Only allow logged-in admins
-if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') {
-    header("Location: admin_login.php");
-    exit;
-}
+if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') { header("Location: login.php"); exit; }
 ?>
 
 <!DOCTYPE html>
@@ -13,40 +8,58 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - PLP Alumni Portal</title>
-    <link rel="stylesheet" href="dashboard-style.css">
+    <title>Admin Dashboard - PLP Admin</title>
+    <link rel="stylesheet" href="admin-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
-    <nav class="navbar">
-        <div class="nav-brand">
-            <i class="fas fa-user-shield"></i>
-            <div>
-                <strong>PLP Alumni Portal - Admin</strong>
-                <span>Administrative control panel</span>
+    <?php include 'admin_sidebar.php'; ?>
+
+    <main class="admin-main">
+        <div class="page-title">
+            <h1>Admin Dashboard</h1>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 25px;">
+            <div class="admin-card" style="margin-bottom: 0;">
+                <p style="color: #6b7280; font-size: 0.85rem; margin-bottom: 5px;">Total Alumni</p>
+                <h3 style="font-size: 1.5rem; color: #1f2937;">5,002</h3>
+            </div>
+            <div class="admin-card" style="margin-bottom: 0;">
+                <p style="color: #6b7280; font-size: 0.85rem; margin-bottom: 5px;">Employment Rate</p>
+                <h3 style="font-size: 1.5rem; color: #1f2937;">69.6%</h3>
+            </div>
+            <div class="admin-card" style="margin-bottom: 0;">
+                <p style="color: #6b7280; font-size: 0.85rem; margin-bottom: 5px;">Prediction Accuracy</p>
+                <h3 style="font-size: 1.5rem; color: #1f2937;">97.5%</h3>
+            </div>
+            <div class="admin-card" style="margin-bottom: 0;">
+                <p style="color: #6b7280; font-size: 0.85rem; margin-bottom: 5px;">Margin of Error</p>
+                <h3 style="font-size: 1.5rem; color: #1f2937;">±1.1%</h3>
             </div>
         </div>
 
-        <div class="nav-actions">
-            <div class="nav-links-container">
-                <a href="admin_dashboard.php" class="nav-link active"><i class="fas fa-home"></i> Dashboard</a>
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 25px;">
+            
+            <div class="admin-card">
+                <h3 style="font-size: 1.1rem; color: #1f2937; margin-bottom: 15px;">Employment Rate Forecast</h3>
+                <div style="width: 100%; height: 350px; background: #f8fafc; border: 1px dashed #cbd5e1; display: flex; align-items: center; justify-content: center; color: #94a3b8;">
+                    [ Insert Chart.js Canvas or Python Image Here ]
+                </div>
             </div>
 
-            <a href="index.php" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            <div class="admin-card">
+                <h3 style="font-size: 1.1rem; color: #1f2937; margin-bottom: 15px;">Quick Actions</h3>
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    <button class="btn-upload" style="width: 100%; text-align: center; padding: 12px;">UPLOAD DATA MODEL</button>
+                    <button class="btn-upload" style="width: 100%; text-align: center; padding: 12px;">FORECASTING</button>
+                    <button class="btn-upload" style="width: 100%; text-align: center; padding: 12px;">GENERATE REPORTS</button>
+                </div>
+            </div>
+            
         </div>
-    </nav>
-
-    <main class="dashboard-container">
-        <div class="section-header">
-            <i class="fas fa-chart-line header-icon"></i>
-            <h2>Welcome, <?php echo htmlspecialchars($_SESSION['full_name']); ?></h2>
-        </div>
-
-        <p>This is a placeholder for the Admin Dashboard. Here you will later manage users, jobs, companies, and forecasting tools.</p>
     </main>
 
 </body>
 </html>
-
-

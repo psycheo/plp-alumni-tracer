@@ -2,20 +2,17 @@
 session_start();
 require_once 'db.php';
 
-// Initialize error variable
 $error = "";
 
-// Check if form is submitted
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $student_id = trim($_POST['student_id']);
     $password = trim($_POST['password']);
 
-    // Basic format validation for student ID: YY-NNNNN (e.g., 23-00186)
-    if (!preg_match('/^[0-9]{2}-[0-9]{5}$/', $student_id)) {
-        $error = "Invalid Student ID format. Please use YY-NNNNN (e.g., 23-00186).";
+    if (empty($student_id) || empty($password)) {
+        $error = "Please enter both ID and password.";
     } else {
-        // Look up alumni user in the database
-        $stmt = $conn->prepare("SELECT id, student_id, full_name, password, role FROM users WHERE student_id = ? AND role = 'alumni' LIMIT 1");
+        // Look up the user regardless of role
+        $stmt = $conn->prepare("SELECT id, student_id, full_name, password, role FROM users WHERE student_id = ? LIMIT 1");
         if ($stmt) {
             $stmt->bind_param("s", $student_id);
             $stmt->execute();
@@ -24,7 +21,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if ($result && $result->num_rows === 1) {
                 $user = $result->fetch_assoc();
 
-                // For now, compare plain-text password (same as stored in SQL seed data)
+                // Compare plain-text password
                 if ($password === $user['password']) {
                     $_SESSION['loggedin'] = true;
                     $_SESSION['user_id'] = $user['id'];
@@ -32,16 +29,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $_SESSION['full_name'] = $user['full_name'];
                     $_SESSION['role'] = $user['role'];
 
-                    // Alumni dashboard (user-facing)
-                    header("Location: dashboard.php");
+                    // Route based on role
+                    if ($user['role'] === 'admin') {
+                        header("Location: admin_dashboard.php");
+                    } else {
+                        header("Location: dashboard.php");
+                    }
                     exit;
                 } else {
-                    $error = "Incorrect Student ID or password. Please try again.";
+                    $error = "Incorrect ID or password. Please try again.";
                 }
             } else {
-                $error = "Incorrect Student ID or password. Please try again.";
+                $error = "Incorrect ID or password. Please try again.";
             }
-
             $stmt->close();
         } else {
             $error = "Database error. Please contact the administrator.";
@@ -56,15 +56,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PLP Alumni Tracer - Login</title>
-    
     <link rel="stylesheet" href="login-style.css">
-    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
     <div class="login-wrapper">
-        
         <div class="login-header">
             <div class="logo-icon">
                 <i class="fas fa-graduation-cap"></i>
@@ -83,10 +80,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="POST">
                 
                 <div class="form-group">
-                    <label for="student_id">Student ID Number</label>
+                    <label for="student_id">Student ID / Admin ID</label>
                     <div class="input-icon-wrap">
                         <i class="far fa-id-card"></i>
-                        <input type="text" id="student_id" name="student_id" placeholder="e.g., 23-00186" required>
+                        <input type="text" id="student_id" name="student_id" placeholder="e.g., 23-00186 or 00-ADMIN" required>
                     </div>
                 </div>
 
@@ -101,17 +98,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <button type="submit" class="btn-login">Login</button>
             </form>
 
-            <div class="credentials-box">
-                <strong>Sample Alumni Login Credentials:</strong>
-                <p>Student ID: <span class="mono">23-00186</span></p>
-                <p>Password: <span class="mono">alumni123</span></p>
+            <div class="credentials-box" style="margin-top: 20px; font-size: 0.85rem; color: #666;">
+                <strong>Test Credentials:</strong>
+                <p>Alumni: <span class="mono">23-00186</span> / <span class="mono">alumni123</span></p>
+                <p>Admin: <span class="mono">00-ADMIN</span> / <span class="mono">admin123</span></p>
             </div>
         </div>
 
         <div class="login-footer">
-            &copy; 2026 Pamantasan ng Lungsod ng Pasig
+            &copy; <?php echo date("Y"); ?> Pamantasan ng Lungsod ng Pasig
         </div>
-
     </div>
 
 </body>

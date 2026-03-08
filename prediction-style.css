@@ -4,7 +4,7 @@
 
 .bg-light { background-color: #f8fafc; color: #334155; }
 
-/* --- 1. BASE FORM STYLES (This is what went missing!) --- */
+/* --- 1. BASE FORM STYLES --- */
 .input-group { margin-bottom: 20px; text-align: left; }
 
 .input-group label { 
@@ -173,14 +173,92 @@
 
 .btn-secondary:hover { background: #cbd5e1; }
 
-/* --- 3. LIKERT SCALE (For Step 2) --- */
-.likert-table { background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; text-align: left;}
-.likert-row { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-bottom: 10px; border-bottom: 1px dashed #cbd5e1;}
-.likert-row:last-child { border-bottom: none; }
-.likert-row span { font-size: 0.9rem; flex: 1; }
-.radios { display: flex; gap: 15px; }
+
+/* --- 3. MODERN SKILL RATING UI (Replaced Likert Scale) --- */
+.likert-table {
+    margin-top: 15px;
+}
+
+.likert-row {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 15px 20px;
+    margin-bottom: 15px;
+    transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.likert-row:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+}
+
+.skill-label {
+    display: block;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 12px;
+    font-size: 0.95rem;
+}
+
+.rating-group {
+    display: flex;
+    gap: 10px;
+}
+
+.rating-group label {
+    flex: 1;
+    margin: 0 !important;
+    cursor: pointer;
+}
+
+/* Hide the actual tiny radio button */
+.rating-group input[type="radio"] {
+    display: none;
+}
+
+/* Style the text span to look like a button */
+.rating-box {
+    display: block;
+    text-align: center;
+    padding: 10px 0;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    color: #475569;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+}
+
+/* Hover effect */
+.rating-group input[type="radio"]:hover + .rating-box {
+    background: #e0f2fe;
+    border-color: #38bdf8;
+    color: #0369a1;
+}
+
+/* Selected effect */
+.rating-group input[type="radio"]:checked + .rating-box {
+    background: #0d5c34;
+    border-color: #0d5c34;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(13, 92, 52, 0.25);
+}
+
+.scale-legend {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: #9ca3af;
+    margin-top: 5px;
+    padding: 0 5px;
+}
+
 .scale-desc { font-size: 0.85rem; color: #64748b; margin-bottom: 15px; text-align: left;}
 
+/* --- 4. RESULTS PAGE STYLES --- */
 .results-wrapper {
     max-width: 800px;
     margin: 40px auto;
@@ -194,8 +272,9 @@
     padding: 30px 40px;
     border-radius: 12px;
     margin-bottom: 20px;
-    box-shadow: 0 10px 25px rgba(13, 92, 52, 0.2); /* Green shadow */
+    box-shadow: 0 10px 25px rgba(13, 92, 52, 0.2);
 }
+
 .back-link {
     color: rgba(255, 255, 255, 0.85);
     text-decoration: none;
@@ -220,7 +299,7 @@
 .banner-title h1 { font-size: 1.8rem; font-weight: 700; margin: 0; }
 .results-banner p { opacity: 0.9; font-size: 1rem; margin: 0; }
 
-/* Best Match Card (Yellow Theme) */
+/* Best Match Card */
 .best-match-card {
     background-color: #fefce8;
     border: 2px solid #fde047;
@@ -252,7 +331,6 @@
 .card-header-label strong { display: block; font-size: 1.2rem; color: #1f2937; }
 .card-header-label span { font-size: 0.9rem; color: #6b7280; }
 
-/* Match Main Content (Title & Circle) */
 .match-main-content {
     display: flex;
     justify-content: space-between;
@@ -287,7 +365,6 @@
 
 .score-label { font-size: 0.8rem; color: #6b7280; font-weight: 500; }
 
-/* Stats Chips */
 .stats-chips {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -306,11 +383,10 @@
 .chip span { display: block; font-size: 0.8rem; margin-bottom: 2px; }
 .chip strong { font-size: 1.1rem; }
 
-.chip-purple { background: #ecfeff; color: #0891b2; } /* Now Teal */
+.chip-purple { background: #ecfeff; color: #0891b2; }
 .chip-green { background: #ecfdf5; color: #059669; }
 .chip-blue { background: #f7fee7; color: #4d7c0f; }
 
-/* Match Details & Skills */
 .match-details {
     background: white;
     padding: 25px;
@@ -357,7 +433,6 @@
     box-shadow: 0 4px 12px rgba(13, 92, 52, 0.2);
 }
 
-/* Other Options Section */
 .other-options-section {
     background: white;
     border-radius: 12px;
@@ -401,8 +476,9 @@
 .option-card p { color: #6b7280; font-size: 0.9rem; margin-bottom: 10px; }
 .option-card ul { margin-left: 20px; color: #4b5563; font-size: 0.9rem; }
 
+/* Error Handling Classes */
 .error-icon {
-    color: #dc3545; /* Red warning color */
+    color: #dc3545; 
     display: none;
     margin-left: 8px;
     cursor: default;
@@ -411,17 +487,9 @@
 
 .input-error { border-color: #dc3545 !important; background-color: #fff8f8; }
 
-/* The Red Asterisk (Hidden by default) */
 .required-star {
     color: #dc3545;
     font-weight: bold;
     display: none; 
     margin-left: 5px;
-}
-
-/* Make Radio Buttons Bigger */
-.radios input[type="radio"] {
-    transform: scale(1.5); 
-    margin: 0 10px;        
-    cursor: pointer;
 }

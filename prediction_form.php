@@ -27,11 +27,11 @@ $programs = $conn->query("SELECT * FROM programs");
             
             <div class="progress-container">
                 <div class="progress-labels">
-                    <span id="step-text">Step 1 of 3</span>
-                    <span id="percent-text" class="text-blue">33% Complete</span>
+                    <span id="step-text">Step 1 of 4</span>
+                    <span id="percent-text" class="text-blue">25% Complete</span>
                 </div>
                 <div class="progress-bar-bg">
-                    <div class="progress-bar-fill" id="progress-fill" style="width: 33%;"></div>
+                    <div class="progress-bar-fill" id="progress-fill" style="width: 25%;"></div>
                 </div>
             </div>
 
@@ -43,12 +43,7 @@ $programs = $conn->query("SELECT * FROM programs");
                     <p class="text-center sub-label">Tell us about your educational background</p>
 
                     <div class="input-group mt-4">
-                        <label>
-                            Your Name 
-                            <span class="error-icon" id="nameError" title="Names can only contain letters, spaces, dots, or hyphens.">
-                                <i class="fas fa-exclamation-circle"></i>
-                            </span>
-                        </label>
+                        <label>Your Name <span class="error-icon" id="nameError"><i class="fas fa-exclamation-circle"></i></span></label>
                         <input type="text" id="nameInput" name="name" required placeholder="e.g. Juan Dela Cruz" maxlength="50">
                     </div>
 
@@ -64,12 +59,7 @@ $programs = $conn->query("SELECT * FROM programs");
 
                     <div class="grid-2">
                         <div class="input-group">
-                            <label>
-                                Graduation Year
-                                <span class="error-icon" id="yearError" title="Please select a valid year.">
-                                    <i class="fas fa-exclamation-circle"></i>
-                                </span>
-                            </label>
+                            <label>Graduation Year <span class="error-icon" id="yearError"><i class="fas fa-exclamation-circle"></i></span></label>
                             <select name="grad_year" id="gradYearInput" required>
                                 <option value="">Select Year...</option>
                                 <?php 
@@ -91,8 +81,8 @@ $programs = $conn->query("SELECT * FROM programs");
                         </div>
                     </div>
 
-                    <div class="wizard-footer justify-end">
-                        <button type="button" class="btn-primary" onclick="nextStep(2)">Continue <i class="fas fa-arrow-right"></i></button>
+                    <div class="wizard-footer" style="display: flex; justify-content: flex-end;">
+                        <button type="button" class="btn-primary" onclick="validateAndNext(1)">Continue <i class="fas fa-arrow-right"></i></button>
                     </div>
                 </div>
 
@@ -104,21 +94,11 @@ $programs = $conn->query("SELECT * FROM programs");
                     <div id="employed-fields" style="display: none;">
                         <div class="grid-2">
                             <div class="input-group">
-                                <label>
-                                    Current Position/Job Title
-                                    <span class="error-icon" id="posError" title="Only letters, spaces, dots, or hyphens allowed.">
-                                        <i class="fas fa-exclamation-circle"></i>
-                                    </span>
-                                </label>
+                                <label>Current Position/Job Title <span class="error-icon" id="posError"><i class="fas fa-exclamation-circle"></i></span></label>
                                 <input type="text" name="current_position" id="req_pos" placeholder="e.g. Software Engineer" maxlength="100">
                             </div>
                             <div class="input-group">
-                                <label>
-                                    Company Name
-                                    <span class="error-icon" id="compError" title="Only letters, spaces, dots, or hyphens allowed.">
-                                        <i class="fas fa-exclamation-circle"></i>
-                                    </span>
-                                </label>
+                                <label>Company Name <span class="error-icon" id="compError"><i class="fas fa-exclamation-circle"></i></span></label>
                                 <input type="text" name="current_company" id="req_comp" placeholder="e.g. Tech Corp" maxlength="100">
                             </div>
                             <div class="input-group">
@@ -132,84 +112,83 @@ $programs = $conn->query("SELECT * FROM programs");
                                 </select>
                             </div>
                             <div class="input-group">
-                                <label>
-                                    Years of Experience
-                                    <span class="error-icon" id="expError" title="Experience cannot exceed 50 years.">
-                                        <i class="fas fa-exclamation-circle"></i>
-                                    </span>
-                                </label>
-                                <input type="number" name="years_experience" id="req_exp" placeholder="e.g. 2" min="0" max="50" onkeydown="if(['e', 'E', '+', '-'].includes(event.key)) event.preventDefault();">
+                                <label>Years of Experience <span class="error-icon" id="expError"><i class="fas fa-exclamation-circle"></i></span></label>
+                                <input type="number" name="years_experience" id="req_exp" placeholder="e.g. 2" min="0" max="50">
                             </div>
                         </div>
                     </div>
 
                     <div id="unemployed-fields" style="display: none;">
-                        <p class="scale-desc">Rate your proficiency from 1 (Poor) to 5 (Excellent).</p>
                         <div class="likert-table" id="likertTable">
-                            <strong>Soft Skills</strong>
+                            <strong style="font-size: 1.1rem; color: #111827;">Soft Skills Assessment</strong>
+                            <p style="font-size: 0.85rem; color: #6b7280; margin-bottom: 15px;">Rate yourself honestly to get the best matches.</p>
                             
                             <div class="likert-row">
-                                <span>
-                                    Communication & Presentation 
-                                    <span class="required-star" id="error_ss1">*</span>
-                                </span>
-                                <div class="radios">
-                                    <input type="radio" name="ss1" value="1"><input type="radio" name="ss1" value="2"><input type="radio" name="ss1" value="3"><input type="radio" name="ss1" value="4"><input type="radio" name="ss1" value="5">
+                                <span class="skill-label">Communication & Presentation <span class="required-star" id="error_ss1">*</span></span>
+                                <div class="rating-group">
+                                    <label><input type="radio" name="ss1" value="1"><span class="rating-box">1</span></label>
+                                    <label><input type="radio" name="ss1" value="2"><span class="rating-box">2</span></label>
+                                    <label><input type="radio" name="ss1" value="3"><span class="rating-box">3</span></label>
+                                    <label><input type="radio" name="ss1" value="4"><span class="rating-box">4</span></label>
+                                    <label><input type="radio" name="ss1" value="5"><span class="rating-box">5</span></label>
                                 </div>
+                                <div class="scale-legend"><span>Needs Work</span><span>Excellent</span></div>
                             </div>
 
                             <div class="likert-row">
-                                <span>
-                                    Adaptability & Teamwork
-                                    <span class="required-star" id="error_ss2">*</span>
-                                </span>
-                                <div class="radios">
-                                    <input type="radio" name="ss2" value="1"><input type="radio" name="ss2" value="2"><input type="radio" name="ss2" value="3"><input type="radio" name="ss2" value="4"><input type="radio" name="ss2" value="5">
+                                <span class="skill-label">Adaptability & Teamwork <span class="required-star" id="error_ss2">*</span></span>
+                                <div class="rating-group">
+                                    <label><input type="radio" name="ss2" value="1"><span class="rating-box">1</span></label>
+                                    <label><input type="radio" name="ss2" value="2"><span class="rating-box">2</span></label>
+                                    <label><input type="radio" name="ss2" value="3"><span class="rating-box">3</span></label>
+                                    <label><input type="radio" name="ss2" value="4"><span class="rating-box">4</span></label>
+                                    <label><input type="radio" name="ss2" value="5"><span class="rating-box">5</span></label>
                                 </div>
-                            </div>
-
-                            <strong style="margin-top: 15px; display:block;">Hard Skills</strong>
-                            
-                            <div class="likert-row">
-                                <span>
-                                    Technical Knowledge in Degree
-                                    <span class="required-star" id="error_hs1">*</span>
-                                </span>
-                                <div class="radios">
-                                    <input type="radio" name="hs1" value="1"><input type="radio" name="hs1" value="2"><input type="radio" name="hs1" value="3"><input type="radio" name="hs1" value="4"><input type="radio" name="hs1" value="5">
-                                </div>
+                                <div class="scale-legend"><span>Needs Work</span><span>Excellent</span></div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="grid-2 mt-4">
+                    <div class="grid-2 mt-4" style="border-top: 1px solid #e5e7eb; padding-top: 20px;">
                         <div class="input-group">
-                            <label>
-                                Final GPA (1.00 - 5.00)
-                                <span class="error-icon" id="gpaError" title="Must be between 1.00 and 5.00 (Max 3 digits)">
-                                    <i class="fas fa-exclamation-circle"></i>
-                                </span>
-                            </label>
+                            <label>Final GPA (1.00 - 5.00) <span class="error-icon" id="gpaError"><i class="fas fa-exclamation-circle"></i></span></label>
                             <input type="number" step="0.01" min="1.00" max="5.00" name="gpa" id="req_gpa" placeholder="e.g. 1.50">
                         </div>
                         <div class="input-group">
-                            <label>
-                                OJT Final Grade
-                                <span class="error-icon" id="ojtError" title="Must be between 1.00 and 5.00 (Max 3 digits)">
-                                    <i class="fas fa-exclamation-circle"></i>
-                                </span>
-                            </label>
-                            <input type="number" step="0.01" min="1.00" max="5.00" name="ojt_grade" id="req_ojt" placeholder="e.g. 1.25">
+                            <label>OJT Final Grade (Percentage) <span class="error-icon" id="ojtError"><i class="fas fa-exclamation-circle"></i></span></label>
+                            <input type="number" step="0.01" min="60.00" max="100.00" name="ojt_grade" id="req_ojt" placeholder="e.g. 92.50">
                         </div>
                     </div>
 
-                    <div class="wizard-footer">
-                        <button type="button" class="btn-secondary" onclick="prevStep(1)">Back</button>
-                        <button type="button" class="btn-primary" onclick="nextStep(3)">Continue <i class="fas fa-arrow-right"></i></button>
+                    <div class="wizard-footer" style="display: flex; justify-content: space-between;">
+                        <button type="button" class="btn-secondary" onclick="goBackFrom(2)">Back</button>
+                        <button type="button" class="btn-primary" onclick="validateAndNext(2)">Continue <i class="fas fa-arrow-right"></i></button>
                     </div>
                 </div>
 
                 <div class="wizard-step" id="step3">
+                    <div class="step-icon"><i class="fas fa-laptop-code"></i></div>
+                    <h3 class="text-center">Technical Assessment</h3>
+                    <p class="text-center sub-label">Rate your proficiency in degree-specific subjects.</p>
+
+                    <div class="likert-table">
+                        <strong style="font-size: 1.1rem; color: #111827; display:block;">Hard Skills</strong>
+                        <p style="font-size: 0.85rem; color: #6b7280; margin-bottom: 15px;">These subjects are based on your selected program.</p>
+                        
+                        <div id="dynamic-hard-skills-container"></div>
+                        
+                        <span class="error-icon" id="dynamicSkillsError" style="display:none; color:#ef4444; font-size: 0.85rem; margin-top: 10px;">
+                            <i class="fas fa-exclamation-triangle"></i> Please rate all required hard skills above.
+                        </span>
+                    </div>
+
+                    <div class="wizard-footer" style="display: flex; justify-content: space-between;">
+                        <button type="button" class="btn-secondary" onclick="goBackFrom(3)">Back</button>
+                        <button type="button" class="btn-primary" onclick="validateAndNext(3)">Continue <i class="fas fa-arrow-right"></i></button>
+                    </div>
+                </div>
+
+                <div class="wizard-step" id="step4">
                     <div class="step-icon"><i class="fas fa-magic"></i></div>
                     <h3 class="text-center">Almost Done!</h3>
                     <p class="text-center sub-label">Help us refine your prediction.</p>
@@ -222,8 +201,8 @@ $programs = $conn->query("SELECT * FROM programs");
                         </div>
                     </div>
 
-                    <div class="wizard-footer">
-                        <button type="button" class="btn-secondary" onclick="prevStep(2)">Back</button>
+                    <div class="wizard-footer" style="display: flex; justify-content: space-between;">
+                        <button type="button" class="btn-secondary" onclick="goBackFrom(4)">Back</button>
                         <button type="submit" class="btn-submit"><i class="fas fa-bolt"></i> Get My Career Recommendations</button>
                     </div>
                 </div>
@@ -242,47 +221,28 @@ $programs = $conn->query("SELECT * FROM programs");
         let posInput, posError, compInput, compError, expInput, expError;
         let gpaInput, gpaError, ojtInput, ojtError;
 
-        // Title Case Formatter Function
         function toTitleCase(str) {
-            return str.replace(/\w\S*/g, function(txt) {
-                return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-            });
+            return str.replace(/\w\S*/g, function(txt) { return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(); });
         }
 
         function initValidation() {
-            // Step 1 Elements
-            nameInput = document.getElementById("nameInput");
-            nameError = document.getElementById("nameError");
-            yearInput = document.getElementById("gradYearInput");
-            yearError = document.getElementById("yearError");
-
-            // Step 2 Elements
-            posInput = document.getElementById("req_pos");
-            posError = document.getElementById("posError");
-            compInput = document.getElementById("req_comp");
-            compError = document.getElementById("compError");
-            expInput = document.getElementById("req_exp");
-            expError = document.getElementById("expError");
-            gpaInput = document.getElementById("req_gpa");
-            gpaError = document.getElementById("gpaError");
-            ojtInput = document.getElementById("req_ojt");
-            ojtError = document.getElementById("ojtError");
+            nameInput = document.getElementById("nameInput"); nameError = document.getElementById("nameError");
+            yearInput = document.getElementById("gradYearInput"); yearError = document.getElementById("yearError");
+            posInput = document.getElementById("req_pos"); posError = document.getElementById("posError");
+            compInput = document.getElementById("req_comp"); compError = document.getElementById("compError");
+            expInput = document.getElementById("req_exp"); expError = document.getElementById("expError");
+            gpaInput = document.getElementById("req_gpa"); gpaError = document.getElementById("gpaError");
+            ojtInput = document.getElementById("req_ojt"); ojtError = document.getElementById("ojtError");
 
             const currentYear = new Date().getFullYear();
             yearInput.max = currentYear;
 
-            // --- REAL-TIME LISTENERS ---
-            
-            // Apply Title Case when the user clicks out of the text fields (blur event)
             const formatFields = [nameInput, posInput, compInput];
             formatFields.forEach(input => {
                 if(!input) return;
-                input.addEventListener("blur", function() {
-                    this.value = toTitleCase(this.value.trim());
-                });
+                input.addEventListener("blur", function() { this.value = toTitleCase(this.value.trim()); });
             });
 
-            // Name & Text Fields (Remove invalid chars as they type)
             const textFields = [[nameInput, nameError], [posInput, posError], [compInput, compError]];
             textFields.forEach(([input, error]) => {
                 if(!input) return;
@@ -290,41 +250,32 @@ $programs = $conn->query("SELECT * FROM programs");
                     const invalidChars = /[^a-zA-Z\s\.\-]/g;
                     if (invalidChars.test(this.value)) {
                         showError(this, error);
-                        this.value = this.value.replace(invalidChars, ''); // Auto-clean
-                    } else {
-                        clearError(this, error);
-                    }
+                        this.value = this.value.replace(invalidChars, ''); 
+                    } else { clearError(this, error); }
                 });
             });
 
-            // Year
-            yearInput.addEventListener("input", function() {
-                if (this.value > currentYear) showError(this, yearError);
-                else clearError(this, yearError);
-            });
-
-            // Experience
-            expInput.addEventListener("input", function() {
-                if (this.value > 50) showError(this, expError);
-                else clearError(this, expError);
-            });
-
-            // GPA & OJT
-            [gpaInput, ojtInput].forEach(input => {
-                if(!input) return;
-                input.addEventListener("input", function() {
-                    if (this.value.length > 4) this.value = this.value.slice(0, 4);
+            if(gpaInput) {
+                gpaInput.addEventListener("input", function() {
                     const val = parseFloat(this.value);
-                    if (this.value.length >= 3 && (val < 1.00 || val > 5.00)) {
-                        showError(this, input === gpaInput ? gpaError : ojtError);
-                    } else {
-                        clearError(this, input === gpaInput ? gpaError : ojtError);
-                    }
+                    if (this.value !== "" && !isNaN(val)) {
+                        if (val < 1.00 || val > 5.00) showError(this, gpaError);
+                        else clearError(this, gpaError);
+                    } else { clearError(this, gpaError); }
                 });
-            });
+            }
+
+            if(ojtInput) {
+                ojtInput.addEventListener("input", function() {
+                    const val = parseFloat(this.value);
+                    if (this.value !== "" && !isNaN(val)) {
+                        if (val < 60.00 || val > 100.00) showError(this, ojtError);
+                        else clearError(this, ojtError);
+                    } else { clearError(this, ojtError); }
+                });
+            }
         }
 
-        // --- VISUAL HELPERS ---
         function showError(input, icon) {
             if(icon) icon.style.display = "inline";
             if(input) input.classList.add("input-error");
@@ -335,8 +286,51 @@ $programs = $conn->query("SELECT * FROM programs");
             if(input) input.classList.remove("input-error");
         }
 
-        // --- NAVIGATION & VALIDATION ON CLICK ---
-        function nextStep(step) {
+        function renderDynamicSkills(progName) {
+            const container = document.getElementById('dynamic-hard-skills-container');
+            container.innerHTML = '';
+            let skills = [];
+            
+            progName = progName.toLowerCase();
+            if(progName.includes('information technology') || progName.includes('bsit')) {
+                skills = ['Database Management Skills', 'Java Programming Skills', 'Networking Skills', 'Python Programming Skills', 'System Design Skills', 'Web Development Skills', 'Cybersecurity Skills'];
+            } else if (progName.includes('computer science') || progName.includes('bscs')) {
+                skills = ['Cloud Computing Skills', 'Data Structures & Algorithms', 'Machine Learning Skills', 'Programming Logic Skills', 'Software Engineering Skills', 'Artificial Intelligence Skills'];
+            } else if (progName.includes('accountancy') || progName.includes('bsa')) {
+                skills = ['Auditing Skills', 'Budgeting & Analysis Skills', 'Financial Accounting Skills', 'Taxation Skills', 'Risk Management Skills'];
+            } else if (progName.includes('marketing')) {
+                skills = ['Financial Management Skills', 'Leadership & Decision-Making Skills', 'Marketing Skills', 'Strategic Planning Skills', 'Consumer Behavior Analysis', 'Sales Management Skills'];
+            } else if (progName.includes('entrepreneurship')) {
+                skills = ['Financial Management Skills', 'Leadership & Decision-Making Skills', 'Marketing Skills', 'Strategic Planning Skills', 'Innovation & Business Planning Skills'];
+            } else if (progName.includes('english')) {
+                skills = ['Classroom Management Skills', 'Curriculum Development Skills', 'Educational Technology Skills', 'Teaching Skills', 'English Communication & Writing Skills'];
+            } else if (progName.includes('filipino')) {
+                skills = ['Classroom Management Skills', 'Curriculum Development Skills', 'Educational Technology Skills', 'Teaching Skills', 'Filipino Communication & Writing Skills'];
+            } else {
+                skills = ['Technical Knowledge in Degree'];
+            }
+            
+            skills.forEach((skill) => {
+                const row = document.createElement('div');
+                row.className = 'likert-row dynamic-skill-row';
+                const safeName = "specific_skills[" + skill + "]";
+                row.innerHTML = `
+                    <span class="skill-label">${skill} <span class="required-star">*</span></span>
+                    <div class="rating-group">
+                        <label><input type="radio" name="${safeName}" value="1"><span class="rating-box">1</span></label>
+                        <label><input type="radio" name="${safeName}" value="2"><span class="rating-box">2</span></label>
+                        <label><input type="radio" name="${safeName}" value="3"><span class="rating-box">3</span></label>
+                        <label><input type="radio" name="${safeName}" value="4"><span class="rating-box">4</span></label>
+                        <label><input type="radio" name="${safeName}" value="5"><span class="rating-box">5</span></label>
+                    </div>
+                    <div class="scale-legend"><span>Needs Work</span><span>Excellent</span></div>
+                `;
+                container.appendChild(row);
+            });
+        }
+
+        // --- SMART ROUTING NAVIGATION ---
+        function validateAndNext(currentStep) {
             let isValid = true;
             let firstInvalidInput = null;
 
@@ -346,140 +340,127 @@ $programs = $conn->query("SELECT * FROM programs");
                 if (!firstInvalidInput) firstInvalidInput = input;
             }
 
-            // --- VALIDATE STEP 1 ---
-            if (step === 2) {
+            if (currentStep === 1) {
                 const progInput = document.getElementById('progInput');
                 const empStatus = document.getElementById('empStatus');
 
                 if (!nameInput.value.trim()) markInvalid(nameInput, nameError);
+                if (!progInput.value) { progInput.classList.add("input-error"); isValid = false; if(!firstInvalidInput) firstInvalidInput = progInput; } else { progInput.classList.remove("input-error"); }
+                if (!yearInput.value || yearInput.value > new Date().getFullYear()) markInvalid(yearInput, yearError);
+                if (!empStatus.value) { empStatus.classList.add("input-error"); isValid = false; if(!firstInvalidInput) firstInvalidInput = empStatus; } else { empStatus.classList.remove("input-error"); }
+
+                if (!isValid) { firstInvalidInput.focus(); return; }
                 
-                if (!progInput.value) {
-                    progInput.classList.add("input-error"); 
-                    isValid = false;
-                    if(!firstInvalidInput) firstInvalidInput = progInput;
-                } else {
-                    progInput.classList.remove("input-error");
-                }
-
-                const currentYear = new Date().getFullYear();
-                if (!yearInput.value || yearInput.value > currentYear) markInvalid(yearInput, yearError);
-
-                if (!empStatus.value) {
-                    empStatus.classList.add("input-error");
-                    isValid = false;
-                    if(!firstInvalidInput) firstInvalidInput = empStatus;
-                } else {
-                    empStatus.classList.remove("input-error");
-                }
-
-                if (!isValid) {
-                    firstInvalidInput.focus();
-                    return;
-                }
-                
+                const progNameText = progInput.options[progInput.selectedIndex].text;
+                renderDynamicSkills(progNameText);
                 configureStep2(empStatus.value);
+                updateWizardUI(2);
             }
 
-            // --- VALIDATE STEP 2 ---
-            if (step === 3) {
+            else if (currentStep === 2) {
                 const empStatus = document.getElementById('empStatus').value;
 
                 const gpaVal = parseFloat(gpaInput.value);
-                if (!gpaInput.value || gpaVal < 1.00 || gpaVal > 5.00) markInvalid(gpaInput, gpaError);
+                if (gpaInput.value === "" || isNaN(gpaVal) || gpaVal < 1.00 || gpaVal > 5.00) markInvalid(gpaInput, gpaError); else clearError(gpaInput, gpaError);
 
                 const ojtVal = parseFloat(ojtInput.value);
-                if (!ojtInput.value || ojtVal < 1.00 || ojtVal > 5.00) markInvalid(ojtInput, ojtError);
+                if (ojtInput.value === "" || isNaN(ojtVal) || ojtVal < 60.00 || ojtVal > 100.00) markInvalid(ojtInput, ojtError); else clearError(ojtInput, ojtError);
 
                 if (empStatus === 'Employed') {
                     if (!posInput.value.trim()) markInvalid(posInput, posError);
                     if (!compInput.value.trim()) markInvalid(compInput, compError);
                     if (!expInput.value || expInput.value > 50) markInvalid(expInput, expError);
-                    
                     const salInput = document.getElementById('req_sal');
-                    if (!salInput.value) {
-                        salInput.classList.add("input-error");
-                        isValid = false;
-                        if(!firstInvalidInput) firstInvalidInput = salInput;
-                    } else {
-                        salInput.classList.remove("input-error");
-                    }
-                } 
-                else {
+                    if (!salInput.value) { salInput.classList.add("input-error"); isValid = false; if(!firstInvalidInput) firstInvalidInput = salInput; } else { salInput.classList.remove("input-error"); }
+                } else {
                     const checkRadio = (name) => document.querySelector(`input[name="${name}"]:checked`);
-                    
                     document.getElementById('error_ss1').style.display = 'none';
                     document.getElementById('error_ss2').style.display = 'none';
-                    document.getElementById('error_hs1').style.display = 'none';
 
-                    if (!checkRadio('ss1')) {
-                        document.getElementById('error_ss1').style.display = 'inline';
-                        isValid = false;
-                        if(!firstInvalidInput) firstInvalidInput = document.getElementById('likertTable');
-                    }
-                    if (!checkRadio('ss2')) {
-                        document.getElementById('error_ss2').style.display = 'inline';
-                        isValid = false;
-                        if(!firstInvalidInput) firstInvalidInput = document.getElementById('likertTable');
-                    }
-                    if (!checkRadio('hs1')) {
-                        document.getElementById('error_hs1').style.display = 'inline';
-                        isValid = false;
-                        if(!firstInvalidInput) firstInvalidInput = document.getElementById('likertTable');
-                    }
+                    if (!checkRadio('ss1')) { document.getElementById('error_ss1').style.display = 'inline'; isValid = false; if(!firstInvalidInput) firstInvalidInput = document.getElementById('likertTable'); }
+                    if (!checkRadio('ss2')) { document.getElementById('error_ss2').style.display = 'inline'; isValid = false; if(!firstInvalidInput) firstInvalidInput = document.getElementById('likertTable'); }
                 }
 
-                if (!isValid) {
-                    if(firstInvalidInput) firstInvalidInput.focus();
-                    return;
+                if (!isValid) { if(firstInvalidInput) firstInvalidInput.focus(); return; }
+
+                // The Magic Skip: If employed, jump straight to the final step!
+                if (empStatus === 'Employed') {
+                    updateWizardUI(4); 
+                } else {
+                    updateWizardUI(3); 
                 }
             }
 
-            updateWizardUI(step);
+            else if (currentStep === 3) {
+                let allDynamicChecked = true;
+                const dynamicRows = document.querySelectorAll('.dynamic-skill-row');
+                dynamicRows.forEach(row => {
+                    const checked = row.querySelector('input[type="radio"]:checked');
+                    if (!checked) {
+                        allDynamicChecked = false;
+                        row.querySelector('.skill-label').style.color = '#ef4444'; 
+                    } else {
+                        row.querySelector('.skill-label').style.color = '#1f2937';
+                    }
+                });
+                
+                if (!allDynamicChecked) {
+                    document.getElementById('dynamicSkillsError').style.display = 'block';
+                    isValid = false;
+                } else {
+                    document.getElementById('dynamicSkillsError').style.display = 'none';
+                }
+
+                if (!isValid) return; 
+                updateWizardUI(4);
+            }
         }
 
-        function prevStep(step) {
-            updateWizardUI(step);
+        function goBackFrom(currentStep) {
+            if (currentStep === 4) {
+                const empStatus = document.getElementById('empStatus').value;
+                if (empStatus === 'Employed') updateWizardUI(2); // Jump back over step 3
+                else updateWizardUI(3);
+            } 
+            else if (currentStep === 3) updateWizardUI(2);
+            else if (currentStep === 2) updateWizardUI(1);
         }
 
-        // --- UPDATED FIELD HINDERING ---
         function configureStep2(status) {
             const employedFields = document.getElementById('employed-fields');
             const unemployedFields = document.getElementById('unemployed-fields');
             const stepTitle = document.getElementById('step2-title');
             const stepDesc = document.getElementById('step2-desc');
 
-            // Select all inputs within the specific containers
             const empInputs = employedFields.querySelectorAll('input, select');
             const unempInputs = unemployedFields.querySelectorAll('input, select');
 
             if (status === 'Employed') {
-                stepTitle.innerText = "Current Job Details";
-                stepDesc.innerText = "Tell us about your current profession.";
-                employedFields.style.display = 'block';
-                unemployedFields.style.display = 'none';
-                
-                // Enable employed fields, strictly disable unemployed fields
-                empInputs.forEach(i => i.disabled = false);
-                unempInputs.forEach(i => i.disabled = true);
+                stepTitle.innerText = "Current Job Details"; stepDesc.innerText = "Tell us about your current profession.";
+                employedFields.style.display = 'block'; unemployedFields.style.display = 'none';
+                empInputs.forEach(i => i.disabled = false); unempInputs.forEach(i => i.disabled = true);
             } else {
-                stepTitle.innerText = "Skills Assessment";
-                stepDesc.innerText = "Assess your current skill levels.";
-                employedFields.style.display = 'none';
-                unemployedFields.style.display = 'block';
-                
-                // Disable employed fields, strictly enable unemployed fields
-                empInputs.forEach(i => i.disabled = true);
-                unempInputs.forEach(i => i.disabled = false);
+                stepTitle.innerText = "Core Assessment"; stepDesc.innerText = "Let's start with your foundational skills.";
+                employedFields.style.display = 'none'; unemployedFields.style.display = 'block';
+                empInputs.forEach(i => i.disabled = true); unempInputs.forEach(i => i.disabled = false);
             }
         }
 
         function updateWizardUI(step) {
             document.querySelectorAll('.wizard-step').forEach(el => el.classList.remove('active'));
             document.getElementById('step' + step).classList.add('active');
-
-            let percent = step === 1 ? 33 : (step === 2 ? 67 : 100);
+            
+            // Smart Progress Bar Calculation
+            const isEmployed = document.getElementById('empStatus').value === 'Employed';
+            const totalSteps = isEmployed ? 3 : 4;
+            
+            let displayStep = step;
+            if (isEmployed && step === 4) displayStep = 3; // Make Step 4 look like Step 3 to employed users
+            
+            let percent = Math.round((displayStep / totalSteps) * 100);
+            
             document.getElementById('progress-fill').style.width = percent + '%';
-            document.getElementById('step-text').innerText = 'Step ' + step + ' of 3';
+            document.getElementById('step-text').innerText = 'Step ' + displayStep + ' of ' + totalSteps;
             document.getElementById('percent-text').innerText = percent + '% Complete';
         }
     </script>
