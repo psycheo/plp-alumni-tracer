@@ -1,6 +1,9 @@
 <?php
 session_start();
-if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') { header("Location: login.php"); exit; }
+if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') { 
+    header("Location: login.php"); 
+    exit; 
+}
 ?>
 
 <!DOCTYPE html>
@@ -12,12 +15,52 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') { header("Lo
     <link rel="stylesheet" href="../assets/css/admin-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* General Styles */
         .badge { padding: 5px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; color: white; display: inline-block; width: 100px; text-align: center; }
         .bg-green { background: #10b981; }
         .bg-red { background: #ef4444; }
         .progress-bar-container { width: 100%; background: #e5e7eb; border-radius: 4px; height: 8px; margin-top: 5px;}
         .progress-bar { height: 100%; border-radius: 4px; }
         .prob-card { display: flex; align-items: center; gap: 15px; border-left: 4px solid; }
+
+        /* PRINT STYLES - This handles the look of the printed report */
+        @media print {
+            /* 1. Hide non-essential elements */
+            .admin-sidebar, 
+            .page-title p, 
+            button, 
+            .filter-section, 
+            .actions-column, 
+            .fa-eye { 
+                display: none !important; 
+            }
+
+            /* 2. Reset layout for paper */
+            .admin-main { 
+                margin: 0 !important; 
+                padding: 0 !important; 
+                width: 100% !important; 
+            }
+
+            .admin-card { 
+                box-shadow: none !important; 
+                border: 1px solid #e5e7eb !important; 
+                margin-bottom: 20px !important;
+            }
+
+            /* 3. Force colors to show on print */
+            body { background: white !important; }
+            .badge, .progress-bar, .bg-green, .bg-red { 
+                print-color-adjust: exact; 
+                -webkit-print-color-adjust: exact; 
+            }
+
+            /* 4. Page orientation */
+            @page { 
+                size: landscape; 
+                margin: 10mm; 
+            }
+        }
     </style>
 </head>
 <body>
@@ -59,10 +102,12 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') { header("Lo
         <div class="admin-card">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h3 style="font-size: 1.1rem; color: #1f2937;">Latest Prediction Results</h3>
-                <button style="background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 500;"><i class="fas fa-print"></i> Print Report</button>
+                <button onclick="window.print()" style="background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 500;">
+                    <i class="fas fa-print"></i> Print Report
+                </button>
             </div>
 
-            <div style="display: flex; gap: 20px; margin-bottom: 20px;">
+            <div class="filter-section" style="display: flex; gap: 20px; margin-bottom: 20px;">
                 <div style="flex: 1;">
                     <label style="display: block; font-size: 0.8rem; color: #6b7280; margin-bottom: 5px;">Filter by Year Graduated</label>
                     <select style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;"><option>All Years</option></select>
@@ -74,7 +119,7 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') { header("Lo
             </div>
             
             <div style="overflow-x: auto;">
-                <table class="admin-table" style="font-size: 0.8rem;">
+                <table class="admin-table" style="font-size: 0.8rem; width: 100%;">
                     <thead>
                         <tr>
                             <th>Student Number</th>
@@ -89,7 +134,7 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') { header("Lo
                             <th>Predicted Employability</th>
                             <th>Employability Probability</th>
                             <th>Predicted Employment Rate</th>
-                            <th>Actions</th>
+                            <th class="actions-column">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -109,7 +154,7 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') { header("Lo
                                 <div class="progress-bar-container"><div class="progress-bar bg-green" style="width: 54%;"></div></div>
                             </td>
                             <td>43%</td>
-                            <td style="text-align: center;"><i class="fas fa-eye" style="color: #0ea5e9; cursor: pointer;"></i></td>
+                            <td class="actions-column" style="text-align: center;"><i class="fas fa-eye" style="color: #0ea5e9; cursor: pointer;"></i></td>
                         </tr>
                         <tr>
                             <td>26-00004</td>
@@ -127,7 +172,7 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') { header("Lo
                                 <div class="progress-bar-container"><div class="progress-bar bg-red" style="width: 38%;"></div></div>
                             </td>
                             <td>30%</td>
-                            <td style="text-align: center;"><i class="fas fa-eye" style="color: #0ea5e9; cursor: pointer;"></i></td>
+                            <td class="actions-column" style="text-align: center;"><i class="fas fa-eye" style="color: #0ea5e9; cursor: pointer;"></i></td>
                         </tr>
                     </tbody>
                 </table>
