@@ -9,7 +9,7 @@ session_start();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Users - PLP Admin</title>
-    <link rel="stylesheet" href="admin-style.css">
+    <link rel="stylesheet" href="../assets/css/admin-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .role-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
@@ -22,7 +22,7 @@ session_start();
 </head>
 <body>
 
-    <?php include 'admin_sidebar.php'; ?>
+    <?php include '../includes/admin_sidebar.php'; ?>
 
     <main class="admin-main">
         <div class="page-title" style="display: flex; justify-content: space-between; align-items: center;">

@@ -15,21 +15,21 @@
     <div class="nav-actions">
         <div class="nav-links-container">
             <div class="nav-slider"></div> 
-            <a href="dashboard.php" class="nav-link <?= ($currentPage == 'dashboard.php') ? 'active' : '' ?>">
+            <a href="../alumni/dashboard.php" class="nav-link <?= ($currentPage == 'dashboard.php') ? 'active' : '' ?>">
                 <i class="fas fa-home"></i> Home
             </a>
-            <a href="prediction_form.php" class="nav-link <?= ($currentPage == 'prediction_form.php') ? 'active' : '' ?>">
+            <a href="../alumni/prediction_form.php" class="nav-link <?= ($currentPage == 'prediction_form.php') ? 'active' : '' ?>">
                 <i class="far fa-user"></i> My Career Path
             </a>
-            <a href="analytics.php" class="nav-link <?= ($currentPage == 'analytics.php') ? 'active' : '' ?>">
+            <a href="../alumni/analytics.php" class="nav-link <?= ($currentPage == 'analytics.php') ? 'active' : '' ?>">
                 <i class="fas fa-chart-line"></i> View Analytics
             </a>
-            <a href="settings.php" class="nav-link <?= ($currentPage == 'settings.php') ? 'active' : '' ?>">
+            <a href="../alumni/settings.php" class="nav-link <?= ($currentPage == 'settings.php') ? 'active' : '' ?>">
                 <i class="fas fa-gear"></i> Settings
             </a>
         </div>
 
-        <a href="index.php" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        <a href="../index.php" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
     </div>
 </nav>
 

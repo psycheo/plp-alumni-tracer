@@ -67,7 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 e.preventDefault(); // Stop normal page reload
                 const formData = new FormData(this);
 
-                fetch('submit_feedback.php', {
+                fetch('../alumni/submit_feedback.php', {
                     method: 'POST',
                     body: formData
                 })
@@ -104,7 +104,7 @@ function loadAnalytics(programId, programName) {
     analyticsSection.classList.remove('hidden');
     analyticsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-    fetch(`get_data.php?program_id=${programId}`)
+    fetch(`../includes/get_data.php?program_id=${programId}`)
         .then(response => response.json())
         .then(data => {
             container.innerHTML = ''; 

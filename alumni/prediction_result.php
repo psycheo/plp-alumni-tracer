@@ -125,7 +125,7 @@ elseif (strpos($program_name, 'Filipino') !== false) {
 $json_data = json_encode($student_data_for_python);
 $base64_data = base64_encode($json_data);
 
-$command = "python predict.py " . $base64_data . " 2>&1"; 
+$command = "cd ../ml && python predict.py" . $base64_data . " 2>&1"; 
 $output = shell_exec($command);
 $ai_result = json_decode($output, true);
 
@@ -161,13 +161,13 @@ if ($emp_status == 'Employed') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your Career Recommendations - PLP Alumni Tracer</title>
     
-    <link rel="stylesheet" href="dashboard-style.css">
-    <link rel="stylesheet" href="prediction-style.css">
+    <link rel="stylesheet" href="../assets/css/dashboard-style.css">
+    <link rel="stylesheet" href="../assets/css/prediction-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-light">
 
-    <?php include 'navbar.php'; ?>
+    <?php include '../includes/navbar.php'; ?>
 
     <div class="results-wrapper">
         
@@ -268,6 +268,6 @@ if ($emp_status == 'Employed') {
 
     </div>
 
-    <script src="dashboard.js"></script>
+    <script src="../assets/js/dashboard.js"></script>
 </body>
 </html>

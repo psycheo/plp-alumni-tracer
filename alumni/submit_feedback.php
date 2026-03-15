@@ -1,6 +1,6 @@
 <?php
 session_start();
-require 'db.php';
+require '../includes/db.php';
 
 // Ensure user is logged in
 if (!isset($_SESSION['loggedin']) || !isset($_SESSION['user_id'])) {

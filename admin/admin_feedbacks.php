@@ -2,7 +2,7 @@
 session_start();
 // if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') { header("Location: login.php"); exit; }
 
-require 'db.php'; // Add database connection to fetch feedbacks
+require '../includes/db.php';
 
 // Fetch feedbacks joined with user details
 $sql = "SELECT f.*, u.full_name, u.student_id FROM feedbacks f JOIN users u ON f.user_id = u.id ORDER BY f.created_at DESC";
@@ -15,7 +15,7 @@ $feedbacks = $conn->query($sql);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feedbacks - PLP Admin</title>
-    <link rel="stylesheet" href="admin-style.css">
+    <link rel="stylesheet" href="../assets/css/admin-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .feedback-item { border-bottom: 1px solid #e5e7eb; padding: 20px 0; display: flex; gap: 20px; }
@@ -26,7 +26,7 @@ $feedbacks = $conn->query($sql);
 </head>
 <body>
 
-    <?php include 'admin_sidebar.php'; ?>
+    <?php include '../includes/admin_sidebar.php'; ?>
 
     <main class="admin-main">
         <div class="page-title">
