@@ -13,7 +13,7 @@ $emp_status = isset($res['emp_status']) ? $res['emp_status'] : 'Not Employed';
 
 // --- REAL AI PREDICTION INTEGRATION ---
 
-require_once 'db.php';
+require_once '../includes/db.php';
 $name_for_db = $res['name'];
 
 // Extract the detailed dynamic skills from the session
@@ -125,7 +125,7 @@ elseif (strpos($program_name, 'Filipino') !== false) {
 $json_data = json_encode($student_data_for_python);
 $base64_data = base64_encode($json_data);
 
-$command = "cd ../ml && python predict.py" . $base64_data . " 2>&1"; 
+$command = "cd ../ml && python predict.py " . $base64_data . " 2>&1"; 
 $output = shell_exec($command);
 $ai_result = json_decode($output, true);
 
