@@ -38,7 +38,7 @@ CREATE TABLE `alumni_assessments` (
   `current_salary` varchar(100) DEFAULT NULL,
   `years_experience` int(11) DEFAULT NULL,
   `gpa` decimal(3,2) NOT NULL,
-  `ojt_grade` decimal(3,2) NOT NULL,
+  `ojt_grade` decimal(5,2) NOT NULL,
   `soft_skills_avg` decimal(3,2) NOT NULL,
   `hard_skills_avg` decimal(3,2) NOT NULL,
   `cv_filename` varchar(255) DEFAULT NULL,
