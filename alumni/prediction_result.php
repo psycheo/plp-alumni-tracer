@@ -125,7 +125,7 @@ elseif (strpos($program_name, 'Filipino') !== false) {
 $json_data = json_encode($student_data_for_python);
 $base64_data = base64_encode($json_data);
 
-$command = "cd ../ml && python predict.py " . $base64_data . " 2>&1"; 
+$command = "cd ../ml && venv\\Scripts\\python.exe predict.py " . $base64_data . " 2>&1";
 $output = shell_exec($command);
 $ai_result = json_decode($output, true);
 
