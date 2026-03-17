@@ -4,9 +4,9 @@ session_start();
 
 require '../includes/db.php';
 
-// Fetch feedbacks joined with user details
-$sql = "SELECT f.*, u.full_name, u.student_id FROM feedbacks f JOIN users u ON f.user_id = u.id ORDER BY f.created_at DESC";
-$feedbacks = $conn->query($sql);
+// // Fetch feedbacks joined with user details
+// $sql = "SELECT f.*, u.full_name, u.student_id FROM feedbacks f JOIN users u ON f.user_id = u.id ORDER BY f.created_at DESC";
+// $feedbacks = $conn->query($sql);
 ?>
 
 <!DOCTYPE html>
