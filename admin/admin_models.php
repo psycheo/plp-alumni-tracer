@@ -1,6 +1,6 @@
 <?php
 session_start();
-// Security check: Uncomment when ready
+//// Security check: Uncomment when ready
 // if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') { header("Location: login.php"); exit; }
 ?>
 
