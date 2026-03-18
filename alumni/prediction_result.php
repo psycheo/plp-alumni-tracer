@@ -129,7 +129,7 @@ $base64_data = base64_encode($json_data);
 $ml_dir = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'ml';
 
 // Change directory to the ml folder first, THEN run the python script using the venv
-$command = 'cd /d "' . $ml_dir . '" && "venv\Scripts\python.exe" predict.py ' . $base64_data . ' 2>&1';
+$command = 'cd /d "' . $ml_dir . '" && python predict.py ' . $base64_data . ' 2>&1';
 $output = shell_exec($command);
 $ai_result = json_decode($output, true);
 
