@@ -45,9 +45,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // --- LOGIC PATH B: NOT EMPLOYED (Prediction Instrument) ---
     else {
         // Soft Skills Average
-        $ss1 = $_POST['ss1'] ?? 3;
-        $ss2 = $_POST['ss2'] ?? 3;
-        $ss_avg = ((($ss1 + $ss2) / 2) / 5) * 100; 
+        $ss1 = intval($_POST['ss1'] ?? 3);
+        $ss2 = intval($_POST['ss2'] ?? 3);
+        $ss3 = intval($_POST['ss3'] ?? 3);
+        $ss4 = intval($_POST['ss4'] ?? 3);
+        $ss5 = intval($_POST['ss5'] ?? 3);
+        $ss6 = intval($_POST['ss6'] ?? 3);
+        $ss_avg = ((($ss1 + $ss2 + $ss3 + $ss4 + $ss5 + $ss6) / 6) / 5) * 100;
+
+        // Universal Hard Skills Average (1-5 -> 0-100)
+        $hs1 = intval($_POST['hs1'] ?? 3);
+        $hs2 = intval($_POST['hs2'] ?? 3);
+        $hs3 = intval($_POST['hs3'] ?? 3);
+        $hs4 = intval($_POST['hs4'] ?? 3);
+        $hs5 = intval($_POST['hs5'] ?? 3);
+        $hs6 = intval($_POST['hs6'] ?? 3);
+        $hs_avg = ((($hs1 + $hs2 + $hs3 + $hs4 + $hs5 + $hs6) / 6) / 5) * 100;
         
         // --- THE DYNAMIC HARD SKILLS ---
         if (isset($_POST['specific_skills']) && is_array($_POST['specific_skills'])) {
@@ -64,18 +77,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
             
             // Calculate the overall average for the database
-            if ($skill_count > 0) {
-                $hs_avg = $total_hs_score / $skill_count;
-            }
+            // Keep storing the universal hard-skills average to `hard_skills_avg`
+            // but still preserve detailed program-specific skills for the ML router/result page.
         }
 
         if ($gpa <= 2.50 && $ojt_grade_100 >= 85 && $ss_avg >= 70) {
             $employability_status = "Good Match";
         }
 
+        // Pick a recommended profession from the selected program.
+        // If the program has no professions yet, do NOT fall back to another program (avoid showing an unrelated profession).
         $prof_query = $conn->query("SELECT title FROM professions WHERE program_id = $program_id ORDER BY RAND() LIMIT 1");
-        if($prof_query->num_rows > 0) {
+        if ($prof_query && $prof_query->num_rows > 0) {
             $recommended_profession = $prof_query->fetch_assoc()['title'];
+        } else {
+            $recommended_profession = "No profession data available for this program yet";
         }
     }
 

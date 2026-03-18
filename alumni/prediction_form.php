@@ -122,9 +122,10 @@ $programs = $conn->query("SELECT * FROM programs");
                         <div class="likert-table" id="likertTable">
                             <strong style="font-size: 1.1rem; color: #111827;">Soft Skills Assessment</strong>
                             <p style="font-size: 0.85rem; color: #6b7280; margin-bottom: 15px;">Rate yourself honestly to get the best matches.</p>
-                            
+
+                            <div class="likert-grid">
                             <div class="likert-row">
-                                <span class="skill-label">Communication & Presentation <span class="required-star" id="error_ss1">*</span></span>
+                                <span class="skill-label">Oral Communication & Public Speaking <span class="required-star" id="error_ss1">*</span></span>
                                 <div class="rating-group">
                                     <label><input type="radio" name="ss1" value="1"><span class="rating-box">1</span></label>
                                     <label><input type="radio" name="ss1" value="2"><span class="rating-box">2</span></label>
@@ -136,7 +137,7 @@ $programs = $conn->query("SELECT * FROM programs");
                             </div>
 
                             <div class="likert-row">
-                                <span class="skill-label">Adaptability & Teamwork <span class="required-star" id="error_ss2">*</span></span>
+                                <span class="skill-label">Professional Presence & Adaptability <span class="required-star" id="error_ss2">*</span></span>
                                 <div class="rating-group">
                                     <label><input type="radio" name="ss2" value="1"><span class="rating-box">1</span></label>
                                     <label><input type="radio" name="ss2" value="2"><span class="rating-box">2</span></label>
@@ -145,6 +146,55 @@ $programs = $conn->query("SELECT * FROM programs");
                                     <label><input type="radio" name="ss2" value="5"><span class="rating-box">5</span></label>
                                 </div>
                                 <div class="scale-legend"><span>Needs Work</span><span>Excellent</span></div>
+                            </div>
+
+                            <div class="likert-row">
+                                <span class="skill-label">Conflict Resolution & Empathy <span class="required-star" id="error_ss3">*</span></span>
+                                <div class="rating-group">
+                                    <label><input type="radio" name="ss3" value="1"><span class="rating-box">1</span></label>
+                                    <label><input type="radio" name="ss3" value="2"><span class="rating-box">2</span></label>
+                                    <label><input type="radio" name="ss3" value="3"><span class="rating-box">3</span></label>
+                                    <label><input type="radio" name="ss3" value="4"><span class="rating-box">4</span></label>
+                                    <label><input type="radio" name="ss3" value="5"><span class="rating-box">5</span></label>
+                                </div>
+                                <div class="scale-legend"><span>Needs Work</span><span>Excellent</span></div>
+                            </div>
+
+                            <div class="likert-row">
+                                <span class="skill-label">Bilingual Professional Communication (English/Filipino) <span class="required-star" id="error_ss4">*</span></span>
+                                <div class="rating-group">
+                                    <label><input type="radio" name="ss4" value="1"><span class="rating-box">1</span></label>
+                                    <label><input type="radio" name="ss4" value="2"><span class="rating-box">2</span></label>
+                                    <label><input type="radio" name="ss4" value="3"><span class="rating-box">3</span></label>
+                                    <label><input type="radio" name="ss4" value="4"><span class="rating-box">4</span></label>
+                                    <label><input type="radio" name="ss4" value="5"><span class="rating-box">5</span></label>
+                                </div>
+                                <div class="scale-legend"><span>Needs Work</span><span>Excellent</span></div>
+                            </div>
+
+                            <div class="likert-row">
+                                <span class="skill-label">Critical Thinking & Decision Making <span class="required-star" id="error_ss5">*</span></span>
+                                <div class="rating-group">
+                                    <label><input type="radio" name="ss5" value="1"><span class="rating-box">1</span></label>
+                                    <label><input type="radio" name="ss5" value="2"><span class="rating-box">2</span></label>
+                                    <label><input type="radio" name="ss5" value="3"><span class="rating-box">3</span></label>
+                                    <label><input type="radio" name="ss5" value="4"><span class="rating-box">4</span></label>
+                                    <label><input type="radio" name="ss5" value="5"><span class="rating-box">5</span></label>
+                                </div>
+                                <div class="scale-legend"><span>Needs Work</span><span>Excellent</span></div>
+                            </div>
+
+                            <div class="likert-row">
+                                <span class="skill-label">Time Management & Organization <span class="required-star" id="error_ss6">*</span></span>
+                                <div class="rating-group">
+                                    <label><input type="radio" name="ss6" value="1"><span class="rating-box">1</span></label>
+                                    <label><input type="radio" name="ss6" value="2"><span class="rating-box">2</span></label>
+                                    <label><input type="radio" name="ss6" value="3"><span class="rating-box">3</span></label>
+                                    <label><input type="radio" name="ss6" value="4"><span class="rating-box">4</span></label>
+                                    <label><input type="radio" name="ss6" value="5"><span class="rating-box">5</span></label>
+                                </div>
+                                <div class="scale-legend"><span>Needs Work</span><span>Excellent</span></div>
+                            </div>
                             </div>
                         </div>
                     </div>
@@ -167,19 +217,86 @@ $programs = $conn->query("SELECT * FROM programs");
                 </div>
 
                 <div class="wizard-step" id="step3">
-                    <div class="step-icon"><i class="fas fa-laptop-code"></i></div>
-                    <h3 class="text-center">Technical Assessment</h3>
-                    <p class="text-center sub-label">Rate your proficiency in degree-specific subjects.</p>
+                    <div class="step-icon"><i class="fas fa-layer-group"></i></div>
+                    <h3 class="text-center">Core Hard Skills</h3>
+                    <p class="text-center sub-label">These apply across all degrees. Rate based on how you perform them in your field.</p>
 
-                    <div class="likert-table">
-                        <strong style="font-size: 1.1rem; color: #111827; display:block;">Hard Skills</strong>
-                        <p style="font-size: 0.85rem; color: #6b7280; margin-bottom: 15px;">These subjects are based on your selected program.</p>
-                        
-                        <div id="dynamic-hard-skills-container"></div>
-                        
-                        <span class="error-icon" id="dynamicSkillsError" style="display:none; color:#ef4444; font-size: 0.85rem; margin-top: 10px;">
-                            <i class="fas fa-exclamation-triangle"></i> Please rate all required hard skills above.
-                        </span>
+                    <div class="likert-table" id="universalHardSkillsTable">
+                        <strong style="font-size: 1.1rem; color: #111827; display:block;">Universal Hard Skills</strong>
+                        <p style="font-size: 0.85rem; color: #6b7280; margin-bottom: 15px;">Keep it honest—this helps improve your match.</p>
+                        <div class="likert-grid">
+                        <div class="likert-row">
+                            <span class="skill-label">Digital & Technical Literacy <span class="required-star" id="error_hs1">*</span></span>
+                            <div class="rating-group">
+                                <label><input type="radio" name="hs1" value="1"><span class="rating-box">1</span></label>
+                                <label><input type="radio" name="hs1" value="2"><span class="rating-box">2</span></label>
+                                <label><input type="radio" name="hs1" value="3"><span class="rating-box">3</span></label>
+                                <label><input type="radio" name="hs1" value="4"><span class="rating-box">4</span></label>
+                                <label><input type="radio" name="hs1" value="5"><span class="rating-box">5</span></label>
+                            </div>
+                            <div class="scale-legend"><span>Needs Work</span><span>Excellent</span></div>
+                        </div>
+
+                        <div class="likert-row">
+                            <span class="skill-label">Data Interpretation & Analytical Reporting <span class="required-star" id="error_hs2">*</span></span>
+                            <div class="rating-group">
+                                <label><input type="radio" name="hs2" value="1"><span class="rating-box">1</span></label>
+                                <label><input type="radio" name="hs2" value="2"><span class="rating-box">2</span></label>
+                                <label><input type="radio" name="hs2" value="3"><span class="rating-box">3</span></label>
+                                <label><input type="radio" name="hs2" value="4"><span class="rating-box">4</span></label>
+                                <label><input type="radio" name="hs2" value="5"><span class="rating-box">5</span></label>
+                            </div>
+                            <div class="scale-legend"><span>Needs Work</span><span>Excellent</span></div>
+                        </div>
+
+                        <div class="likert-row">
+                            <span class="skill-label">Applied Problem Solving <span class="required-star" id="error_hs3">*</span></span>
+                            <div class="rating-group">
+                                <label><input type="radio" name="hs3" value="1"><span class="rating-box">1</span></label>
+                                <label><input type="radio" name="hs3" value="2"><span class="rating-box">2</span></label>
+                                <label><input type="radio" name="hs3" value="3"><span class="rating-box">3</span></label>
+                                <label><input type="radio" name="hs3" value="4"><span class="rating-box">4</span></label>
+                                <label><input type="radio" name="hs3" value="5"><span class="rating-box">5</span></label>
+                            </div>
+                            <div class="scale-legend"><span>Needs Work</span><span>Excellent</span></div>
+                        </div>
+
+                        <div class="likert-row">
+                            <span class="skill-label">Project & Resource Management <span class="required-star" id="error_hs4">*</span></span>
+                            <div class="rating-group">
+                                <label><input type="radio" name="hs4" value="1"><span class="rating-box">1</span></label>
+                                <label><input type="radio" name="hs4" value="2"><span class="rating-box">2</span></label>
+                                <label><input type="radio" name="hs4" value="3"><span class="rating-box">3</span></label>
+                                <label><input type="radio" name="hs4" value="4"><span class="rating-box">4</span></label>
+                                <label><input type="radio" name="hs4" value="5"><span class="rating-box">5</span></label>
+                            </div>
+                            <div class="scale-legend"><span>Needs Work</span><span>Excellent</span></div>
+                        </div>
+
+                        <div class="likert-row">
+                            <span class="skill-label">Regulatory & Ethical Compliance <span class="required-star" id="error_hs5">*</span></span>
+                            <div class="rating-group">
+                                <label><input type="radio" name="hs5" value="1"><span class="rating-box">1</span></label>
+                                <label><input type="radio" name="hs5" value="2"><span class="rating-box">2</span></label>
+                                <label><input type="radio" name="hs5" value="3"><span class="rating-box">3</span></label>
+                                <label><input type="radio" name="hs5" value="4"><span class="rating-box">4</span></label>
+                                <label><input type="radio" name="hs5" value="5"><span class="rating-box">5</span></label>
+                            </div>
+                            <div class="scale-legend"><span>Needs Work</span><span>Excellent</span></div>
+                        </div>
+
+                        <div class="likert-row">
+                            <span class="skill-label">Practicum / OJT Execution <span class="required-star" id="error_hs6">*</span></span>
+                            <div class="rating-group">
+                                <label><input type="radio" name="hs6" value="1"><span class="rating-box">1</span></label>
+                                <label><input type="radio" name="hs6" value="2"><span class="rating-box">2</span></label>
+                                <label><input type="radio" name="hs6" value="3"><span class="rating-box">3</span></label>
+                                <label><input type="radio" name="hs6" value="4"><span class="rating-box">4</span></label>
+                                <label><input type="radio" name="hs6" value="5"><span class="rating-box">5</span></label>
+                            </div>
+                            <div class="scale-legend"><span>Needs Work</span><span>Excellent</span></div>
+                        </div>
+                        </div>
                     </div>
 
                     <div class="wizard-footer" style="display: flex; justify-content: space-between;">
@@ -189,6 +306,28 @@ $programs = $conn->query("SELECT * FROM programs");
                 </div>
 
                 <div class="wizard-step" id="step4">
+                    <div class="step-icon"><i class="fas fa-laptop-code"></i></div>
+                    <h3 class="text-center">Technical Skills</h3>
+                    <p class="text-center sub-label">These are based on your selected program. Rate all items to proceed.</p>
+
+                    <div class="likert-table">
+                        <strong style="font-size: 1.1rem; color: #111827; display:block;">Program-Specific Hard Skills</strong>
+                        <p style="font-size: 0.85rem; color: #6b7280; margin-bottom: 15px;">These subjects are based on your selected program.</p>
+                        
+                        <div id="dynamic-hard-skills-container" class="likert-grid"></div>
+                        
+                        <span class="error-icon" id="dynamicSkillsError" style="display:none; color:#ef4444; font-size: 0.85rem; margin-top: 10px;">
+                            <i class="fas fa-exclamation-triangle"></i> Please rate all required hard skills above.
+                        </span>
+                    </div>
+
+                    <div class="wizard-footer" style="display: flex; justify-content: space-between;">
+                        <button type="button" class="btn-secondary" onclick="goBackFrom(4)">Back</button>
+                        <button type="button" class="btn-primary" onclick="validateAndNext(4)">Continue <i class="fas fa-arrow-right"></i></button>
+                    </div>
+                </div>
+
+                <div class="wizard-step" id="step5">
                     <div class="step-icon"><i class="fas fa-magic"></i></div>
                     <h3 class="text-center">Almost Done!</h3>
                     <p class="text-center sub-label">Help us refine your prediction.</p>
@@ -202,7 +341,7 @@ $programs = $conn->query("SELECT * FROM programs");
                     </div>
 
                     <div class="wizard-footer" style="display: flex; justify-content: space-between;">
-                        <button type="button" class="btn-secondary" onclick="goBackFrom(4)">Back</button>
+                        <button type="button" class="btn-secondary" onclick="goBackFrom(5)">Back</button>
                         <button type="submit" class="btn-submit"><i class="fas fa-bolt"></i> Get My Career Recommendations</button>
                     </div>
                 </div>
@@ -376,22 +515,46 @@ $programs = $conn->query("SELECT * FROM programs");
                     const checkRadio = (name) => document.querySelector(`input[name="${name}"]:checked`);
                     document.getElementById('error_ss1').style.display = 'none';
                     document.getElementById('error_ss2').style.display = 'none';
+                            document.getElementById('error_ss3').style.display = 'none';
+                            document.getElementById('error_ss4').style.display = 'none';
+                            document.getElementById('error_ss5').style.display = 'none';
+                            document.getElementById('error_ss6').style.display = 'none';
 
                     if (!checkRadio('ss1')) { document.getElementById('error_ss1').style.display = 'inline'; isValid = false; if(!firstInvalidInput) firstInvalidInput = document.getElementById('likertTable'); }
                     if (!checkRadio('ss2')) { document.getElementById('error_ss2').style.display = 'inline'; isValid = false; if(!firstInvalidInput) firstInvalidInput = document.getElementById('likertTable'); }
+                            if (!checkRadio('ss3')) { document.getElementById('error_ss3').style.display = 'inline'; isValid = false; if(!firstInvalidInput) firstInvalidInput = document.getElementById('likertTable'); }
+                            if (!checkRadio('ss4')) { document.getElementById('error_ss4').style.display = 'inline'; isValid = false; if(!firstInvalidInput) firstInvalidInput = document.getElementById('likertTable'); }
+                            if (!checkRadio('ss5')) { document.getElementById('error_ss5').style.display = 'inline'; isValid = false; if(!firstInvalidInput) firstInvalidInput = document.getElementById('likertTable'); }
+                            if (!checkRadio('ss6')) { document.getElementById('error_ss6').style.display = 'inline'; isValid = false; if(!firstInvalidInput) firstInvalidInput = document.getElementById('likertTable'); }
                 }
 
                 if (!isValid) { if(firstInvalidInput) firstInvalidInput.focus(); return; }
 
-                // The Magic Skip: If employed, jump straight to the final step!
-                if (empStatus === 'Employed') {
-                    updateWizardUI(4); 
-                } else {
-                    updateWizardUI(3); 
-                }
+                // Show skills pages for all users to avoid skipping the assessment steps
+                updateWizardUI(3);
             }
 
             else if (currentStep === 3) {
+                        // Validate universal hard skills
+                        const checkRadio = (name) => document.querySelector(`input[name="${name}"]:checked`);
+                        const universalIds = ['error_hs1','error_hs2','error_hs3','error_hs4','error_hs5','error_hs6'];
+                        universalIds.forEach(id => { const el = document.getElementById(id); if (el) el.style.display = 'none'; });
+
+                        const universalNames = ['hs1','hs2','hs3','hs4','hs5','hs6'];
+                        universalNames.forEach((n, idx) => {
+                            if (!checkRadio(n)) {
+                                const errEl = document.getElementById(universalIds[idx]);
+                                if (errEl) errEl.style.display = 'inline';
+                                isValid = false;
+                                if (!firstInvalidInput) firstInvalidInput = document.getElementById('universalHardSkillsTable');
+                            }
+                        });
+
+                        if (!isValid) { if(firstInvalidInput) firstInvalidInput.focus(); return; }
+                updateWizardUI(4);
+            }
+
+            else if (currentStep === 4) {
                 let allDynamicChecked = true;
                 const dynamicRows = document.querySelectorAll('.dynamic-skill-row');
                 dynamicRows.forEach(row => {
@@ -411,17 +574,16 @@ $programs = $conn->query("SELECT * FROM programs");
                     document.getElementById('dynamicSkillsError').style.display = 'none';
                 }
 
-                if (!isValid) return; 
-                updateWizardUI(4);
+                if (!isValid) return;
+                updateWizardUI(5);
             }
         }
 
         function goBackFrom(currentStep) {
-            if (currentStep === 4) {
-                const empStatus = document.getElementById('empStatus').value;
-                if (empStatus === 'Employed') updateWizardUI(2); // Jump back over step 3
-                else updateWizardUI(3);
+            if (currentStep === 5) {
+                updateWizardUI(4);
             } 
+            else if (currentStep === 4) updateWizardUI(3);
             else if (currentStep === 3) updateWizardUI(2);
             else if (currentStep === 2) updateWizardUI(1);
         }
@@ -451,11 +613,8 @@ $programs = $conn->query("SELECT * FROM programs");
             document.getElementById('step' + step).classList.add('active');
             
             // Smart Progress Bar Calculation
-            const isEmployed = document.getElementById('empStatus').value === 'Employed';
-            const totalSteps = isEmployed ? 3 : 4;
-            
+            const totalSteps = 5;
             let displayStep = step;
-            if (isEmployed && step === 4) displayStep = 3; // Make Step 4 look like Step 3 to employed users
             
             let percent = Math.round((displayStep / totalSteps) * 100);
             

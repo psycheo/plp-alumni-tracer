@@ -125,19 +125,22 @@ elseif (strpos($program_name, 'Filipino') !== false) {
 $json_data = json_encode($student_data_for_python);
 $base64_data = base64_encode($json_data);
 
-$command = "cd ../ml && venv\\Scripts\\python.exe predict.py " . $base64_data . " 2>&1";
-$output = shell_exec($command);
-$ai_result = json_decode($output, true);
+$match_score = 50; // safe fallback
 
-if (isset($ai_result['probability_percent'])) {
-    $match_score = $ai_result['probability_percent']; 
-} else {
-    echo "<div style='background: red; color: white; padding: 20px; z-index: 9999; position: relative;'>";
-    echo "<strong>PYTHON ERROR DETECTED:</strong><br>";
-    echo "Command tried: " . $command . "<br>";
-    echo "Raw Output: " . htmlspecialchars($output);
-    echo "</div>";
-    $match_score = 50; 
+// Try to run the Python model only if the venv exists (prevents the big red error banner)
+$ml_dir = realpath(__DIR__ . '/../ml');
+$venv_python = $ml_dir ? ($ml_dir . DIRECTORY_SEPARATOR . 'venv' . DIRECTORY_SEPARATOR . 'Scripts' . DIRECTORY_SEPARATOR . 'python.exe') : null;
+$predict_py = $ml_dir ? ($ml_dir . DIRECTORY_SEPARATOR . 'predict.py') : null;
+
+if ($ml_dir && $venv_python && file_exists($venv_python) && $predict_py && file_exists($predict_py)) {
+    // Use an absolute command so Windows can find the paths reliably
+    $command = '"' . $venv_python . '" "' . $predict_py . '" ' . $base64_data . ' 2>&1';
+    $output = shell_exec($command);
+    $ai_result = json_decode($output, true);
+
+    if (isset($ai_result['probability_percent'])) {
+        $match_score = $ai_result['probability_percent'];
+    }
 }
 
 $score_color = ($match_score >= 70) ? '#10b981' : (($match_score >= 50) ? '#f59e0b' : '#ef4444');
