@@ -2,18 +2,17 @@ import pandas as pd
 import random
 
 data = []
-# We will test with just IT and CS for now to prove the concept works
 degrees = ['BSIT', 'BSCS']
 
-print("Generating 200 mock alumni records...")
+print("Generating 500 highly intelligent mock alumni records...")
 
-for i in range(200):
+for _ in range(500):
     degree = random.choice(degrees)
     
-    # Base academic and profile stats (scaled 75-100 to match your PHP logic)
+    # Base academic stats (scaled 75-100)
     row = {
         "Degree": degree,
-        "Age": random.randint(21, 25),
+        "Age": random.randint(21, 26),
         "Gender": random.choice(["Male", "Female"]),
         "Leadership POS": random.choice(["Yes", "No"]),
         "Act Member POS": random.choice(["Yes", "No"]),
@@ -26,31 +25,58 @@ for i in range(200):
     }
     
     if degree == 'BSIT':
-        # IT specific professions and skills
-        row["Profession"] = random.choice(["Web Developer", "Network Administrator", "Database Analyst", "IT Support Specialist"])
-        row["Database Management Skills"] = random.randint(80, 100)
-        row["Java Programming Skills"] = random.randint(80, 100)
-        row["Networking Skills"] = random.randint(80, 100)
-        row["Python Programming Skills"] = random.randint(80, 100)
-        row["System Design Skills"] = random.randint(80, 100)
-        row["Web Development Skills"] = random.randint(80, 100)
-        row["Cybersecurity Skills"] = random.randint(80, 100)
+        # Map specific professions to the specific skills from your PHP file
+        it_mapping = {
+            "Web Developer": "Web Development Skills",
+            "Network Administrator": "Networking Skills",
+            "Database Administrator": "Database Management Skills",
+            "Software Engineer": "Java Programming Skills",
+            "Cybersecurity Analyst": "Cybersecurity Skills",
+            "Systems Analyst": "System Design Skills"
+        }
+        
+        # 1. Pick a random profession for this mock student
+        prof = random.choice(list(it_mapping.keys()))
+        row["Profession"] = prof
+        
+        # 2. Set ALL their IT skills to an "Average" baseline (75 to 85)
+        for skill in it_mapping.values():
+            row[skill] = random.randint(75, 85)
+        row["Python Programming Skills"] = random.randint(75, 85) # Extra skill
+            
+        # 3. Boost ONLY the skill that matches their profession to "Excellent" (90 to 100)
+        target_skill = it_mapping[prof]
+        row[target_skill] = random.randint(90, 100)
+
     else: 
-        # CS specific professions and skills
-        row["Profession"] = random.choice(["Software Engineer", "AI Researcher", "Data Scientist", "Systems Analyst"])
-        row["Cloud Computing Skills"] = random.randint(80, 100)
-        row["Data Structures & Algorithms"] = random.randint(80, 100)
-        row["Machine Learning Skills"] = random.randint(80, 100)
-        row["Programming Logic Skills"] = random.randint(80, 100)
-        row["Software Engineering Skills"] = random.randint(80, 100)
-        row["Artificial Intelligence Skills"] = random.randint(80, 100)
+        # BSCS Mapping
+        cs_mapping = {
+            "AI/ML Engineer": "Artificial Intelligence Skills",
+            "Data Scientist": "Machine Learning Skills",
+            "Cloud Architect": "Cloud Computing Skills",
+            "Software Developer": "Data Structures & Algorithms"
+        }
+        
+        # 1. Pick Profession
+        prof = random.choice(list(cs_mapping.keys()))
+        row["Profession"] = prof
+        
+        # 2. Set average baseline
+        for skill in cs_mapping.values():
+            row[skill] = random.randint(75, 85)
+        row["Programming Logic Skills"] = random.randint(75, 85)
+        row["Software Engineering Skills"] = random.randint(75, 85)
+            
+        # 3. Boost target skill
+        target_skill = cs_mapping[prof]
+        row[target_skill] = random.randint(90, 100)
         
     data.append(row)
 
-# Create DataFrame and fill missing skills across programs with 0
+# Create DataFrame and fill any blank spaces with 0 to prevent errors
 df = pd.DataFrame(data)
 df.fillna(0, inplace=True)
 
-# Save to the CSV file that your training script will look for
+# Save to CSV
 df.to_csv("alumni_data.csv", index=False)
-print("Success! 'alumni_data.csv' has been created.")
+print("Success! 'alumni_data.csv' has been created with perfect skill-to-profession correlations.")

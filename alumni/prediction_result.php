@@ -133,15 +133,20 @@ $venv_python = $ml_dir ? ($ml_dir . DIRECTORY_SEPARATOR . 'venv' . DIRECTORY_SEP
 $predict_py = $ml_dir ? ($ml_dir . DIRECTORY_SEPARATOR . 'predict.py') : null;
 
 if ($ml_dir && $venv_python && file_exists($venv_python) && $predict_py && file_exists($predict_py)) {
-    // Use an absolute command so Windows can find the paths reliably
-    $command = '"' . $venv_python . '" "' . $predict_py . '" ' . $base64_data . ' 2>&1';
-    $output = shell_exec($command);
-    $ai_result = json_decode($output, true);
+        // Use an absolute command so Windows can find the paths reliably
+        $command = '"' . $venv_python . '" "' . $predict_py . '" ' . $base64_data . ' 2>&1';
+        $output = shell_exec($command);
+        $ai_result = json_decode($output, true);
 
-    if (isset($ai_result['probability_percent'])) {
-        $match_score = $ai_result['probability_percent'];
+        if (isset($ai_result['probability_percent'])) {
+            $match_score = $ai_result['probability_percent'];
+        }
+        
+        // THE FIX: Override the random database profession with the real AI prediction!
+        if (isset($ai_result['profession'])) {
+            $profession = htmlspecialchars($ai_result['profession']);
+        }
     }
-}
 
 $score_color = ($match_score >= 70) ? '#10b981' : (($match_score >= 50) ? '#f59e0b' : '#ef4444');
 
