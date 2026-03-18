@@ -10,10 +10,16 @@ $programs = $conn->query("SELECT * FROM programs");
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PLP Alumni Employability Tracer</title>
     <link rel="stylesheet" href="../assets/css/dashboard-style.css">
-    <link rel="stylesheet" href="../assets/css/prediction-style.css">
+    <link rel="stylesheet" href="../assets/css/prediction-style.css?v=1.1">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-light">
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="ai-spinner"></div>
+        <h3>Analyzing Your Profile...</h3>
+        <p>Our AI is calculating your perfect career match.</p>
+    </div>
 
     <?php include '../includes/navbar.php'; ?>
 
@@ -621,6 +627,15 @@ $programs = $conn->query("SELECT * FROM programs");
             document.getElementById('progress-fill').style.width = percent + '%';
             document.getElementById('step-text').innerText = 'Step ' + displayStep + ' of ' + totalSteps;
             document.getElementById('percent-text').innerText = percent + '% Complete';
+        }
+
+        // Intercept form submission to show the loading blur
+        const wizardForm = document.getElementById('wizardForm');
+        if (wizardForm) {
+            wizardForm.addEventListener('submit', function() {
+                // Show the loading screen overlay
+                document.getElementById('loadingOverlay').classList.add('active');
+            });
         }
     </script>
     <script src="../assets/js/dashboard.js"></script>

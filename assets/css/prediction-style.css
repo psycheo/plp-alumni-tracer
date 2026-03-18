@@ -531,3 +531,54 @@
     display: none; 
     margin-left: 5px;
 }
+
+/* --- 5. LOADING OVERLAY --- */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.loading-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.ai-spinner {
+    width: 60px;
+    height: 60px;
+    border: 5px solid #e2e8f0;
+    border-top-color: #0d5c34;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 10px rgba(13, 92, 52, 0.2);
+}
+
+@keyframes spin { 
+    100% { transform: rotate(360deg); } 
+}
+
+.loading-overlay h3 { 
+    color: #0f172a; 
+    font-size: 1.5rem; 
+    margin-bottom: 8px; 
+}
+
+.loading-overlay p { 
+    color: #64748b; 
+    font-size: 1rem; 
+}
