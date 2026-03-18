@@ -125,7 +125,11 @@ elseif (strpos($program_name, 'Filipino') !== false) {
 $json_data = json_encode($student_data_for_python);
 $base64_data = base64_encode($json_data);
 
-$command = "cd ../ml && venv\\Scripts\\python.exe predict.py " . $base64_data . " 2>&1";
+// Get the absolute path to the ml directory
+$ml_dir = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'ml';
+
+// Change directory to the ml folder first, THEN run the python script using the venv
+$command = 'cd /d "' . $ml_dir . '" && "venv\Scripts\python.exe" predict.py ' . $base64_data . ' 2>&1';
 $output = shell_exec($command);
 $ai_result = json_decode($output, true);
 
