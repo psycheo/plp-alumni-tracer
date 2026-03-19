@@ -32,7 +32,9 @@ $result = $conn->query($sql);
           <i class="fas fa-user-cog header-icon"></i>
           <h2 style="color: #111827;">Profile Settings</h2>
       </div>
-      <p style="color: #6b7280; margin-bottom: 30px; margin-left: 45px;">Update your account's profile information and academic records.</p>
+      <p style="color: #6b7280; margin-bottom: 30px; margin-left: 45px;">
+          View your registered profile details. To request changes, please contact the university administrator.
+      </p>
 
       <div class="content-card" style="margin-bottom: 25px;">
           <h3><i class="fas fa-id-card"></i> Personal Information</h3>
@@ -40,81 +42,28 @@ $result = $conn->query($sql);
           <div class="form-row">
               <div class="form-group">
                   <label>First Name</label>
-                  <input type="text" value="Juan">
+                  <input type="text" value="Juan" readonly disabled>
               </div>
               <div class="form-group">
                   <label>Middle Name</label>
-                  <input type="text" value="D.">
+                  <input type="text" value="D." readonly disabled>
               </div>
               <div class="form-group">
                   <label>Last Name</label>
-                  <input type="text" value="Cruz">
+                  <input type="text" value="Cruz" readonly disabled>
               </div>
           </div>
 
           <div class="form-row">
               <div class="form-group">
                   <label>Email Address</label>
-                  <input type="email" value="cruz.juan@plpasig.edu.ph">
+                  <input type="email" value="cruz.juan@plpasig.edu.ph" readonly disabled>
               </div>
               <div class="form-group">
                   <label>Age</label>
-                  <input type="number" value="25">
+                  <input type="number" value="25" readonly disabled>
               </div>
           </div>
-      </div>
-
-      <div class="content-card" style="margin-bottom: 25px;">
-          <h3><i class="fas fa-graduation-cap"></i> Academic Information</h3>
-
-          <div class="form-row">
-            <div class="form-group">
-                <label>Degree</label>
-                <select name="program_id" id="progInput" required>
-                    <option value="">Select your program...</option>
-                    <?php while($row = $result->fetch_assoc()): ?>
-                        <option value="<?= $row['id'] ?>"><?= $row['name'] ?></option>
-                    <?php endwhile; ?>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label>Average Grade</label>
-                <input type="text" value="90.00">
-            </div>
-        </div>
-
-          <h4 style="margin: 25px 0 15px 0; color: #374151; padding-top: 15px; border-top: 1px solid #e5e7eb;">Additional Academic Information</h4>
-
-          <div class="form-row">
-              <div class="form-group">
-                  <label>Avg Professional Grade</label>
-                  <input type="text" value="88.00">
-              </div>
-              <div class="form-group">
-                  <label>Avg Elective Grade</label>
-                  <input type="text" value="78.00">
-              </div>
-              <div class="form-group">
-                  <label>OJT Grade</label>
-                  <input type="text" value="87.00">
-              </div>
-          </div>
-
-          <div class="form-row">
-              <div class="form-group">
-                  <label>Soft Skills Average</label>
-                  <input type="text" value="80.00">
-              </div>
-              <div class="form-group">
-                  <label>Hard Skills Average</label>
-                  <input type="text" value="63.08">
-              </div>
-          </div>
-      </div>
-
-      <div style="display: flex; justify-content: flex-end;">
-          <button class="btn-primary"><i class="fas fa-save"></i> Save Changes</button>
       </div>
 
   </div>

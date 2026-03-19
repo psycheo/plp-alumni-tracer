@@ -42,7 +42,7 @@
 
 /* --- 2. MULTI-STEP WIZARD STYLES --- */
 .wizard-wrapper {
-    max-width: 980px;
+    max-width: 780px;
     margin: 24px auto;
     padding: 0 16px;
 }
@@ -67,7 +67,9 @@
     background: #ffffff;
     border-radius: 12px;
     box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-    padding: 32px;
+    padding: 28px;
+    max-width: 640px;
+    margin: 0 auto;
 }
 
 /* Progress Bar */
@@ -131,6 +133,11 @@
 .text-center { text-align: center; }
 .sub-label { color: #64748b; margin-bottom: 25px; }
 .mt-4 { margin-top: 20px; }
+
+/* Stack graduation year and employment status vertically for cleaner alignment on step 1 */
+#step1 .grid-2 {
+    grid-template-columns: 1fr;
+}
 
 /* Buttons */
 .wizard-footer {
@@ -216,11 +223,12 @@
 
 .rating-group {
     display: flex;
-    gap: 10px;
+    justify-content: center;
+    gap: 8px;
 }
 
 .rating-group label {
-    flex: 1;
+    flex: 0 0 52px;
     margin: 0 !important;
     cursor: pointer;
 }
@@ -262,7 +270,7 @@
 
 /* --- FIT MORE CONTENT WITHOUT SCROLL (Desktop) --- */
 @media (min-width: 1024px) {
-    .wizard-wrapper { max-width: 1180px; margin: 18px auto; }
+    .wizard-wrapper { max-width: 900px; margin: 18px auto; }
     .form-container { padding: 26px; }
     .wizard-header { margin-bottom: 18px; }
     .wizard-header h2 { font-size: 1.65rem; }
@@ -270,14 +278,14 @@
     .progress-container { margin-bottom: 16px; }
     .wizard-footer { margin-top: 16px; }
 
-    /* Make skills show in 2 columns on desktop */
-    .likert-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    /* Keep assessment cards in a single vertical column on all devices, just tighten spacing on desktop */
+    .likert-grid { gap: 12px; }
 
     /* Slightly tighter cards */
     .likert-row { padding: 12px 14px; border-radius: 12px; }
     .skill-label { margin-bottom: 8px; font-size: 0.9rem; }
-    .rating-group { gap: 8px; }
-    .rating-box { padding: 8px 0; font-size: 0.95rem; }
+    .rating-group { gap: 6px; }
+    .rating-box { padding: 7px 0; font-size: 0.9rem; }
 }
 
 @media (max-width: 520px) {

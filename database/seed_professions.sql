@@ -264,3 +264,5 @@ SELECT 12, 'Education Program Coordinator (Entry Level)', '₱25,000 - ₱50,000
 WHERE NOT EXISTS (SELECT 1 FROM professions WHERE program_id = 12 AND title = 'Education Program Coordinator (Entry Level)');
 
 
+
+

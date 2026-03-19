@@ -69,6 +69,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['plp_id']) && !isset($_
     }
 }
 
+// Preload programs for academic information dropdowns (used in admin-only modal)
+$programOptions = [];
+$prog_sql = "SELECT id, name FROM programs ORDER BY name ASC";
+if ($prog_result = $conn->query($prog_sql)) {
+    while ($p = $prog_result->fetch_assoc()) {
+        $programOptions[] = $p;
+    }
+}
+
 $results_per_page = 10;
 $page = isset($_GET['page']) && is_numeric($_GET['page']) ? $_GET['page'] : 1;
 $start_from = ($page - 1) * $results_per_page;
@@ -93,9 +102,10 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
         .action-btn { background: none; border: none; cursor: pointer; font-size: 1.1rem; margin: 0 5px; text-decoration: none; display: inline-block; }
         .action-edit { color: #f59e0b; }
         .action-delete { color: #ef4444; }
+        .action-academic { color: #0ea5e9; }
 
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 24, 39, 0.6); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: #ffffff; padding: 25px 30px; border-radius: 10px; width: 100%; max-width: 420px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        .modal-content { background: #ffffff; padding: 25px 30px; border-radius: 10px; width: 100%; max-width: 460px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .modal-header h2 { margin: 0; font-size: 1.25rem; color: #1f2937; }
         .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #9ca3af; transition: 0.2s; }
@@ -115,6 +125,43 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
         .btn-save:hover { background: #059669; }
         .btn-danger { background: #ef4444; }
         .btn-danger:hover { background: #dc2626; }
+
+        /* Academic modal layout */
+        .academic-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .academic-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 10px 12px;
+            background: #f9fafb;
+        }
+
+        .academic-card .form-group {
+            margin-bottom: 8px;
+        }
+
+        .academic-card-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #6b7280;
+            margin-bottom: 6px;
+        }
+
+        .academic-inline-2 {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px 10px;
+        }
+
+        @media (max-width: 640px) {
+            .academic-grid {
+                grid-template-columns: 1fr;
+            }
+        }
 
         .toast-notification { position: fixed; top: 20px; right: 20px; color: white; padding: 15px 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 12px; z-index: 9999; font-weight: 500; animation: slideIn 0.4s ease-out forwards, fadeOut 0.4s ease-in 4s forwards; }
         .toast-success { background: #10b981; }
@@ -203,6 +250,11 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
                                         data-role='" . htmlspecialchars($row['role']) . "'>
                                         <i class='fas fa-edit'></i>
                                     </button>
+                                    <button class='action-btn action-academic'
+                                        data-id='" . htmlspecialchars($row['student_id']) . "'
+                                        data-name='" . htmlspecialchars($row['full_name']) . "'>
+                                        <i class='fas fa-graduation-cap'></i>
+                                    </button>
                                     <a href='?delete_id=" . urlencode($row['student_id']) . "' class='action-btn action-delete custom-delete-btn'>
                                         <i class='fas fa-trash-alt'></i>
                                     </a>
@@ -264,6 +316,77 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
                 <div class="modal-actions">
                     <button type="button" class="btn-cancel" id="closeModalBtn">Cancel</button>
                     <button type="submit" class="btn-save">Save User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Academic Information Modal (Admin-only) -->
+    <div class="modal-overlay" id="academicModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Academic Information</h2>
+                <button class="close-btn" id="closeAcademicModalIcon">&times;</button>
+            </div>
+            <form>
+                <p style="font-size: 0.85rem; color: #6b7280; margin-bottom: 15px;">
+                    View or update the alumni's recorded academic profile.
+                </p>
+                <div class="form-group">
+                    <label>Alumni Name</label>
+                    <input type="text" id="acad_full_name" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Degree / Program</label>
+                    <select id="acad_program">
+                        <option value="">Select program...</option>
+                        <?php foreach ($programOptions as $p): ?>
+                            <option value="<?php echo htmlspecialchars($p['id']); ?>">
+                                <?php echo htmlspecialchars($p['name']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="academic-grid" style="margin-top: 10px;">
+                    <div class="academic-card">
+                        <div class="academic-card-title">Overall Performance</div>
+                        <div class="form-group">
+                            <label>Average Grade</label>
+                            <input type="text" id="acad_avg_grade" placeholder="e.g. 90.00">
+                        </div>
+                        <div class="form-group">
+                            <label>OJT Grade</label>
+                            <input type="text" id="acad_ojt_grade" placeholder="e.g. 87.00">
+                        </div>
+                    </div>
+                    <div class="academic-card">
+                        <div class="academic-card-title">Coursework Averages</div>
+                        <div class="form-group">
+                            <label>Avg Professional Grade</label>
+                            <input type="text" id="acad_prof_grade" placeholder="e.g. 88.00">
+                        </div>
+                        <div class="form-group">
+                            <label>Avg Elective Grade</label>
+                            <input type="text" id="acad_elec_grade" placeholder="e.g. 78.00">
+                        </div>
+                    </div>
+                    <div class="academic-card" style="grid-column: span 2;">
+                        <div class="academic-card-title">Skills Summary</div>
+                        <div class="academic-inline-2">
+                            <div class="form-group">
+                                <label>Soft Skills Average</label>
+                                <input type="text" id="acad_soft_avg" placeholder="e.g. 80.00">
+                            </div>
+                            <div class="form-group">
+                                <label>Hard Skills Average</label>
+                                <input type="text" id="acad_hard_avg" placeholder="e.g. 63.08">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" id="closeAcademicModalBtn">Close</button>
+                    <button type="button" class="btn-save">Save Academic Info</button>
                 </div>
             </form>
         </div>
@@ -360,6 +483,23 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
             closeEditBtn.addEventListener('click', closeEditModal);
             closeEditIcon.addEventListener('click', closeEditModal);
 
+            // Academic Information modal
+            const academicModal = document.getElementById('academicModal');
+            const academicBtns = document.querySelectorAll('.action-academic');
+            const closeAcademicBtn = document.getElementById('closeAcademicModalBtn');
+            const closeAcademicIcon = document.getElementById('closeAcademicModalIcon');
+
+            academicBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.getElementById('acad_full_name').value = this.getAttribute('data-name');
+                    academicModal.style.display = 'flex';
+                });
+            });
+
+            const closeAcademicModal = () => academicModal.style.display = 'none';
+            closeAcademicBtn.addEventListener('click', closeAcademicModal);
+            closeAcademicIcon.addEventListener('click', closeAcademicModal);
+
             const deleteModal = document.getElementById('deleteConfirmModal');
             const deleteBtns = document.querySelectorAll('.custom-delete-btn');
             const confirmDeleteLink = document.getElementById('confirmDeleteLink');
@@ -379,6 +519,7 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
                 if (e.target === addModal) closeAddModal();
                 if (e.target === editModal) closeEditModal();
                 if (e.target === deleteModal) closeDeleteModal();
+                if (e.target === academicModal) closeAcademicModal();
             });
 
             // Input Validation Logic
