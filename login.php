@@ -99,9 +99,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </form>
 
             <div class="credentials-box" style="margin-top: 20px; font-size: 0.85rem; color: #666;">
-                <strong>Test Credentials:</strong>
-                <p>Alumni: <span class="mono">23-00186</span> / <span class="mono">alumni123</span></p>
-                <p>Admin: <span class="mono">00-ADMIN</span> / <span class="mono">admin123</span></p>
+                <strong>Test Credentials (Click to Copy):</strong>
+                
+                <style>
+                    .copy-btn {
+                        background: #eee;
+                        border: 1px solid #ccc;
+                        padding: 2px 5px;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        font-family: monospace;
+                    }
+                    .copy-btn:active { background: #ddd; }
+                </style>
+
+                <p>Alumni: 
+                    <span class="copy-btn" onclick="navigator.clipboard.writeText('23-00186')">23-00186</span> / 
+                    <span class="copy-btn" onclick="navigator.clipboard.writeText('alumni123')">alumni123</span>
+                </p>
+                
+                <p>Admin: 
+                    <span class="copy-btn" onclick="navigator.clipboard.writeText('00-ADMIN')">00-ADMIN</span> / 
+                    <span class="copy-btn" onclick="navigator.clipboard.writeText('admin123')">admin123</span>
+                </p>
             </div>
         </div>
 
