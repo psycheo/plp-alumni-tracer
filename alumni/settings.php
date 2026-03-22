@@ -2,7 +2,6 @@
 session_start();
 require '../includes/db.php';
 
-// 1. Security Check: Ensure user is logged in
 if (!isset($_SESSION['loggedin'])) {
     header("Location: login.php");
     exit;
@@ -142,7 +141,7 @@ $result = $conn->query($sql);
     </div>
 
     
-
+    <script src="../assets/js/dashboard.js"></script>
     <script>
         const newPass = document.getElementById('new_password');
         const confirmPass = document.getElementById('confirm_password');
