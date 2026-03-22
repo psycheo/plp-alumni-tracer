@@ -1,16 +1,7 @@
 <?php
 session_start();
 
-$host = 'localhost';
-$db_user = 'root'; 
-$db_pass = '';     
-$db_name = 'plp_tracer';
-
-$conn = new mysqli($host, $db_user, $db_pass, $db_name);
-
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+require '../includes/db.php';
 
 if (isset($_GET['delete_id'])) {
     $delete_id = $conn->real_escape_string($_GET['delete_id']);
@@ -311,7 +302,7 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
                 </div>
                 <div class="form-group">
                     <label for="temp_password">Temporary Password</label>
-                    <input type="password" id="temp_password" name="temp_password" placeholder="••••••••" maxlength="16" required>
+                    <input type="password" id="temp_password" name="temp_password" value="alumni123" placeholder="••••••••" maxlength="16" required>
                 </div>
                 <div class="modal-actions">
                     <button type="button" class="btn-cancel" id="closeModalBtn">Cancel</button>
