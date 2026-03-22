@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 16, 2026 at 07:57 AM
+-- Generation Time: Mar 22, 2026 at 10:03 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -123,7 +123,63 @@ INSERT INTO `professions` (`id`, `program_id`, `title`, `avg_salary`, `descripti
 (1, 1, 'Software Engineer', '₱45,000 - ₱90,000/mo', 'Develops and maintains software applications, systems, and network networks.'),
 (2, 1, 'Network Administrator', '₱35,000 - ₱70,000/mo', 'Manages and maintains an organization\'s computer networks.'),
 (3, 2, 'Data Analyst', '₱40,000 - ₱85,000/mo', 'Interprets data and turns it into information which can offer ways to improve a business.'),
-(4, 7, 'Registered Nurse', '₱30,000 - ₱60,000/mo', 'Provides and coordinates patient care, educates patients about various health conditions.');
+(4, 7, 'Registered Nurse', '₱30,000 - ₱60,000/mo', 'Provides and coordinates patient care, educates patients about various health conditions.'),
+(5, 1, 'IT Support Specialist', '₱25,000 - ₱45,000/mo', 'Provides technical support, troubleshooting, and user assistance.'),
+(6, 1, 'Web Developer', '₱35,000 - ₱80,000/mo', 'Develops and maintains websites and web applications.'),
+(7, 1, 'Cybersecurity Analyst', '₱45,000 - ₱95,000/mo', 'Monitors, assesses, and strengthens security posture against threats.'),
+(8, 2, 'Software Engineer', '₱45,000 - ₱90,000/mo', 'Builds scalable software systems with strong engineering practices.'),
+(9, 2, 'QA / Test Engineer', '₱30,000 - ₱70,000/mo', 'Designs and runs tests to ensure software quality and reliability.'),
+(10, 2, 'Machine Learning Engineer', '₱55,000 - ₱120,000/mo', 'Builds and deploys ML models and data-driven systems.'),
+(11, 2, 'Backend Developer', '₱45,000 - ₱100,000/mo', 'Develops APIs, databases, and server-side logic for applications.'),
+(12, 3, 'Junior Accountant', '₱25,000 - ₱45,000/mo', 'Supports bookkeeping, reports, and general accounting tasks.'),
+(13, 3, 'Audit Associate', '₱25,000 - ₱55,000/mo', 'Assists audit engagements, testing, and documentation.'),
+(14, 3, 'Tax Associate', '₱25,000 - ₱55,000/mo', 'Prepares tax filings, compliance documents, and tax research.'),
+(15, 3, 'Financial Analyst', '₱35,000 - ₱80,000/mo', 'Analyzes financial performance, budgeting, and forecasting.'),
+(16, 3, 'Bookkeeper', '₱20,000 - ₱40,000/mo', 'Maintains financial records, ledgers, and reconciliation.'),
+(17, 4, 'Marketing Associate', '₱22,000 - ₱45,000/mo', 'Supports marketing campaigns, content, and coordination.'),
+(18, 4, 'Digital Marketing Specialist', '₱30,000 - ₱70,000/mo', 'Runs performance marketing, social media, and SEO/SEM initiatives.'),
+(19, 4, 'Sales Executive', '₱25,000 - ₱70,000/mo', 'Drives sales, manages leads, and builds client relationships.'),
+(20, 4, 'Brand Coordinator', '₱25,000 - ₱60,000/mo', 'Supports brand activities, events, and brand consistency.'),
+(21, 4, 'Market Research Analyst', '₱30,000 - ₱75,000/mo', 'Gathers and analyzes consumer/market insights for strategy.'),
+(22, 5, 'Business Development Associate', '₱25,000 - ₱60,000/mo', 'Identifies growth opportunities, partnerships, and new markets.'),
+(23, 5, 'Operations Coordinator', '₱22,000 - ₱50,000/mo', 'Supports daily operations, process improvement, and coordination.'),
+(24, 5, 'Project Coordinator', '₱25,000 - ₱55,000/mo', 'Coordinates project tasks, timelines, and stakeholders.'),
+(25, 5, 'Product Associate', '₱30,000 - ₱70,000/mo', 'Assists product planning, research, and product execution.'),
+(26, 5, 'Small Business Owner', 'Varies', 'Starts and manages a business—planning, execution, and operations.'),
+(27, 6, 'Front Office Associate', '₱18,000 - ₱35,000/mo', 'Handles guest services, reservations, and front desk operations.'),
+(28, 6, 'Hotel Operations Supervisor', '₱28,000 - ₱55,000/mo', 'Supervises daily hotel operations and service standards.'),
+(29, 6, 'Events Coordinator', '₱22,000 - ₱50,000/mo', 'Plans and coordinates events, logistics, and vendor management.'),
+(30, 6, 'Food & Beverage Supervisor', '₱22,000 - ₱45,000/mo', 'Supervises F&B service, staff, and customer experience.'),
+(31, 6, 'Guest Relations Officer', '₱22,000 - ₱45,000/mo', 'Improves guest satisfaction and handles guest concerns.'),
+(32, 7, 'Company Nurse', '₱25,000 - ₱50,000/mo', 'Provides workplace health services and first aid support.'),
+(33, 7, 'Clinical Nurse (Ward)', '₱30,000 - ₱65,000/mo', 'Delivers bedside care and manages patient monitoring.'),
+(34, 7, 'Public Health Nurse', '₱28,000 - ₱55,000/mo', 'Supports community health programs and preventive care.'),
+(35, 7, 'Nursing Assistant', '₱18,000 - ₱35,000/mo', 'Assists nurses with patient care and basic clinical tasks.'),
+(36, 8, 'Junior Electronics Engineer', '₱28,000 - ₱60,000/mo', 'Assists design, testing, and maintenance of electronic systems.'),
+(37, 8, 'Telecommunications Engineer', '₱35,000 - ₱80,000/mo', 'Works on telecom networks, transmission systems, and connectivity.'),
+(38, 8, 'Network Field Engineer', '₱30,000 - ₱70,000/mo', 'Installs and troubleshoots network and communication equipment.'),
+(39, 8, 'RF Engineer (Entry Level)', '₱35,000 - ₱85,000/mo', 'Supports RF planning, testing, and optimization tasks.'),
+(40, 8, 'Electronics Technician', '₱20,000 - ₱45,000/mo', 'Maintains and repairs electronics equipment and devices.'),
+(41, 9, 'Secondary School Teacher (English)', '₱22,000 - ₱40,000/mo', 'Teaches English and supports student learning outcomes.'),
+(42, 9, 'ESL Teacher', '₱20,000 - ₱45,000/mo', 'Teaches English as a second language in schools or training centers.'),
+(43, 9, 'Academic Tutor', '₱15,000 - ₱35,000/mo', 'Provides tutoring support and learning reinforcement.'),
+(44, 9, 'Curriculum Assistant', '₱20,000 - ₱40,000/mo', 'Assists in curriculum planning, materials, and learning design.'),
+(45, 9, 'Content Writer (Education)', '₱20,000 - ₱45,000/mo', 'Creates educational content, modules, and learning materials.'),
+(46, 10, 'Secondary School Teacher (Mathematics)', '₱22,000 - ₱40,000/mo', 'Teaches mathematics and supports learner competency.'),
+(47, 10, 'Math Tutor', '₱15,000 - ₱35,000/mo', 'Provides tutoring for math subjects and exam preparation.'),
+(48, 10, 'Academic Tutor', '₱15,000 - ₱35,000/mo', 'Provides tutoring support and learning reinforcement.'),
+(49, 10, 'Curriculum Assistant', '₱20,000 - ₱40,000/mo', 'Assists in curriculum planning, assessment, and materials.'),
+(50, 10, 'Education Data Assistant', '₱22,000 - ₱45,000/mo', 'Supports reporting, grading analytics, and assessment data handling.'),
+(51, 11, 'Secondary School Teacher (Filipino)', '₱22,000 - ₱40,000/mo', 'Teaches Filipino language and literature.'),
+(52, 11, 'Academic Tutor', '₱15,000 - ₱35,000/mo', 'Provides tutoring support and learning reinforcement.'),
+(53, 11, 'Curriculum Assistant', '₱20,000 - ₱40,000/mo', 'Assists in curriculum planning, materials, and learning design.'),
+(54, 11, 'Content Writer (Education)', '₱20,000 - ₱45,000/mo', 'Creates educational content, modules, and learning materials.'),
+(55, 11, 'Training Facilitator', '₱22,000 - ₱50,000/mo', 'Facilitates training sessions and develops learning activities.'),
+(56, 12, 'Elementary School Teacher', '₱22,000 - ₱40,000/mo', 'Teaches elementary learners across core subjects.'),
+(57, 12, 'Teaching Assistant', '₱15,000 - ₱30,000/mo', 'Assists teachers with classroom activities and learner support.'),
+(58, 12, 'Child Development Assistant', '₱18,000 - ₱35,000/mo', 'Supports child development programs and learning support.'),
+(59, 12, 'Curriculum Assistant', '₱20,000 - ₱40,000/mo', 'Assists in curriculum planning, learning materials, and evaluation.'),
+(60, 12, 'Education Program Coordinator (Entry Level)', '₱25,000 - ₱50,000/mo', 'Coordinates learning programs and school initiatives.');
 
 -- --------------------------------------------------------
 
@@ -237,7 +293,7 @@ ALTER TABLE `feedbacks`
 -- AUTO_INCREMENT for table `professions`
 --
 ALTER TABLE `professions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=61;
 
 --
 -- AUTO_INCREMENT for table `programs`
