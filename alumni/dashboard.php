@@ -33,6 +33,17 @@ $total_programs = $conn->query("SELECT COUNT(*) as count FROM programs")->fetch_
 
 // Get total alumni count
 $total_alumni = $conn->query("SELECT COUNT(*) as count FROM users WHERE role = 'alumni'")->fetch_assoc()['count'];
+
+// Fetch the user's temporary status from the database
+$is_temporary = 0;
+$stmt = $conn->prepare("SELECT is_temporary FROM users WHERE id = ?");
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$res = $stmt->get_result();
+if ($u = $res->fetch_assoc()) {
+    $is_temporary = $u['is_temporary'];
+}
+$stmt->close();
 ?>
 
 <!DOCTYPE html>
@@ -43,7 +54,7 @@ $total_alumni = $conn->query("SELECT COUNT(*) as count FROM users WHERE role = '
     <title>Dashboard - PLP Alumni Tracer</title>
     <link rel="stylesheet" href="../assets/css/dashboard-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
 
@@ -248,5 +259,26 @@ $total_alumni = $conn->query("SELECT COUNT(*) as count FROM users WHERE role = '
 
     <script src="../assets/js/dashboard.js"></script>
 
+    <script>
+        // Use the variable we fetched above
+        const isTemporary = <?php echo $is_temporary ? 'true' : 'false'; ?>;
+
+        if (isTemporary) {
+            Swal.fire({
+                title: 'Security Notice',
+                text: 'You are still using a temporary password. Please update it to secure your account.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Go to Settings',
+                confirmButtonColor: '#0d5c34',
+                cancelButtonText: 'Later'   
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = 'settings.php?action=changepassword';
+                }
+            });
+        }
+    </script>
+    
 </body>
 </html>

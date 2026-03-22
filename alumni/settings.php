@@ -108,7 +108,7 @@ $result = $conn->query($sql);
         <div class="content-card">
             <h3><i class="fas fa-lock"></i> Account Security</h3>
             <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 15px;">Secure your account by updating your password regularly.</p>
-            <button type="button" onclick="document.getElementById('pwdModal').style.display='flex'" style="background: #0d5c34; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+            <button type="button" class="btn-change-password" onclick="document.getElementById('pwdModal').style.display='flex'" style="background: #0d5c34; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px;">
                 <i class="fas fa-key"></i> Change Password
             </button>
         </div>
@@ -150,6 +150,22 @@ $result = $conn->query($sql);
         const lenHint = document.getElementById('len-hint');
         const capHint = document.getElementById('cap-hint');
         const matchHint = document.getElementById('match-hint');
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            if (urlParams.get('action') === 'changepassword') {
+                const btn = document.querySelector('.btn-change-password'); // Use your actual class
+                if (btn) {
+                    btn.classList.add('glint-effect');
+                    
+                    // Optional: Remove the effect after 5 seconds so it's not annoying
+                    setTimeout(() => {
+                        btn.classList.remove('glint-effect');
+                    }, 5000);
+                }
+            }
+        });
 
         // Real-time validation
         newPass.addEventListener('input', () => {
@@ -197,6 +213,8 @@ $result = $conn->query($sql);
             var modal = document.getElementById('pwdModal');
             if (event.target == modal) modal.style.display = "none";
         }
+
+        
     </script>
 </body>
 </html>
