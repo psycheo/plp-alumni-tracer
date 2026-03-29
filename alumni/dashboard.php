@@ -8,12 +8,12 @@ if (!isset($_SESSION['loggedin'])) {
     exit;
 }
 
-// Get user's full name from session
+// Get user data from session
 $user_name = isset($_SESSION['full_name']) ? $_SESSION['full_name'] : 'Alumni';
 $student_id = isset($_SESSION['student_id']) ? $_SESSION['student_id'] : '';
 $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 0;
 
-// Get user's assessment count
+// 1. Get user's assessment count
 $assessment_count = 0;
 $last_assessment = null;
 $stmt = $conn->prepare("SELECT COUNT(*) as count, MAX(created_at) as last_date FROM alumni_assessments WHERE name = ?");
@@ -28,13 +28,22 @@ if ($stmt) {
     $stmt->close();
 }
 
-// Get total programs count
-$total_programs = $conn->query("SELECT COUNT(*) as count FROM programs")->fetch_assoc()['count'];
+// 2. Fetch recent replies from Admin (Notifications)
+$replies_sql = "SELECT r.*, f.rating 
+                FROM feedback_replies r 
+                JOIN feedbacks f ON r.feedback_id = f.id 
+                WHERE r.alumni_id = ? 
+                ORDER BY r.created_at DESC LIMIT 5";
+$stmt_notif = $conn->prepare($replies_sql);
+$stmt_notif->bind_param("i", $user_id);
+$stmt_notif->execute();
+$notifications = $stmt_notif->get_result();
 
-// Get total alumni count
+// 3. Get total programs & alumni counts
+$total_programs = $conn->query("SELECT COUNT(*) as count FROM programs")->fetch_assoc()['count'];
 $total_alumni = $conn->query("SELECT COUNT(*) as count FROM users WHERE role = 'alumni'")->fetch_assoc()['count'];
 
-// Fetch the user's temporary status from the database
+// 4. Fetch the user's temporary password status
 $is_temporary = 0;
 $stmt = $conn->prepare("SELECT is_temporary FROM users WHERE id = ?");
 $stmt->bind_param("i", $user_id);
@@ -55,6 +64,10 @@ $stmt->close();
     <link rel="stylesheet" href="../assets/css/dashboard-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .notif-badge-new { background: #ef4444; color: white; font-size: 0.65rem; padding: 2px 6px; border-radius: 10px; margin-left: 5px; text-transform: uppercase; }
+        .reply-text { font-style: italic; color: #4b5563; border-left: 3px solid #0d5c34; padding-left: 10px; margin-top: 5px; }
+    </style>
 </head>
 <body>
 
@@ -92,7 +105,6 @@ $stmt->close();
 
         <div class="dashboard-grid">
             <div class="main-content">
-                <!-- Profile Status Card -->
                 <div class="content-card">
                     <h3><i class="fas fa-user-circle"></i> Profile Status</h3>
                     <div class="profile-status <?php echo $assessment_count > 0 ? 'complete' : 'incomplete'; ?>">
@@ -123,100 +135,94 @@ $stmt->close();
                     <?php endif; ?>
                 </div>
 
-                <!-- Recent Activity -->
                 <div class="content-card">
                     <h3><i class="fas fa-history"></i> Recent Activity</h3>
-                    <?php if ($assessment_count > 0): ?>
-                        <div class="activity-item">
-                            <div class="activity-icon">
-                                <i class="fas fa-chart-line"></i>
-                            </div>
-                            <div class="activity-content">
-                                <h4>Career Assessment Completed</h4>
-                                <p>You completed your career path assessment</p>
-                                <?php if ($last_assessment): ?>
-                                    <p class="time" style="margin-top: 0.25rem; color: #9ca3af; font-size: 0.75rem;">
-                                        <?php echo date('F j, Y', strtotime($last_assessment)); ?>
+                    <div class="activity-list">
+                        <?php if ($assessment_count > 0): ?>
+                            <div class="activity-item">
+                                <div class="activity-icon"><i class="fas fa-chart-line"></i></div>
+                                <div class="activity-content">
+                                    <h4>Career Assessment Updated</h4>
+                                    <p>Your professional path has been logged.</p>
+                                    <p class="time" style="color: #9ca3af; font-size: 0.75rem;">
+                                        <?php echo $last_assessment ? date('F j, Y', strtotime($last_assessment)) : ''; ?>
                                     </p>
-                                <?php endif; ?>
+                                </div>
                             </div>
-                        </div>
-                        <div class="activity-item">
-                            <div class="activity-icon" style="background: #3b82f6;">
-                                <i class="fas fa-user-check"></i>
-                            </div>
-                            <div class="activity-content">
-                                <h4>Account Created</h4>
-                                <p>Welcome to PLP Alumni Tracer</p>
-                            </div>
-                        </div>
-                    <?php else: ?>
-                        <div class="empty-state">
-                            <i class="fas fa-inbox"></i>
-                            <p>No recent activity</p>
-                            <p style="font-size: 0.875rem; margin-top: 0.5rem;">Complete your first assessment to see activity here</p>
-                        </div>
-                    <?php endif; ?>
-                </div>
+                        <?php endif; ?>
 
-                <!-- Announcements -->
-                <div class="content-card">
-                    <h3><i class="fas fa-bullhorn"></i> Announcements</h3>
-                    <div class="announcement-item important">
-                        <h4><i class="fas fa-exclamation-circle"></i> Welcome to PLP Alumni Tracer!</h4>
-                        <p>We're excited to have you here. Complete your career assessment to get personalized recommendations.</p>
-                        <div class="date">Posted: <?php echo date('F j, Y'); ?></div>
-                    </div>
-                    <div class="announcement-item">
-                        <h4><i class="fas fa-info-circle"></i> New Features Available</h4>
-                        <p>Explore program analytics and discover career paths based on real alumni data.</p>
-                        <div class="date">Posted: <?php echo date('F j, Y', strtotime('-2 days')); ?></div>
+                        <?php 
+                        // Reset notification pointer to check if any exist for activity
+                        $notifications->data_seek(0); 
+                        if ($recent_notif = $notifications->fetch_assoc()): 
+                        ?>
+                            <div class="activity-item">
+                                <div class="activity-icon" style="background: #10b981;"><i class="fas fa-comment-dots"></i></div>
+                                <div class="activity-content">
+                                    <h4>Admin Responded to Feedback</h4>
+                                    <p>An administrator replied to your recent feedback/suggestion.</p>
+                                    <p class="time" style="color: #9ca3af; font-size: 0.75rem;">
+                                        <?php echo date('F j, Y', strtotime($recent_notif['created_at'])); ?>
+                                    </p>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+
+                        <?php if ($assessment_count == 0 && $notifications->num_rows == 0): ?>
+                            <div class="empty-state">
+                                <i class="fas fa-inbox"></i>
+                                <p>No recent activity</p>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
 
-                <!-- Quick Actions -->
                 <div class="content-card">
                     <h3><i class="fas fa-rocket"></i> Quick Actions</h3>
                     <div class="quick-actions" style="margin-top: 0;">
                         <a href="analytics.php" class="action-card">
                             <i class="fas fa-chart-bar"></i>
                             <h3>View Analytics</h3>
-                            <p>Explore program statistics and career paths</p>
+                            <p>Explore program statistics</p>
                         </a>
-                        
                         <a href="prediction_form.php" class="action-card">
                             <i class="fas fa-user-tie"></i>
                             <h3>My Career Path</h3>
-                            <p>Get personalized recommendations</p>
+                            <p>Get recommendations</p>
                         </a>
                     </div>
                 </div>
             </div>
 
             <div class="sidebar-content">
-                <!-- Notifications -->
                 <div class="content-card">
                     <h3><i class="fas fa-bell"></i> Notifications</h3>
-                    <div class="notification-item unread">
-                        <h4>Welcome to PLP Alumni Tracer!</h4>
-                        <p>Your account has been successfully created. Start exploring career opportunities.</p>
-                        <div class="time">Just now</div>
-                    </div>
-                    <?php if ($assessment_count == 0): ?>
-                        <div class="notification-item">
-                            <h4>Complete Your Profile</h4>
-                            <p>Complete your career assessment to unlock personalized recommendations.</p>
-                            <div class="time">2 days ago</div>
-                        </div>
-                    <?php endif; ?>
-                    <div class="notification-item">
-                        <h4>System Update</h4>
-                        <p>New analytics features are now available. Check them out!</p>
-                        <div class="time">1 week ago</div>
+                    <div class="notification-list">
+                        <?php 
+                        $notifications->data_seek(0); // Reset pointer
+                        if ($notifications->num_rows > 0): 
+                            while($notif = $notifications->fetch_assoc()):
+                        ?>
+                            <div class="notification-item <?php echo $notif['is_seen'] == 0 ? 'unread' : ''; ?>">
+                                <h4>
+                                    Admin Response
+                                    <?php if($notif['is_seen'] == 0) echo '<span class="notif-badge-new">New</span>'; ?>
+                                </h4>
+                                <p class="reply-text">"<?php echo htmlspecialchars($notif['reply_text']); ?>"</p>
+                                <div class="time"><?php echo date('M j, g:i A', strtotime($notif['created_at'])); ?></div>
+                            </div>
+                        <?php 
+                            endwhile; 
+                        else: 
+                        ?>
+                            <div class="notification-item">
+                                <h4>Welcome!</h4>
+                                <p>No new responses from the admin at this time.</p>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
 
-                <!-- Statistics -->
                 <div class="content-card">
                     <h3><i class="fas fa-chart-pie"></i> Portal Statistics</h3>
                     <div class="stats-grid">
@@ -242,13 +248,11 @@ $stmt->close();
                 <div class="content-card">
                     <h3><i class="fas fa-calendar-alt"></i> Upcoming Events</h3>
                     <div class="announcement-item">
-                        <h4><i class="fas fa-calendar-check"></i> Alumni Networking Event</h4>
-                        <p>Join fellow alumni for networking and career development opportunities.</p>
+                        <h4><i class="fas fa-calendar-check"></i> Networking Event</h4>
                         <div class="date">Date: <?php echo date('F j, Y', strtotime('+2 weeks')); ?></div>
                     </div>
                     <div class="announcement-item">
                         <h4><i class="fas fa-briefcase"></i> Career Fair 2026</h4>
-                        <p>Connect with employers and explore job opportunities.</p>
                         <div class="date">Date: <?php echo date('F j, Y', strtotime('+1 month')); ?></div>
                     </div>
                 </div>
@@ -260,7 +264,7 @@ $stmt->close();
     <script src="../assets/js/dashboard.js"></script>
 
     <script>
-        // Use the variable we fetched above
+        // Security check for temporary password
         const isTemporary = <?php echo $is_temporary ? 'true' : 'false'; ?>;
 
         if (isTemporary) {
@@ -274,7 +278,7 @@ $stmt->close();
                 cancelButtonText: 'Later'   
             }).then((result) => {
                 if (result.isConfirmed) {
-                    window.location.href = 'settings.php?action=changepassword';
+                    window.location.href = 'profile_settings.php';
                 }
             });
         }
