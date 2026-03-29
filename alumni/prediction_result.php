@@ -1,23 +1,19 @@
 <?php
 session_start();
-if(!isset($_SESSION['prediction_results'])) {
+if (!isset($_SESSION['prediction_results'])) {
     header("Location: prediction_form.php");
     exit;
 }
 $res = $_SESSION['prediction_results'];
 
+require_once '../includes/db.php';
+require_once '../includes/career_ml_config.php';
+
 $name = htmlspecialchars($res['name']);
 $profession = htmlspecialchars($res['profession']);
 $status = $res['status'];
 $emp_status = isset($res['emp_status']) ? $res['emp_status'] : 'Not Employed';
-
-// --- REAL AI PREDICTION INTEGRATION ---
-
-require_once '../includes/db.php';
 $name_for_db = $res['name'];
-
-// Extract the detailed dynamic skills from the session
-$specific_skills = isset($res['specific_skills']) ? $res['specific_skills'] : [];
 
 $stmt = $conn->prepare("
     SELECT a.gpa, a.ojt_grade, a.soft_skills_avg, a.hard_skills_avg, p.name as program_name 
@@ -29,138 +25,83 @@ $stmt = $conn->prepare("
 $stmt->bind_param("s", $name_for_db);
 $stmt->execute();
 $db_result = $stmt->get_result();
-$user_grades = $db_result->fetch_assoc();
+$user_grades = $db_result ? $db_result->fetch_assoc() : null;
 
-$real_gpa = floatval($user_grades['gpa']);
-$real_ojt = floatval($user_grades['ojt_grade']);
-$real_ss = floatval($user_grades['soft_skills_avg']);
-$real_hs = floatval($user_grades['hard_skills_avg']);
-$program_name = $user_grades['program_name'];
+$student_data_for_python = career_ml_build_student_payload($res, $user_grades);
 
-if ($real_ss <= 0) $real_ss = $real_ojt - 2;
-if ($real_hs <= 0) $real_hs = $real_ojt - 4;
-
-// Helper function to pull the exact skill score or fallback to the average
-function getSkill($skillName, $specific_skills, $fallback_avg) {
-    return isset($specific_skills[$skillName]) ? $specific_skills[$skillName] : $fallback_avg;
-}
-
-// 2. Base Profile
-$student_data_for_python = [
-    "Age" => 22,
-    "Gender" => "Female", 
-    "Leadership POS" => "Yes",
-    "Act Member POS" => "Yes",
-    "CGPA" => $real_gpa,
-    "Average Prof Grade" => 88.0, 
-    "Average Elec Grade" => 88.0, 
-    "OJT Grade" => $real_ojt,
-    "Soft Skills Ave" => $real_ss,
-    "Hard Skills Ave" => $real_hs
-];
-
-// 3. THE DYNAMIC SKILL ROUTER
-if (strpos($program_name, 'Information Technology') !== false || strpos($program_name, 'BSIT') !== false) {
-    $student_data_for_python["Degree"] = "BSIT";
-    $student_data_for_python["Database Management Skills"] = getSkill("Database Management Skills", $specific_skills, $real_hs);
-    $student_data_for_python["Java Programming Skills"] = getSkill("Java Programming Skills", $specific_skills, $real_hs);
-    $student_data_for_python["Networking Skills"] = getSkill("Networking Skills", $specific_skills, $real_hs);
-    $student_data_for_python["Python Programming Skills"] = getSkill("Python Programming Skills", $specific_skills, $real_hs);
-    $student_data_for_python["System Design Skills"] = getSkill("System Design Skills", $specific_skills, $real_hs);
-    $student_data_for_python["Web Development Skills"] = getSkill("Web Development Skills", $specific_skills, $real_hs);
-    $student_data_for_python["Cybersecurity Skills"] = getSkill("Cybersecurity Skills", $specific_skills, $real_hs);
-} 
-elseif (strpos($program_name, 'Computer Science') !== false || strpos($program_name, 'BSCS') !== false) {
-    $student_data_for_python["Degree"] = "BSCS";
-    $student_data_for_python["Cloud Computing Skills"] = getSkill("Cloud Computing Skills", $specific_skills, $real_hs);
-    $student_data_for_python["Data Structures & Algorithms"] = getSkill("Data Structures & Algorithms", $specific_skills, $real_hs);
-    $student_data_for_python["Machine Learning Skills"] = getSkill("Machine Learning Skills", $specific_skills, $real_hs);
-    $student_data_for_python["Programming Logic Skills"] = getSkill("Programming Logic Skills", $specific_skills, $real_hs);
-    $student_data_for_python["Software Engineering Skills"] = getSkill("Software Engineering Skills", $specific_skills, $real_hs);
-    $student_data_for_python["Artificial Intelligence Skills"] = getSkill("Artificial Intelligence Skills", $specific_skills, $real_hs);
-}
-elseif (strpos($program_name, 'Accountancy') !== false || strpos($program_name, 'BSA') !== false) {
-    $student_data_for_python["Degree"] = "BSA";
-    $student_data_for_python["Auditing Skills"] = getSkill("Auditing Skills", $specific_skills, $real_hs);
-    $student_data_for_python["Budgeting & Analysis Skills"] = getSkill("Budgeting & Analysis Skills", $specific_skills, $real_hs);
-    $student_data_for_python["Financial Accounting Skills"] = getSkill("Financial Accounting Skills", $specific_skills, $real_hs);
-    $student_data_for_python["Taxation Skills"] = getSkill("Taxation Skills", $specific_skills, $real_hs);
-    $student_data_for_python["Risk Management Skills"] = getSkill("Risk Management Skills", $specific_skills, $real_hs);
-}
-elseif (strpos($program_name, 'Marketing') !== false) {
-    $student_data_for_python["Degree"] = "BSBA-Marketing";
-    $student_data_for_python["Financial Management Skills"] = getSkill("Financial Management Skills", $specific_skills, $real_hs);
-    $student_data_for_python["Leadership & Decision-Making Skills"] = getSkill("Leadership & Decision-Making Skills", $specific_skills, $real_hs);
-    $student_data_for_python["Marketing Skills"] = getSkill("Marketing Skills", $specific_skills, $real_hs);
-    $student_data_for_python["Strategic Planning Skills"] = getSkill("Strategic Planning Skills", $specific_skills, $real_hs);
-    $student_data_for_python["Consumer Behavior Analysis"] = getSkill("Consumer Behavior Analysis", $specific_skills, $real_hs);
-    $student_data_for_python["Sales Management Skills"] = getSkill("Sales Management Skills", $specific_skills, $real_hs);
-}
-elseif (strpos($program_name, 'Entrepreneurship') !== false) {
-    $student_data_for_python["Degree"] = "BSBA-Entrepreneurship";
-    $student_data_for_python["Financial Management Skills"] = getSkill("Financial Management Skills", $specific_skills, $real_hs);
-    $student_data_for_python["Leadership & Decision-Making Skills"] = getSkill("Leadership & Decision-Making Skills", $specific_skills, $real_hs);
-    $student_data_for_python["Marketing Skills"] = getSkill("Marketing Skills", $specific_skills, $real_hs);
-    $student_data_for_python["Strategic Planning Skills"] = getSkill("Strategic Planning Skills", $specific_skills, $real_hs);
-    $student_data_for_python["Innovation & Business Planning Skills"] = getSkill("Innovation & Business Planning Skills", $specific_skills, $real_hs);
-}
-elseif (strpos($program_name, 'English') !== false) {
-    $student_data_for_python["Degree"] = "BSEd-English";
-    $student_data_for_python["Classroom Management Skills"] = getSkill("Classroom Management Skills", $specific_skills, $real_hs);
-    $student_data_for_python["Curriculum Development Skills"] = getSkill("Curriculum Development Skills", $specific_skills, $real_hs);
-    $student_data_for_python["Educational Technology Skills"] = getSkill("Educational Technology Skills", $specific_skills, $real_hs);
-    $student_data_for_python["Teaching Skills"] = getSkill("Teaching Skills", $specific_skills, $real_hs);
-    $student_data_for_python["English Communication & Writing Skills"] = $real_ss;
-}
-elseif (strpos($program_name, 'Filipino') !== false) {
-    $student_data_for_python["Degree"] = "BSEd-Filipino";
-    $student_data_for_python["Classroom Management Skills"] = getSkill("Classroom Management Skills", $specific_skills, $real_hs);
-    $student_data_for_python["Curriculum Development Skills"] = getSkill("Curriculum Development Skills", $specific_skills, $real_hs);
-    $student_data_for_python["Educational Technology Skills"] = getSkill("Educational Technology Skills", $specific_skills, $real_hs);
-    $student_data_for_python["Teaching Skills"] = getSkill("Teaching Skills", $specific_skills, $real_hs);
-    $student_data_for_python["Filipino Communication & Writing Skills"] = $real_ss;
-}
-
-// 4. Convert and call Python
 $json_data = json_encode($student_data_for_python);
 $base64_data = base64_encode($json_data);
 
-$match_score = 50; // safe fallback
+$match_score = 50;
+$ai_result = null;
+$second_match = null;
+$third_match = null;
+$model_degree_label = '';
 
-// Try to run the Python model only if the venv exists (prevents the big red error banner)
 $ml_dir = realpath(__DIR__ . '/../ml');
-$venv_python = $ml_dir ? ($ml_dir . DIRECTORY_SEPARATOR . 'venv' . DIRECTORY_SEPARATOR . 'Scripts' . DIRECTORY_SEPARATOR . 'python.exe') : null;
 $predict_py = $ml_dir ? ($ml_dir . DIRECTORY_SEPARATOR . 'predict.py') : null;
 
-if ($ml_dir && $venv_python && file_exists($venv_python) && $predict_py && file_exists($predict_py)) {
-        // Use an absolute command so Windows can find the paths reliably
-        $command = '"' . $venv_python . '" "' . $predict_py . '" ' . $base64_data . ' 2>&1';
-        $output = shell_exec($command);
-        $ai_result = json_decode($output, true);
-
-        if (isset($ai_result['probability_percent'])) {
-            $match_score = $ai_result['probability_percent'];
+$python_exe = null;
+if ($ml_dir) {
+    $candidates = [
+        $ml_dir . DIRECTORY_SEPARATOR . 'venv' . DIRECTORY_SEPARATOR . 'Scripts' . DIRECTORY_SEPARATOR . 'python.exe',
+        $ml_dir . DIRECTORY_SEPARATOR . 'venv' . DIRECTORY_SEPARATOR . 'bin' . DIRECTORY_SEPARATOR . 'python',
+    ];
+    foreach ($candidates as $c) {
+        if ($c && file_exists($c)) {
+            $python_exe = $c;
+            break;
         }
-        
-        // THE FIX: Override the random database profession with the real AI prediction!
+    }
+}
+
+if ($ml_dir && $python_exe && $predict_py && file_exists($predict_py)) {
+    $command = '"' . $python_exe . '" "' . $predict_py . '" ' . escapeshellarg($base64_data) . ' 2>&1';
+    $output = shell_exec($command);
+    $ai_result = json_decode($output, true);
+
+    if (is_array($ai_result) && empty($ai_result['error'])) {
+        if (isset($ai_result['probability_percent'])) {
+            $match_score = (float) $ai_result['probability_percent'];
+        }
         if (isset($ai_result['profession'])) {
             $profession = htmlspecialchars($ai_result['profession']);
         }
+        if (!empty($ai_result['model_degree'])) {
+            $model_degree_label = htmlspecialchars($ai_result['model_degree']);
+        }
+        if (!empty($ai_result['top_matches']) && is_array($ai_result['top_matches'])) {
+            if (isset($ai_result['top_matches'][1])) {
+                $second_match = $ai_result['top_matches'][1];
+            }
+            if (isset($ai_result['top_matches'][2])) {
+                $third_match = $ai_result['top_matches'][2];
+            }
+        }
     }
+}
 
 $score_color = ($match_score >= 70) ? '#10b981' : (($match_score >= 50) ? '#f59e0b' : '#ef4444');
 
-// Generate some fake skills for the UI (Keep this for your prototype design)
-$skills = ['Critical Thinking', 'Communication', 'Problem Solving', 'Data Analysis', 'Project Management'];
-shuffle($skills);
-$top_skills = array_slice($skills, 0, 4);
+// Top skills from program-specific ratings (truthful, not random)
+$specific_skills = isset($res['specific_skills']) && is_array($res['specific_skills']) ? $res['specific_skills'] : [];
+arsort($specific_skills);
+$top_skills = array_slice(array_keys($specific_skills), 0, 4);
+if (count($top_skills) < 2) {
+    $top_skills = array_merge($top_skills, ['Communication', 'Critical Thinking', 'Professional Ethics', 'Collaboration']);
+    $top_skills = array_slice(array_unique($top_skills), 0, 4);
+}
 
-// Determine the subtext based on employment status
 if ($emp_status == 'Employed') {
     $header_subtext = "Hi $name! Based on your profile and current role, here is your career alignment.";
 } else {
-    $header_subtext = "Hi $name! Based on your degree and preferences, here are your best career matches.";
+    $header_subtext = "Hi $name! Based on your degree, academic record, and skill ratings, here are your best career matches.";
 }
+
+$second_pct = ($second_match && isset($second_match['probability_percent']))
+    ? (int) round($second_match['probability_percent'])
+    : max(20, (int) round($match_score - 8));
+$second_title = ($second_match && isset($second_match['profession'])) ? htmlspecialchars($second_match['profession']) : 'Related specialist role';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -186,6 +127,9 @@ if ($emp_status == 'Employed') {
                 <h1>Your Career Recommendations</h1>
             </div>
             <p><?= $header_subtext ?></p>
+            <?php if ($model_degree_label !== ''): ?>
+                <p style="font-size:0.85rem;color:#6b7280;margin-top:0.5rem;">Model: <?= $model_degree_label ?> · Score blends class probability and prediction certainty.</p>
+            <?php endif; ?>
         </div>
 
         <div class="best-match-card">
@@ -193,86 +137,94 @@ if ($emp_status == 'Employed') {
                 <div class="trophy-icon"><i class="fas fa-trophy"></i></div>
                 <div>
                     <strong>Best Match for You</strong>
-                    <span>Based on your profile and preferences</span>
+                    <span>Random forest trained on program-specific skills, soft/hard dimensions, GPA &amp; OJT</span>
                 </div>
             </div>
 
             <div class="match-main-content">
                 <div class="match-info">
                     <h2><?= $profession ?></h2>
-                    <p class="match-desc">Based on alumni data, this profession aligns closely with your academic background and skill set.</p>
+                    <p class="match-desc">This role is predicted from your full assessment (universal skills, industry skills, and academics). Results are indicative—use them alongside advising and experience.</p>
                 </div>
                 <div class="match-score-circle">
                     <div class="circle" style="background-color: <?= $score_color ?>;">
-                        <span><?= $match_score ?>%</span>
+                        <span><?= htmlspecialchars((string) round($match_score)) ?>%</span>
                     </div>
-                    <span class="score-label">Match Score</span>
+                    <span class="score-label">Confidence</span>
                 </div>
             </div>
 
             <div class="stats-chips">
                 <div class="chip chip-green">
-                    <i class="fas fa-dollar-sign"></i>
+                    <i class="fas fa-graduation-cap"></i>
                     <div>
-                        <span>Average Salary</span>
-                        <strong>₱35k - ₱60k</strong>
+                        <span>GPA (record)</span>
+                        <strong><?= htmlspecialchars((string) ($user_grades['gpa'] ?? $res['gpa'] ?? '—')) ?></strong>
                     </div>
                 </div>
                 <div class="chip chip-blue">
-                    <i class="fas fa-chart-line"></i>
+                    <i class="fas fa-briefcase"></i>
                     <div>
-                        <span>Alumni in Role</span>
-                        <strong><?= rand(40, 75) ?>%</strong>
+                        <span>OJT %</span>
+                        <strong><?= htmlspecialchars((string) round((float) ($user_grades['ojt_grade'] ?? 0))) ?>%</strong>
                     </div>
                 </div>
                 <div class="chip chip-purple">
-                    <i class="far fa-star"></i>
+                    <i class="fas fa-layer-group"></i>
                     <div>
-                        <span>Why It Matches</span>
-                        <strong>High Alignment</strong>
+                        <span>Employability band</span>
+                        <strong><?= htmlspecialchars($status) ?></strong>
                     </div>
                 </div>
             </div>
 
             <div class="match-details">
-                <strong>Why this is a great match:</strong>
+                <strong>Why this is a strong match:</strong>
                 <ul>
-                    <li>Most common career path for your program</li>
-                    <li>Aligns with your reported Likert scale proficiencies</li>
+                    <li>Your program-specific skill ratings align with typical competencies for this role.</li>
+                    <li>Soft-skill, hard-skill, and OJT signals are combined in the same feature set used to train the model.</li>
                 </ul>
 
-                <strong class="mt-4">Top Skills Needed:</strong>
+                <strong class="mt-4">Strongest rated skills from your form:</strong>
                 <div class="skills-container">
-                    <?php foreach($top_skills as $skill): ?>
-                        <span class="skill-pill"><?= $skill ?></span>
+                    <?php foreach ($top_skills as $skill): ?>
+                        <span class="skill-pill"><?= htmlspecialchars($skill) ?></span>
                     <?php endforeach; ?>
                 </div>
             </div>
 
-            <button class="btn-full-green">View Full Details</button>
+            <a href="prediction_form.php" class="btn-full-green" style="display:block;text-align:center;text-decoration:none;">Take assessment again</a>
         </div>
 
         <div class="other-options-section">
-            <h3>Other Great Career Options</h3>
+            <h3>Other career options (model runners-up)</h3>
             
             <div class="option-card">
                 <div class="option-header">
                     <div class="option-title">
                         <span class="rank">#2</span>
-                        <h4>Alternative Industry Role</h4>
+                        <h4><?= $second_title ?></h4>
                     </div>
                     <div class="small-score-pill">
-                        <i class="far fa-star"></i> <?= $match_score - rand(5, 12) ?>% Match
+                        <i class="far fa-star"></i> ~<?= (int) $second_pct ?>% relative fit
                     </div>
                 </div>
-                <p>A secondary path taken by graduates with similar profiles.</p>
-                <ul class="mt-2">
-                    <li>Good salary progression potential</li>
-                    <li>Utilizes your soft skills effectively</li>
-                </ul>
+                <p>Second-ranked label from the same random forest (see estimated probability in your internal report).</p>
             </div>
+
+            <?php if ($third_match && !empty($third_match['profession'])): ?>
+            <div class="option-card">
+                <div class="option-header">
+                    <div class="option-title">
+                        <span class="rank">#3</span>
+                        <h4><?= htmlspecialchars($third_match['profession']) ?></h4>
+                    </div>
+                </div>
+                <p>Third-ranked alternative when the model spreads probability across related titles.</p>
+            </div>
+            <?php endif; ?>
             
-            </div>
+        </div>
 
     </div>
 

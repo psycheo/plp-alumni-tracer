@@ -104,6 +104,21 @@ INSERT INTO `feedbacks` (`id`, `user_id`, `rating`, `message`, `status`, `create
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `feedback_replies`
+--
+
+CREATE TABLE `feedback_replies` (
+  `id` int(11) NOT NULL,
+  `feedback_id` int(11) NOT NULL,
+  `alumni_id` int(11) NOT NULL,
+  `reply_text` text NOT NULL,
+  `is_seen` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `professions`
 --
 
@@ -255,6 +270,14 @@ ALTER TABLE `feedbacks`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `feedback_replies`
+--
+ALTER TABLE `feedback_replies`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `feedback_id` (`feedback_id`),
+  ADD KEY `alumni_id` (`alumni_id`);
+
+--
 -- Indexes for table `professions`
 --
 ALTER TABLE `professions`
@@ -291,6 +314,12 @@ ALTER TABLE `feedbacks`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
+-- AUTO_INCREMENT for table `feedback_replies`
+--
+ALTER TABLE `feedback_replies`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+
+--
 -- AUTO_INCREMENT for table `professions`
 --
 ALTER TABLE `professions`
@@ -311,6 +340,12 @@ ALTER TABLE `users`
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `feedback_replies`
+--
+ALTER TABLE `feedback_replies`
+  ADD CONSTRAINT `feedback_replies_ibfk_feedback` FOREIGN KEY (`feedback_id`) REFERENCES `feedbacks` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `professions`
