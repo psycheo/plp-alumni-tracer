@@ -5,6 +5,7 @@ Synthetic alumni rows for career prediction. Aligns with:
 - Trains one RandomForest per Degree code with full soft/hard + industry skill columns.
 """
 import random
+import argparse
 import pandas as pd
 
 random.seed(42)
@@ -246,6 +247,10 @@ def build_row(degree: str, profession: str, boost_skill: str) -> dict:
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--output", default="mock_alumni_data.csv", help="Output CSV for synthetic data.")
+    args = parser.parse_args()
+
     rows = []
     for degree, prof_list in DEGREE_CONFIG.items():
         for _ in range(N_PER_DEGREE):
@@ -254,8 +259,8 @@ def main():
 
     df = pd.DataFrame(rows)
     df.fillna(0, inplace=True)
-    df.to_csv("alumni_data.csv", index=False)
-    print(f"Wrote alumni_data.csv with {len(df)} rows and {len(df.columns)} columns.")
+    df.to_csv(args.output, index=False)
+    print(f"Wrote {args.output} with {len(df)} rows and {len(df.columns)} columns.")
 
 
 if __name__ == "__main__":

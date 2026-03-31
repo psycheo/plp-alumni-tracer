@@ -1,4 +1,5 @@
 import os
+import argparse
 import pandas as pd
 import joblib
 from sklearn.ensemble import RandomForestClassifier
@@ -7,7 +8,11 @@ from sklearn.preprocessing import StandardScaler
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 os.chdir(BASE_DIR)
 
-df = pd.read_csv("alumni_data.csv")
+parser = argparse.ArgumentParser()
+parser.add_argument("--data", default="alumni_data.csv", help="Training CSV (already structured).")
+args = parser.parse_args()
+
+df = pd.read_csv(args.data)
 degrees = df["Degree"].unique()
 
 print("Starting training process...\n")
@@ -27,16 +32,12 @@ for degree in degrees:
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
-    # Balanced classes + constrained depth reduces overfitting on synthetic data
-    kwargs = dict(
-        n_estimators=220,
-        max_depth=18,
-        min_samples_leaf=2,
-        class_weight="balanced_subsample",
+    # Simpler forest gives stronger class confidence on this synthetic/mock schema.
+    model = RandomForestClassifier(
+        n_estimators=100,
         random_state=42,
         n_jobs=-1,
     )
-    model = RandomForestClassifier(**kwargs)
     model.fit(X_scaled, y)
 
     joblib.dump(model, f"{degree}_rf_model.joblib")

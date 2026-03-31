@@ -13,19 +13,36 @@ $name = htmlspecialchars($res['name']);
 $profession = htmlspecialchars($res['profession']);
 $status = $res['status'];
 $emp_status = isset($res['emp_status']) ? $res['emp_status'] : 'Not Employed';
-$name_for_db = $res['name'];
+$user_grades = null;
+if (!empty($res['assessment_id'])) {
+    $assessment_id = (int) $res['assessment_id'];
+    $stmt = $conn->prepare("
+        SELECT a.gpa, a.ojt_grade, a.soft_skills_avg, a.hard_skills_avg, p.name as program_name 
+        FROM alumni_assessments a 
+        JOIN programs p ON a.program_id = p.id 
+        WHERE a.id = ? 
+        LIMIT 1
+    ");
+    $stmt->bind_param("i", $assessment_id);
+    $stmt->execute();
+    $db_result = $stmt->get_result();
+    $user_grades = $db_result ? $db_result->fetch_assoc() : null;
+}
 
-$stmt = $conn->prepare("
-    SELECT a.gpa, a.ojt_grade, a.soft_skills_avg, a.hard_skills_avg, p.name as program_name 
-    FROM alumni_assessments a 
-    JOIN programs p ON a.program_id = p.id 
-    WHERE a.name = ? 
-    ORDER BY a.id DESC LIMIT 1
-");
-$stmt->bind_param("s", $name_for_db);
-$stmt->execute();
-$db_result = $stmt->get_result();
-$user_grades = $db_result ? $db_result->fetch_assoc() : null;
+if (!$user_grades) {
+    $name_for_db = $res['name'];
+    $stmt = $conn->prepare("
+        SELECT a.gpa, a.ojt_grade, a.soft_skills_avg, a.hard_skills_avg, p.name as program_name 
+        FROM alumni_assessments a 
+        JOIN programs p ON a.program_id = p.id 
+        WHERE a.name = ? 
+        ORDER BY a.id DESC LIMIT 1
+    ");
+    $stmt->bind_param("s", $name_for_db);
+    $stmt->execute();
+    $db_result = $stmt->get_result();
+    $user_grades = $db_result ? $db_result->fetch_assoc() : null;
+}
 
 $student_data_for_python = career_ml_build_student_payload($res, $user_grades);
 
@@ -82,6 +99,7 @@ if ($ml_dir && $python_exe && $predict_py && file_exists($predict_py)) {
 }
 
 $score_color = ($match_score >= 70) ? '#10b981' : (($match_score >= 50) ? '#f59e0b' : '#ef4444');
+$display_ojt = isset($res['ojt_grade']) ? (float) $res['ojt_grade'] : (float) ($user_grades['ojt_grade'] ?? 0);
 
 // Top skills from program-specific ratings (truthful, not random)
 $specific_skills = isset($res['specific_skills']) && is_array($res['specific_skills']) ? $res['specific_skills'] : [];
@@ -128,7 +146,7 @@ $second_title = ($second_match && isset($second_match['profession'])) ? htmlspec
             </div>
             <p><?= $header_subtext ?></p>
             <?php if ($model_degree_label !== ''): ?>
-                <p style="font-size:0.85rem;color:#6b7280;margin-top:0.5rem;">Model: <?= $model_degree_label ?> · Score blends class probability and prediction certainty.</p>
+                <p style="font-size:0.85rem;color:#6b7280;margin-top:0.5rem;">Model: <?= $model_degree_label ?> · Score reflects top predicted class probability.</p>
             <?php endif; ?>
         </div>
 
@@ -150,7 +168,7 @@ $second_title = ($second_match && isset($second_match['profession'])) ? htmlspec
                     <div class="circle" style="background-color: <?= $score_color ?>;">
                         <span><?= htmlspecialchars((string) round($match_score)) ?>%</span>
                     </div>
-                    <span class="score-label">Confidence</span>
+                    <span class="score-label">Fit Score</span>
                 </div>
             </div>
 
@@ -166,7 +184,7 @@ $second_title = ($second_match && isset($second_match['profession'])) ? htmlspec
                     <i class="fas fa-briefcase"></i>
                     <div>
                         <span>OJT %</span>
-                        <strong><?= htmlspecialchars((string) round((float) ($user_grades['ojt_grade'] ?? 0))) ?>%</strong>
+                        <strong><?= htmlspecialchars((string) round($display_ojt)) ?>%</strong>
                     </div>
                 </div>
                 <div class="chip chip-purple">

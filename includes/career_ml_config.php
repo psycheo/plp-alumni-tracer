@@ -50,11 +50,18 @@ function career_ml_build_student_payload(array $res, $user_grades) {
     $degree = career_ml_degree_for_program($program_id);
 
     $gpa = ($user_grades && isset($user_grades['gpa'])) ? floatval($user_grades['gpa']) : floatval($res['gpa'] ?? 2.5);
-    $ojt = ($user_grades && isset($user_grades['ojt_grade'])) ? floatval($user_grades['ojt_grade']) : 85.0;
+    $ojt = isset($res['ojt_grade']) ? floatval($res['ojt_grade']) : (($user_grades && isset($user_grades['ojt_grade'])) ? floatval($user_grades['ojt_grade']) : 85.0);
     $db_ss = ($user_grades && isset($user_grades['soft_skills_avg'])) ? floatval($user_grades['soft_skills_avg']) : 70.0;
     $db_hs = ($user_grades && isset($user_grades['hard_skills_avg'])) ? floatval($user_grades['hard_skills_avg']) : 70.0;
     $real_ss = isset($res['soft_skills_avg']) ? floatval($res['soft_skills_avg']) : $db_ss;
     $real_hs = isset($res['hard_skills_avg_combined']) ? floatval($res['hard_skills_avg_combined']) : $db_hs;
+
+    if ($ojt < 60) {
+        $ojt = 60;
+    }
+    if ($ojt > 100) {
+        $ojt = 100;
+    }
 
     if ($real_ss <= 0) {
         $real_ss = max(40, min(98, $ojt - 3));

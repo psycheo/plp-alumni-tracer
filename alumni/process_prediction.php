@@ -129,14 +129,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             ('$name', $program_id, $grad_year, '$emp_status', '$current_company', '$current_pos', '$current_salary', $years_exp, $gpa, $ojt_grade_100, $ss_avg, $hs_avg, '$cv_filename', '$employability_status', '$recommended_profession')";
     
     $conn->query($sql);
+    $assessment_id = (int) $conn->insert_id;
 
     $_SESSION['prediction_results'] = [
         'name' => $name,
         'program_id' => $program_id,
+        'assessment_id' => $assessment_id,
         'grad_year' => $grad_year,
         'status' => $employability_status,
         'profession' => $recommended_profession,
         'gpa' => $gpa,
+        'ojt_grade' => $ojt_grade_100,
         'emp_status' => $emp_status,
         'specific_skills' => $specific_skills_array,
         'ss_dims' => $ss_dims,

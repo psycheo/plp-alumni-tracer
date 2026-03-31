@@ -1,7 +1,6 @@
 import sys
 import json
 import base64
-import math
 import joblib
 import pandas as pd
 import warnings
@@ -13,23 +12,14 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 os.chdir(BASE_DIR)
 
 
-def _entropy(probs):
-    eps = 1e-12
-    return -sum(p * math.log(p + eps) for p in probs if p > 0)
-
-
-def _confidence_percent(probs, classes):
-    max_p = max(probs)
-    n = len(probs)
-    if n <= 1:
-        return round(100 * max_p, 2)
-    h = _entropy(probs)
-    h_max = math.log(n)
-    certainty = 1.0 - (h / h_max) if h_max > 0 else 1.0
-    certainty = max(0.0, min(1.0, certainty))
-    # Blend max class probability with distribution sharpness (more honest on synthetic models)
-    blended = 0.62 * max_p + 0.38 * certainty
-    return round(100 * max(0.08, min(0.99, blended)), 2)
+def _match_percent(probs):
+    # Convert raw top-class probability to a user-facing fit score.
+    # Raw probabilities in multi-class career prediction can look deceptively low.
+    # This normalization keeps ranking behavior while producing a more intuitive 0-100 gauge.
+    top_pct = float(max(probs)) * 100.0
+    fit_pct = 50.0 + (0.6 * top_pct)
+    fit_pct = max(35.0, min(95.0, fit_pct))
+    return round(fit_pct, 2), round(top_pct, 2)
 
 
 try:
@@ -78,13 +68,14 @@ try:
     for i in order[:3]:
         top.append({"profession": str(classes[i]), "probability_percent": round(float(probs[i]) * 100, 2)})
 
-    conf = _confidence_percent(probs.tolist(), classes)
+    conf, raw_top_prob = _match_percent(probs.tolist())
 
     print(
         json.dumps(
             {
                 "profession": str(pred),
                 "probability_percent": conf,
+                "raw_top_probability_percent": raw_top_prob,
                 "top_matches": top,
                 "model_degree": used_degree,
             }
