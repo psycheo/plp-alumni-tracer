@@ -57,24 +57,31 @@ header {
 }
 
 /* --- Hero Section --- */
+/* --- Hero Section --- */
 .hero {
-    background-color: var(--primary-green);
+    /* Composite background: green gradient overlay + your building photo */
+    background-image: 
+        linear-gradient(rgba(13, 92, 52, 0.95), rgba(13, 92, 52, 0.7)), 
+        url('../img/plp-building.jpg'); 
+    
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    
+    /* This creates a fixed 'parallax' effect when you scroll */
+    background-attachment: fixed; 
+    
     color: var(--white);
     text-align: center;
     padding-top: 80px;
     padding-bottom: 60px;
 }
 
-.hero-icon {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-    color: rgba(255,255,255,0.8);
-    border: 2px solid rgba(255,255,255,0.3);
-    width: 80px;
-    height: 80px;
-    line-height: 75px;
-    border-radius: 20px;
-    display: inline-block;
+/* White text readability improvements with text-shadow */
+.hero h1,
+.hero-subtitle,
+.hero-desc {
+    text-shadow: 0 2px 4px rgba(0,0,0,0.4);
 }
 
 .hero h1 {
@@ -370,10 +377,34 @@ footer {
 }
 
 .footer-logo {
-    color: white;
-    font-weight: bold;
-    font-size: 1.1rem;
-    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px; /* Space between logo and text */
+}
+
+
+/* --- Custom Logo Styling for Index --- */
+
+/* Hero Section Logo - refined for the new complex background */
+.hero-logo {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%; /* Makes it a perfect circle */
+    object-fit: cover; /* Keeps it from stretching */
+    background-color: var(--white); /* White background so it pops against the green */
+    /* Simplified by removing the border and shadow, fits better with the building background */
+    border: none;
+    margin-bottom: 1.5rem;
+    display: inline-block;
+}
+
+.footer-logo-img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    background-color: var(--white);
 }
 
 /* Responsive */

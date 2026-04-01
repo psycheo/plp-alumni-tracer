@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PLP Alumni Tracer - Discover Your Career Path</title>
     
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/style.css?v=<?php echo time(); ?>">
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -17,11 +17,9 @@
         </div>
     </header>
 
-    <section class="hero">
+    <section class="hero" style="background-image: linear-gradient(rgba(13, 92, 52, 1), rgba(13, 92, 52, 0.6)), url('assets/img/plp_building.png?v=<?php echo time(); ?>');">
         <div class="container">
-            <div class="hero-icon">
-                <i class="fas fa-graduation-cap"></i>
-            </div>
+            <img src="assets/img/university_logo.png" alt="University Logo" class="hero-logo">
             <h1>PLP Alumni Tracer</h1>
             <p class="hero-subtitle">Discover Your Career Path Based on Real Alumni Outcomes</p>
             <p class="hero-desc">Track career outcomes, explore profession insights, and find your perfect career match based on your program and interests.</p>
@@ -53,7 +51,10 @@
                 </div>
             </div>
 
-        </div> </section> <section class="section-white">
+        </div>
+    </section>
+
+    <section class="section-white">
         <div class="container">
             <div class="section-title">
                 <h2>How PLP Alumni Tracer Works</h2>
@@ -153,7 +154,7 @@
     <footer>
         <div class="container">
             <div class="footer-logo">
-                <i class="fas fa-graduation-cap"></i> PLP Alumni Tracer
+                <img src="assets/img/university_logo.png" alt="University Logo" class="footer-logo-img"> PLP Alumni Tracer
             </div>
             <p>&copy; <?php echo date("Y"); ?> PLP Alumni Tracer. Empowering graduates to make informed career decisions.</p>
         </div>

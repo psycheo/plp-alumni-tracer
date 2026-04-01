@@ -5,7 +5,7 @@
 
 <nav class="navbar">
     <div class="nav-brand">
-        <i class="fas fa-graduation-cap"></i>
+        <img src="/plp-alumni-tracer/assets/img/university_logo.png" alt="University Logo" class="nav-logo">
         <div>
             <strong>PLP Alumni Tracer</strong>
             <span>Discover career outcomes for university graduates</span>
