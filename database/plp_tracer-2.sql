@@ -20,6 +20,10 @@ SET time_zone = "+00:00";
 --
 -- Database: `plp_tracer`
 --
+-- Schema notes: includes `feedback_replies` (admin replies to feedback) and
+-- `alumni_assessments` columns ojt_grade / soft_skills_avg / hard_skills_avg
+-- as DECIMAL(5,2) for 0–100 scales. Idempotent upgrade SQL is appended after COMMIT.
+--
 
 -- --------------------------------------------------------
 
@@ -353,6 +357,25 @@ ALTER TABLE `feedback_replies`
 ALTER TABLE `professions`
   ADD CONSTRAINT `professions_ibfk_1` FOREIGN KEY (`program_id`) REFERENCES `programs` (`id`);
 COMMIT;
+
+-- Idempotent upgrades for older databases (no-op when this full dump was just applied).
+CREATE TABLE IF NOT EXISTS `feedback_replies` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `feedback_id` int(11) NOT NULL,
+  `alumni_id` int(11) NOT NULL,
+  `reply_text` text NOT NULL,
+  `is_seen` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `feedback_id` (`feedback_id`),
+  KEY `alumni_id` (`alumni_id`),
+  CONSTRAINT `feedback_replies_ibfk_feedback` FOREIGN KEY (`feedback_id`) REFERENCES `feedbacks` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+ALTER TABLE `alumni_assessments`
+  MODIFY `ojt_grade` DECIMAL(5,2) NOT NULL,
+  MODIFY `soft_skills_avg` DECIMAL(5,2) NOT NULL,
+  MODIFY `hard_skills_avg` DECIMAL(5,2) NOT NULL;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
