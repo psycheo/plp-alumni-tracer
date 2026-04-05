@@ -57,7 +57,6 @@ header {
 }
 
 /* --- Hero Section --- */
-/* --- Hero Section --- */
 .hero {
     /* Composite background: green gradient overlay + your building photo */
     background-image: 
@@ -288,15 +287,6 @@ header {
     min-width: 300px;
 }
 
-.steps-box {
-    flex: 1;
-    min-width: 300px;
-    background: var(--white);
-    padding: 2rem;
-    border-radius: 12px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-}
-
 .main-desc {
     color: var(--text-light);
     margin-bottom: 2rem;
@@ -329,42 +319,155 @@ header {
     font-size: 0.9rem;
 }
 
-/* Steps Box Styling */
-.step-item {
+/* --- Interactive Steps Carousel --- */
+.steps-carousel {
+    flex: 1;
+    min-width: 300px;
+    background: var(--white);
+    padding: 2.5rem;
+    border-radius: 16px;
+    box-shadow: 0 10px 35px rgba(0,0,0,0.06);
     display: flex;
-    gap: 1rem;
+    flex-direction: column;
+    min-height: 420px; /* Keeps the card height stable when switching slides */
+    border: 1px solid #f3f4f6;
+}
+
+.carousel-content {
+    flex-grow: 1;
+    display: grid; /* Locks the box height to the tallest slide */
+}
+
+.carousel-slide {
+    grid-area: 1 / 1; /* Stacks all slides perfectly on top of each other */
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none; /* Prevents clicking buttons on hidden slides */
+    transform: translateY(15px);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); /* Buttery smooth fade */
+}
+
+.carousel-slide.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+.step-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
     margin-bottom: 1.5rem;
-    background-color: #f0fdf4;
-    padding: 1rem;
-    border-radius: 8px;
+    border-bottom: 2px solid #f9fafb;
+    padding-bottom: 1.2rem;
 }
 
-.step-item:last-child {
-    margin-bottom: 0;
-}
-
-.step-number {
-    background-color: #16a34a;
+.step-number-large {
+    background: linear-gradient(135deg, #10b981, #059669);
     color: white;
-    width: 30px;
-    height: 30px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: bold;
-    flex-shrink: 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
 }
 
-.step-text strong {
-    display: block;
-    font-size: 1rem;
-    margin-bottom: 0.2rem;
+.step-header h3 {
+    font-size: 1.3rem;
+    color: var(--text-dark);
 }
 
-.step-text p {
-    font-size: 0.85rem;
+.step-details p {
     color: var(--text-light);
+    margin-bottom: 1.2rem;
+    line-height: 1.7;
+    font-size: 0.95rem;
+}
+
+.step-details strong {
+    color: var(--text-dark);
+}
+
+.step-details ul {
+    list-style: none;
+}
+
+.step-details li {
+    margin-bottom: 0.8rem;
+    color: var(--text-light);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.step-details li i {
+    color: #10b981;
+    margin-top: 4px;
+    font-size: 1.1rem;
+}
+
+/* Pagination Controls */
+.carousel-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.control-btn {
+    background: #f3f4f6;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    color: #4b5563;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.control-btn:hover:not(:disabled) {
+    background: #10b981;
+    color: white;
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+}
+
+.control-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.carousel-indicators {
+    display: flex;
+    gap: 10px;
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    background: #d1d5db;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.dot:hover {
+    background: #9ca3af;
+}
+
+.dot.active {
+    background: #10b981;
+    transform: scale(1.3);
 }
 
 /* --- Footer --- */
@@ -405,6 +508,273 @@ footer {
     border-radius: 50%;
     object-fit: cover;
     background-color: var(--white);
+}
+
+/* --- UI Enhancements for Landing Page --- */
+
+.text-yellow { color: #fbbf24; }
+.text-green { color: #10b981; }
+.bg-light-green { background-color: var(--light-green-bg); }
+.text-center { text-align: center; }
+.mt-3 { margin-top: 1rem; }
+.mt-4 { margin-top: 1.5rem; }
+.shadow-lg { box-shadow: 0 15px 35px rgba(0,0,0,0.08); }
+.text-sm { font-size: 0.85rem; color: var(--text-light); }
+
+/* --- Tabbed Interface --- */
+.system-preview-section {
+    padding: 5rem 0;
+}
+
+.tabs-container {
+    max-width: 900px;
+    margin: 3rem auto 0;
+}
+
+.tabs-header {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.tab-btn {
+    background: white;
+    border: 1px solid #e5e7eb;
+    padding: 12px 24px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--text-light);
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tab-btn:hover {
+    border-color: #10b981;
+    color: #10b981;
+}
+
+.tab-btn.active {
+    background: #10b981;
+    color: white;
+    border-color: #10b981;
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+}
+
+.tabs-content {
+    background: white;
+    border-radius: 16px;
+    padding: 2.5rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    border: 1px solid #f3f4f6;
+}
+
+.tab-pane {
+    display: none;
+    animation: fadeIn 0.4s ease;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.tab-text h3 {
+    font-size: 1.5rem;
+    color: var(--text-dark);
+    margin-bottom: 1rem;
+}
+
+/* --- Mock UI Cards (Visuals for Tabs) --- */
+.tab-visual {
+    flex: 1;
+    min-width: 250px;
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* --- Tab Placeholder Images --- */
+.tab-image-placeholder {
+    width: 820px;
+    height: 180px;
+    background-size: cover;
+    background-position: center;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    border: 1px solid #f3f4f6;
+    display: block;
+}
+
+/* AI Form Mock */
+.feature-card { background: #f8fafc; border: 1px dashed #cbd5e1; }
+.mock-ui { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+.mock-header { font-weight: bold; margin-bottom: 15px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; font-size: 0.9rem;}
+.mock-row { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 10px; color: #475569;}
+.mock-stars { color: #fbbf24; }
+.mock-btn { background: #3b82f6; color: white; text-align: center; padding: 8px; border-radius: 6px; font-size: 0.8rem; font-weight: bold;}
+
+/* Dashboard Mock */
+.gradient-card { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2); }
+.gradient-card h3 { color: white; margin-bottom: 0.5rem; }
+.gradient-card p { font-size: 0.85rem; opacity: 0.9; }
+.mock-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.mock-stat { background: rgba(255,255,255,0.2); padding: 10px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; text-align: center; }
+
+/* --- Analytics Mock (Enhanced) --- */
+.enhanced-chart-card { 
+    background: #ffffff; 
+    border: 1px solid #e5e7eb; 
+    box-shadow: 0 10px 25px rgba(0,0,0,0.05); 
+    border-radius: 12px; 
+    padding: 1.5rem; 
+    display: flex; 
+    flex-direction: column; 
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #f3f4f6;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+}
+
+.chart-title { 
+    font-weight: 700; 
+    color: #1f2937; 
+    font-size: 0.95rem; 
+}
+
+.chart-badge { 
+    background: #ecfdf5; 
+    color: #10b981; 
+    padding: 4px 10px; 
+    border-radius: 20px; 
+    font-size: 0.75rem; 
+    font-weight: 600;
+}
+
+.mock-chart-container {
+    display: flex;
+    height: 180px;
+    gap: 15px;
+}
+
+.mock-y-axis {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    color: #9ca3af;
+    font-size: 0.7rem;
+    padding-right: 10px;
+    border-right: 2px solid #f3f4f6;
+    text-align: right;
+    font-weight: 600;
+}
+
+.mock-chart-bars-new {
+    flex: 1;
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-end;
+    height: 100%;
+}
+
+.mock-bar-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    width: 50px;
+}
+
+.mock-bar-value {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #4b5563; /* Changed to neutral gray since bars are multi-colored now */
+    margin-bottom: 8px;
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+.tab-pane.active .mock-bar-value {
+    animation: fadeInTop 0.4s ease forwards 0.6s; 
+}
+
+/* NEW: The light track behind the bar */
+.mock-bar-track {
+    width: 14px; /* Thin bars! */
+    flex-grow: 1; /* Stretches to fill the vertical space */
+    background-color: #f1f5f9; 
+    border-radius: 50px; /* Pill shape */
+    display: flex;
+    align-items: flex-end;
+    overflow: hidden; /* Keeps the inner bar clipped perfectly to the pill shape */
+}
+
+/* UPDATED: The colored bar inside the track */
+.mock-bar {
+    width: 100%;
+    border-radius: 50px;
+    background: linear-gradient(to top, var(--color-start), var(--color-end));
+    height: 0%; 
+}
+
+.tab-pane.active .mock-bar {
+    animation: growBar 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards 0.3s; /* 0.3s delay so it waits for the tab to fade in first */
+}
+
+.mock-bar:hover {
+    filter: brightness(1.15);
+    cursor: pointer;
+}
+
+.mock-bar-label {
+    margin-top: 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6b7280;
+}
+
+@keyframes growBar {
+    0% { height: 0%; }
+    100% { height: var(--target-height); }
+}
+
+@keyframes fadeInTop {
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Link the HTML classes to the variables --- */
+.mock-bar.it {
+    --target-height: 80%;
+    --color-start: #3b82f6;
+    --color-end: #60a5fa;
+}
+
+.mock-bar.nursing {
+    --target-height: 60%;
+    --color-start: #10b981;
+    --color-end: #34d399;
+}
+
+.mock-bar.cba {
+    --target-height: 90%;
+    --color-start: #f59e0b;
+    --color-end: #fbbf24;
 }
 
 /* Responsive */
