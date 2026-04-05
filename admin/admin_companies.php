@@ -37,7 +37,7 @@ session_start();
                 <input type="text" id="searchKeyword" placeholder="Search company name or keyword...">
                 <select id="locationFilter">
                     <option value="">All Locations</option>
-                    <option value="Metro Manila">Metro Manila</option>
+                    <option value="Metro Manila" selected>Metro Manila</option>
                     <option value="Calabarzon">Calabarzon</option>
                     <option value="Cebu">Cebu</option>
                 </select>
@@ -55,60 +55,141 @@ session_start();
     </main>
 
     <script>
-        // API-READY JAVASCRIPT
-        function fetchCompaniesAPI() {
+        async function fetchCompaniesAPI() {
             const grid = document.getElementById('api-companies-grid');
             const loader = document.getElementById('api-loading');
             
-            // Clear current grid and show loader
+            const maxResults = 50; 
+
             grid.innerHTML = '';
             loader.style.display = 'block';
 
-            /* =============================================================
-               API INTEGRATION POINT:
-               Replace this setTimeout block with your actual fetch() request 
-               to JSearch, Techmap, or your own PHP backend.
-               =============================================================
-            */
-            setTimeout(() => {
-                // Simulated API Response Data
-                const mockApiResponse = [
-                    { name: "Accenture Philippines", location: "Metro Manila", industry: "IT Consulting", activeJobs: 45, icon: "fa-building" },
-                    { name: "Globe Telecom", location: "Taguig", industry: "Telecommunications", activeJobs: 12, icon: "fa-globe" },
-                    { name: "TaskUs", location: "Cavite", industry: "BPO", activeJobs: 89, icon: "fa-headset" }
-                ];
+            // Tighter bounding box specifically for Metro Manila to prevent 504 Timeouts
+            // Format is: (south, west, north, east)
+            const query = `
+            [out:json][timeout:30];
+            (
+            // IT, CS, & ECE (Tech & Telecom)
+            node["office"="it"](14.33, 120.89, 14.79, 121.14);
+            node["office"="telecommunication"](14.33, 120.89, 14.79, 121.14);
 
+            // Business, Accountancy, Entrepreneurship
+            node["office"="company"](14.33, 120.89, 14.79, 121.14);
+            node["office"="financial"](14.33, 120.89, 14.79, 121.14);
+            node["office"="accountant"](14.33, 120.89, 14.79, 121.14);
+            node["amenity"="bank"](14.33, 120.89, 14.79, 121.14);
+
+            // Hospitality Management
+            node["tourism"="hotel"](14.33, 120.89, 14.79, 121.14);
+
+            // Nursing (Hospitals & Clinics)
+            node["amenity"="hospital"](14.33, 120.89, 14.79, 121.14);
+            node["amenity"="clinic"](14.33, 120.89, 14.79, 121.14);
+
+            // Education
+            node["amenity"="university"](14.33, 120.89, 14.79, 121.14);
+            node["amenity"="college"](14.33, 120.89, 14.79, 121.14);
+            node["amenity"="school"](14.33, 120.89, 14.79, 121.14);
+            );
+            out body;
+            `;
+
+            try {
+                const response = await fetch('https://overpass-api.de/api/interpreter', {
+                    method: 'POST',
+                    body: query
+                });
+
+                // 1. Check if the response is actually OK before trying to read JSON
+                if (!response.ok) {
+                    // If we get a 504, 429 (Rate Limit), etc.
+                    throw new Error(`API Server Error: ${response.status} ${response.statusText}`);
+                }
+
+                // 2. Only parse JSON if the response was successful
+                const result = await response.json();
+                
                 loader.style.display = 'none';
 
-                if (mockApiResponse.length === 0) {
+                const companies = result.elements || [];
+                const namedCompanies = companies.filter(c => c.tags && c.tags.name);
+
+                if (namedCompanies.length === 0) {
                     grid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: #6b7280;">No companies found matching your criteria.</p>';
                     return;
                 }
 
-                // Loop through API data and create HTML cards
-                mockApiResponse.forEach(company => {
+                namedCompanies.slice(0, maxResults).forEach(company => {
+                    const tags = company.tags;
+                    const name = tags.name;
+                    
+                    let rawLocation = tags['addr:city'] || tags['addr:municipality'] || tags['addr:suburb'];
+                    let location = 'Metro Manila'; // Default fallback
+                    
+                    if (rawLocation) {
+                        if (rawLocation.toLowerCase().includes('city') || rawLocation.toLowerCase().includes('pateros')) {
+                            location = rawLocation;
+                        } else {
+                            location = `${rawLocation} City`;
+                        }
+                    }
+                    
+                    let industry = 'Business';
+                    let icon = 'fa-building';
+                    
+                    if (tags.office === 'it' || tags.office === 'telecommunication') {
+                        industry = 'IT & Tech';
+                        icon = 'fa-laptop-code';
+                    } else if (tags.amenity === 'hospital' || tags.amenity === 'clinic') {
+                        industry = 'Healthcare & Nursing';
+                        icon = 'fa-hospital-user';
+                    } else if (tags.amenity === 'university' || tags.amenity === 'college' || tags.amenity === 'school') {
+                        industry = 'Education';
+                        icon = 'fa-graduation-cap';
+                    } else if (tags.tourism === 'hotel') {
+                        industry = 'Hospitality';
+                        icon = 'fa-hotel';
+                    } else if (tags.office === 'financial' || tags.office === 'accountant' || tags.amenity === 'bank') {
+                        industry = 'Finance & Accountancy';
+                        icon = 'fa-chart-pie';
+                    } else if (tags.office === 'company' || tags.office === 'commercial') {
+                        industry = 'Corporate / Business';
+                        icon = 'fa-briefcase';
+                    }
+
                     const card = document.createElement('div');
                     card.className = 'company-card';
                     card.innerHTML = `
                         <div class="company-header">
-                            <div class="company-logo"><i class="fas ${company.icon}"></i></div>
+                            <div class="company-logo"><i class="fas ${icon}"></i></div>
                             <div>
-                                <h3 style="font-size: 1.1rem; color: #1f2937;">${company.name}</h3>
-                                <p style="font-size: 0.85rem; color: #6b7280;"><i class="fas fa-map-marker-alt"></i> ${company.location}</p>
+                                <h3 style="font-size: 1.1rem; color: #1f2937;">${name}</h3>
+                                <p style="font-size: 0.85rem; color: #6b7280;"><i class="fas fa-map-marker-alt"></i> ${location}</p>
                             </div>
                         </div>
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; border-top: 1px solid #f3f4f6; padding-top: 15px;">
-                            <span style="font-size: 0.85rem; color: #4b5563;">${company.industry}</span>
-                            <span class="hiring-badge"><i class="fas fa-briefcase"></i> ${company.activeJobs} Jobs API</span>
+                            <span style="font-size: 0.85rem; color: #4b5563;">${industry}</span>
+                            <span class="hiring-badge"><i class="fas fa-briefcase"></i> 0 Jobs API</span>
                         </div>
                     `;
                     grid.appendChild(card);
                 });
-            }, 800); // Simulating network delay of 800ms
-        }
 
-        // Load initial data on page load
-        window.onload = fetchCompaniesAPI;
+            } catch (error) {
+                loader.style.display = 'none';
+                console.error("Fetch Error:", error);
+                
+                // Print a user-friendly error to the UI instead of failing silently
+                grid.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; color: #b91c1c; background: #fee2e2; padding: 20px; border-radius: 8px;">
+                        <i class="fas fa-exclamation-triangle fa-2x" style="margin-bottom: 10px;"></i>
+                        <p><strong>Failed to fetch data from the Map API.</strong></p>
+                        <p style="font-size: 0.9rem; margin-top: 5px;">The public server might be overloaded. Please try again in a few moments.</p>
+                        <p style="font-size: 0.8rem; color: #7f1d1d; margin-top: 10px;">Technical Details: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
     </script>
 </body>
 </html>
