@@ -3,3 +3,12 @@ python -m venv venv
 
 2. Install all dependencies from your file:
 venv\Scripts\pip install -r requirements.txt
+
+3. Use professor dataset (default project file):
+venv\Scripts\python.exe prepare_dataset.py --input alumni_data.csv --output alumni_data_structured.csv
+
+4. Train models from the structured dataset:
+venv\Scripts\python.exe train_models.py --data alumni_data_structured.csv
+
+5. Optional mock data (for simulation only; does NOT overwrite alumni_data.csv):
+venv\Scripts\python.exe generate_mock_data.py --output mock_alumni_data.csv

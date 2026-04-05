@@ -447,10 +447,20 @@ $programs = $conn->query("SELECT * FROM programs");
                 skills = ['Financial Management Skills', 'Leadership & Decision-Making Skills', 'Marketing Skills', 'Strategic Planning Skills', 'Consumer Behavior Analysis', 'Sales Management Skills'];
             } else if (progName.includes('entrepreneurship')) {
                 skills = ['Financial Management Skills', 'Leadership & Decision-Making Skills', 'Marketing Skills', 'Strategic Planning Skills', 'Innovation & Business Planning Skills'];
-            } else if (progName.includes('english')) {
+            } else if (progName.includes('hospitality')) {
+                skills = ['Food & Beverage Operations Skills', 'Front Office & Reservations Skills', 'Housekeeping Standards Skills', 'Events & Banquet Coordination Skills', 'Customer Experience & Guest Relations Skills'];
+            } else if (progName.includes('nursing')) {
+                skills = ['Clinical & Patient Care Skills', 'Pharmacology & Medication Skills', 'Community Health & Education Skills', 'Infection Control & Safety Skills', 'Nursing Assessment & Documentation Skills'];
+            } else if (progName.includes('electronics') || progName.includes('communications engineering')) {
+                skills = ['Circuit Analysis & Electronics Skills', 'Embedded Systems Skills', 'Network & Telecom Skills', 'RF & Wireless Basics Skills', 'Technical Troubleshooting Skills'];
+            } else if (progName.includes('mathematics') && progName.includes('education')) {
+                skills = ['Classroom Management Skills', 'Curriculum Development Skills', 'Educational Technology Skills', 'Teaching Skills', 'Mathematics Instruction & Reasoning Skills'];
+            } else if (progName.includes('english') && progName.includes('education')) {
                 skills = ['Classroom Management Skills', 'Curriculum Development Skills', 'Educational Technology Skills', 'Teaching Skills', 'English Communication & Writing Skills'];
             } else if (progName.includes('filipino')) {
                 skills = ['Classroom Management Skills', 'Curriculum Development Skills', 'Educational Technology Skills', 'Teaching Skills', 'Filipino Communication & Writing Skills'];
+            } else if (progName.includes('elementary education')) {
+                skills = ['Classroom Management Skills', 'Child Development & Learning Skills', 'Educational Technology Skills', 'Teaching Skills', 'Foundational Literacy & Numeracy Skills'];
             } else {
                 skills = ['Technical Knowledge in Degree'];
             }
