@@ -8,22 +8,112 @@
 }
 
 body {
-    background-color: #0d5c34; /* The specific dark green from your image */
+    /* Apply the hero background with the green gradient */
+    background-image: 
+        linear-gradient(rgba(13, 92, 52, 0.95), rgba(13, 92, 52, 0.7)), 
+        url('../img/plp_building.png'); 
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    
     min-height: 100vh;
     display: flex;
-    justify-content: center;
-    align-items: center;
+    flex-direction: column; /* Stacks the navbar and the login box vertically */
     color: #333;
+}
+
+/* --- New Layout Wrapper --- */
+.main-content {
+    flex-grow: 1; /* Takes up all remaining space below the navbar */
+    display: flex;
+    justify-content: center;
+    align-items: center; /* Centers the login box vertically */
+    padding: 20px;
 }
 
 .login-wrapper {
     width: 100%;
     max-width: 450px;
-    padding: 20px;
     text-align: center;
 }
 
-/* --- Header Section --- */
+/* --- Navbar Styles (Ported from style.css) --- */
+.navbar {
+    background-color: #ffffff;
+    width: 100%;
+    padding: 12px 0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    position: relative;
+    z-index: 10;
+    flex-shrink: 0; /* Prevents the body flexbox from squishing the navbar */
+}
+
+.navbar-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 4%;
+}
+
+.nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.nav-logo {
+    width: 55px;
+    height: 55px;
+    object-fit: contain;
+}
+
+.nav-text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: left;
+}
+
+.nav-title {
+    color: #18864b;
+    font-size: 1rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    margin: 0; 
+    line-height: 1.2;
+}
+
+.nav-subtitle {
+    color: #8c8c8c;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 3px 0 0 0; 
+    line-height: 1.2;
+}
+
+.btn-back {
+    background-color: #f3f4f6; 
+    color: #4b5563;
+    padding: 12px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+
+.btn-back:hover {
+    background-color: #e5e7eb;
+    color: #1f2937;
+}
+
+/* --- Header Section (Keep your existing code from here downwards) --- */
 .login-header {
     margin-bottom: 30px;
     color: white;
@@ -164,6 +254,16 @@ body {
     border-radius: 4px;
     color: #333;
 }
+
+.copy-btn {
+    background: #eee;
+    border: 1px solid #ccc;
+    padding: 2px 5px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: monospace;
+}
+.copy-btn:active { background: #ddd; }
 
 /* --- Footer --- */
 .login-footer {

@@ -10,15 +10,22 @@
 </head>
 <body>
 
-    <header>
-        <div class="container header-container">
-            <a href="login.php" class="btn-login" style="text-decoration: none;"><i class="fas fa-sign-in-alt"></i> Login</a>
+    <header class="navbar">
+        <div class="container navbar-container">
+            <div class="nav-brand">
+                <img src="assets/img/university_logo.png" alt="University Logo" class="nav-logo">
+                <div class="nav-text">
+                    <h1 class="nav-title">Pamantasan ng Lungsod ng Pasig</h1>
+                    <span class="nav-subtitle">One Vision. One Mission. One PLP</span>
+                </div>
+            </div>
+            
+            <a href="login.php" class="btn-login"><i class="fas fa-sign-out-alt"></i> Login</a>
         </div>
     </header>
 
     <section class="hero" style="background-image: linear-gradient(rgba(13, 92, 52, 0.95), rgba(13, 92, 52, 0.7)), url('assets/img/plp_building.png?v=<?php echo time(); ?>');">
         <div class="container">
-            <img src="assets/img/university_logo.png" alt="University Logo" class="hero-logo">
             
             <h1>PLP Alumni Tracer</h1>
             <p class="hero-subtitle">Discover Your Career Path Based on Real Alumni Outcomes</p>
@@ -55,9 +62,9 @@
 
     <section class="section-light system-preview-section">
         <div class="container">
-            <div class="section-title text-center">
+            <div class="section-title text-center" style="margin-bottom: 1.5rem;">
                 <h2>Inside the Portal</h2>
-                <p>A complete ecosystem designed to bridge the gap between graduation and employment.</p>
+                <p style="margin-bottom: 0;">A complete ecosystem designed to bridge the gap between graduation and employment.</p>
             </div>
 
             <div class="tabs-container">
@@ -69,9 +76,8 @@
 
                 <div class="tabs-content">
                     <div class="tab-pane active" id="tab-ai">
-                        <div class="split-layout">
+                        <div class="split-layout landscape-split">
                             <div class="tab-text">
-                                <div class="tab-image-placeholder" style="background-image: linear-gradient(rgba(13, 92, 52, 0.95), rgba(13, 92, 52, 0.7)), url('https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=800&q=80');"></div>
                                 <h3>Dynamic Career Prediction</h3>
                                 <p>Our system doesn't just ask generic questions. It tailors the assessment based on your specific degree program.</p>
                                 <ul class="check-list mt-3">
@@ -92,9 +98,8 @@
                     </div>
 
                     <div class="tab-pane" id="tab-dash">
-                        <div class="split-layout">
+                        <div class="split-layout landscape-split">
                             <div class="tab-text">
-                                <div class="tab-image-placeholder" style="background-image: linear-gradient(rgba(13, 92, 52, 0.95), rgba(13, 92, 52, 0.7)), url('https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=800&q=80');"></div>
                                 <h3>Your Professional Hub</h3>
                                 <p>Log in to a personalized dashboard that tracks your career trajectory and keeps you connected with the university.</p>
                                 <ul class="check-list mt-3">
@@ -115,9 +120,8 @@
                     </div>
 
                     <div class="tab-pane" id="tab-analytics">
-                        <div class="split-layout">
+                        <div class="split-layout landscape-split">
                             <div class="tab-text">
-                                <div class="tab-image-placeholder" style="background-image: linear-gradient(rgba(13, 92, 52, 0.95), rgba(13, 92, 52, 0.7)), url('https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80');"></div>
                                 <h3>Data-Driven Decisions</h3>
                                 <p>Access a comprehensive view of how PLP programs are performing in the real-world job market.</p>
                                 <ul class="check-list mt-3">
@@ -143,25 +147,17 @@
                                     <div class="mock-chart-bars-new">
                                         <div class="mock-bar-wrapper">
                                             <div class="mock-bar-value">80%</div>
-                                            <div class="mock-bar-track">
-                                                <div class="mock-bar it"></div>
-                                            </div>
-                                            <div class="mock-bar-label">IT</div>
+                                            <div class="mock-bar-track"><div class="mock-bar it"></div></div>
+                                            <div class="mock-bar-label">CCS</div>
                                         </div>
-                                        
                                         <div class="mock-bar-wrapper">
                                             <div class="mock-bar-value">60%</div>
-                                            <div class="mock-bar-track">
-                                                <div class="mock-bar nursing"></div>
-                                            </div>
-                                            <div class="mock-bar-label">Nursing</div>
+                                            <div class="mock-bar-track"><div class="mock-bar nursing"></div></div>
+                                            <div class="mock-bar-label">CON</div>
                                         </div>
-                                        
                                         <div class="mock-bar-wrapper">
                                             <div class="mock-bar-value">90%</div>
-                                            <div class="mock-bar-track">
-                                                <div class="mock-bar cba"></div>
-                                            </div>
+                                            <div class="mock-bar-track"><div class="mock-bar cba"></div></div>
                                             <div class="mock-bar-label">CBA</div>
                                         </div>
                                     </div>

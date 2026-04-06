@@ -56,77 +56,78 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PLP Alumni Tracer - Login</title>
-    <link rel="stylesheet" href="assets/css/login-style.css">
+    <link rel="stylesheet" href="assets/css/login-style.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
-    <div class="login-wrapper">
-        <div class="login-header">
-            <div class="logo-icon">
-                <i class="fas fa-graduation-cap"></i>
-            </div>
-            <h1>PLP Alumni Tracer</h1>
-            <p>Login to access the system</p>
-        </div>
-
-        <div class="login-card">
-            <h2>Welcome Back</h2>
-
-            <?php if(!empty($error)): ?>
-                <div class="error-msg"><?php echo $error; ?></div>
-            <?php endif; ?>
-
-            <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="POST">
-                
-                <div class="form-group">
-                    <label for="student_id">Student ID / Admin ID</label>
-                    <div class="input-icon-wrap">
-                        <i class="far fa-id-card"></i>
-                        <input type="text" id="student_id" name="student_id" placeholder="e.g., 23-00186 or 00-ADMIN" required>
-                    </div>
+    <header class="navbar">
+        <div class="navbar-container">
+            <div class="nav-brand">
+                <img src="assets/img/university_logo.png" alt="University Logo" class="nav-logo">
+                <div class="nav-text">
+                    <h1 class="nav-title">Pamantasan ng Lungsod ng Pasig</h1>
+                    <span class="nav-subtitle">One Vision. One Mission. One PLP</span>
                 </div>
-
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <div class="input-icon-wrap">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="password" name="password" placeholder="Enter your password" required>
-                    </div>
-                </div>
-
-                <button type="submit" class="btn-login">Login</button>
-            </form>
-
-            <div class="credentials-box" style="margin-top: 20px; font-size: 0.85rem; color: #666;">
-                <strong>Test Credentials (Click to Copy):</strong>
-                
-                <style>
-                    .copy-btn {
-                        background: #eee;
-                        border: 1px solid #ccc;
-                        padding: 2px 5px;
-                        border-radius: 4px;
-                        cursor: pointer;
-                        font-family: monospace;
-                    }
-                    .copy-btn:active { background: #ddd; }
-                </style>
-
-                <p>Alumni: 
-                    <span class="copy-btn" onclick="navigator.clipboard.writeText('23-00186')">23-00186</span> / 
-                    <span class="copy-btn" onclick="navigator.clipboard.writeText('alumni123')">alumni123</span>
-                </p>
-                
-                <p>Admin: 
-                    <span class="copy-btn" onclick="navigator.clipboard.writeText('00-ADMIN')">00-ADMIN</span> / 
-                    <span class="copy-btn" onclick="navigator.clipboard.writeText('admin123')">admin123</span>
-                </p>
             </div>
+            
+            <a href="index.php" class="btn-back"><i class="fas fa-arrow-left"></i> Back to Home</a>
         </div>
+    </header>
 
-        <div class="login-footer">
-            &copy; <?php echo date("Y"); ?> Pamantasan ng Lungsod ng Pasig
+    <div class="main-content">
+        <div class="login-wrapper">
+            <div class="login-header">
+                <h1>PLP Alumni Tracer</h1>
+                <p>Login to access the system</p>
+            </div>
+
+            <div class="login-card">
+                <h2>Welcome Back</h2>
+
+                <?php if(!empty($error)): ?>
+                    <div class="error-msg"><?php echo $error; ?></div>
+                <?php endif; ?>
+
+                <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="POST">
+                    
+                    <div class="form-group">
+                        <label for="student_id">Student ID / Admin ID</label>
+                        <div class="input-icon-wrap">
+                            <i class="far fa-id-card"></i>
+                            <input type="text" id="student_id" name="student_id" placeholder="e.g., 23-00186 or 00-ADMIN" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <div class="input-icon-wrap">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-login">Login</button>
+                </form>
+
+                <div class="credentials-box" style="margin-top: 20px; font-size: 0.85rem; color: #666;">
+                    <strong>Test Credentials (Click to Copy):</strong>
+
+                    <p>Alumni: 
+                        <span class="copy-btn" onclick="navigator.clipboard.writeText('23-00186')">23-00186</span> / 
+                        <span class="copy-btn" onclick="navigator.clipboard.writeText('alumni123')">alumni123</span>
+                    </p>
+                    
+                    <p>Admin: 
+                        <span class="copy-btn" onclick="navigator.clipboard.writeText('00-ADMIN')">00-ADMIN</span> / 
+                        <span class="copy-btn" onclick="navigator.clipboard.writeText('admin123')">admin123</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="login-footer">
+                &copy; <?php echo date("Y"); ?> Pamantasan ng Lungsod ng Pasig
+            </div>
         </div>
     </div>
 
