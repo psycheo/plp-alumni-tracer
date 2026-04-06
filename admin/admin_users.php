@@ -59,6 +59,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['plp_id']) && !isset($_
     }
 }
 
+// Para sa Degree/Program dropdown sa Academic Modal
 $programOptions = [];
 $prog_sql = "SELECT id, name FROM programs ORDER BY name ASC";
 if ($prog_result = $conn->query($prog_sql)) {
@@ -90,35 +91,33 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
         .action-btn { background: none; border: none; cursor: pointer; font-size: 1.1rem; margin: 0 5px; display: inline-block; }
         .action-edit { color: #f59e0b; }
         .action-delete { color: #ef4444; }
-        .action-academic { color: #0ea5e9; }
+        .action-academic { color: #0ea5e9; } 
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 24, 39, 0.6); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: #ffffff; padding: 25px 30px; border-radius: 10px; width: 100%; max-width: 460px; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        
+        /* UPDATED MODAL CONTENT FOR ACADEMIC INFO */
+        .modal-content { background: #ffffff; padding: 25px 30px; border-radius: 10px; width: 100%; max-width: 580px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .modal-header h2 { font-size: 1.25rem; font-weight: 700; margin: 0; }
         .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #9ca3af; }
+        
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 6px; font-size: 0.85rem; color: #4b5563; font-weight: 600;}
         .form-group input, .form-group select { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.9rem; outline: none; }
-        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
-        .btn-cancel { padding: 8px 16px; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 6px; cursor: pointer; }
-        .btn-save { padding: 8px 16px; background: #10b981; border: none; border-radius: 6px; cursor: pointer; color: white; }
+        
+        /* GRID LAYOUT FOR ACADEMIC SECTIONS */
+        .academic-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
+        .info-box { border: 1px solid #e5e7eb; padding: 15px; border-radius: 8px; }
+        .info-box-title { font-size: 0.75rem; font-weight: 700; color: #6b7280; margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.025em; }
+        .info-box .form-group { margin-bottom: 10px; }
+        .info-box label { font-size: 0.75rem; color: #6b7280; }
+        .info-box input { padding: 8px 10px; font-size: 0.85rem; }
+
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+        .btn-cancel { padding: 8px 20px; background: #ffffff; border: 1px solid #d1d5db; border-radius: 6px; cursor: pointer; font-weight: 500; }
+        .btn-save { padding: 8px 20px; background: #10b981; border: none; border-radius: 6px; cursor: pointer; color: white; font-weight: 600; }
         .import-zone { border: 2px dashed #10b981; padding: 20px; text-align: center; border-radius: 8px; background: #f0fdf4; cursor: pointer; margin-bottom: 10px; }
 
-        /* TOAST STYLE (Upper Right) */
-        .toast-notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #10b981;
-            color: white;
-            padding: 15px 25px;
-            border-radius: 8px;
-            z-index: 9999;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            transition: opacity 0.5s ease, transform 0.5s ease;
-        }
+        .toast-notification { position: fixed; top: 20px; right: 20px; background: #10b981; color: white; padding: 15px 25px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 10px; transition: opacity 0.5s ease, transform 0.5s ease; }
     </style>
 </head>
 <body>
@@ -146,18 +145,6 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
         </div>
 
         <div class="admin-card">
-            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
-                <h3 style="font-size: 1.1rem; color: #1f2937;">Registered Accounts</h3>
-                <div class="filters-container">
-                    <select id="roleFilter" class="filter-select">
-                        <option value="">All Roles</option>
-                        <option value="Admin">Admin</option>
-                        <option value="Alumni">Alumni</option>
-                    </select>
-                    <input type="text" id="searchInput" placeholder="Search current page..." style="padding: 8px 15px; border: 1px solid #d1d5db; border-radius: 6px; width: 250px;">
-                </div>
-            </div>
-
             <table class="admin-table">
                 <thead>
                     <tr>
@@ -171,21 +158,22 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
                 </thead>
                 <tbody id="userTableBody">
                     <?php
-                    $fetch_sql = "SELECT * FROM users ORDER BY created_at DESC LIMIT $start_from, $results_per_page";
-                    $result = $conn->query($fetch_sql);
+                    $result = $conn->query("SELECT * FROM users ORDER BY created_at DESC LIMIT $start_from, $results_per_page");
                     while($row = $result->fetch_assoc()):
                         $badge_class = ($row['role'] == 'admin') ? 'role-admin' : 'role-alumni';
                     ?>
                     <tr>
                         <td><strong><?php echo htmlspecialchars($row['student_id']); ?></strong></td>
-                        <td><?php echo htmlspecialchars($row['full_name']); ?></td>
+                        <td style="text-transform: uppercase;"><?php echo htmlspecialchars($row['full_name']); ?></td>
                         <td><?php echo htmlspecialchars($row['email']); ?></td>
                         <td><span class='role-badge <?php echo $badge_class; ?>'><?php echo ucfirst($row['role']); ?></span></td>
                         <td><?php echo date("M d, Y", strtotime($row['created_at'])); ?></td>
                         <td style='text-align: right;'>
                             <button class='action-btn action-edit' data-id='<?php echo $row['student_id']; ?>' data-name='<?php echo $row['full_name']; ?>' data-email='<?php echo $row['email']; ?>' data-role='<?php echo $row['role']; ?>'><i class='fas fa-edit'></i></button>
-                            <button class='action-btn action-academic' data-id='<?php echo $row['student_id']; ?>' data-name='<?php echo $row['full_name']; ?>'><i class='fas fa-graduation-cap'></i></button>
-                            <a href='?delete_id=<?php echo urlencode($row['student_id']); ?>' class='action-btn action-delete'><i class='fas fa-trash-alt'></i></a>
+                            
+                            <button class='action-btn action-academic' data-id='<?php echo $row['student_id']; ?>' data-name='<?php echo strtoupper($row['full_name']); ?>'><i class='fas fa-graduation-cap'></i></button>
+                            
+                            <a href='?delete_id=<?php echo urlencode($row['student_id']); ?>' class='action-btn action-delete' onclick="return confirm('Delete this user?');"><i class='fas fa-trash-alt'></i></a>
                         </td>
                     </tr>
                     <?php endwhile; ?>
@@ -194,8 +182,79 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
         </div>
     </main>
 
-    <div class="modal-overlay" id="importModal">
+    <div class="modal-overlay" id="academicModal">
         <div class="modal-content">
+            <div class="modal-header">
+                <h2>Academic Information</h2>
+                <button class="close-btn" onclick="document.getElementById('academicModal').style.display='none'">&times;</button>
+            </div>
+            <p style="font-size:0.85rem; color:#6b7280; margin-bottom:20px;">View or update the alumni's recorded academic profile.</p>
+            
+            <form>
+                <div class="form-group">
+                    <label>Alumni Name</label>
+                    <input type="text" id="acad_full_name" readonly style="background-color: #f9fafb; font-weight: 600;">
+                </div>
+                <div class="form-group">
+                    <label>Degree / Program</label>
+                    <select id="acad_program">
+                        <option value="">Select program...</option>
+                        <?php foreach ($programOptions as $p): ?>
+                            <option value="<?php echo htmlspecialchars($p['id']); ?>"><?php echo htmlspecialchars($p['name']); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <div class="academic-grid">
+                    <div class="info-box">
+                        <div class="info-box-title">Overall Performance</div>
+                        <div class="form-group">
+                            <label>Average Grade</label>
+                            <input type="text" placeholder="e.g. 90.00">
+                        </div>
+                        <div class="form-group">
+                            <label>OJT Grade</label>
+                            <input type="text" placeholder="e.g. 87.00">
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <div class="info-box-title">Coursework Averages</div>
+                        <div class="form-group">
+                            <label>Avg Professional Grade</label>
+                            <input type="text" placeholder="e.g. 88.00">
+                        </div>
+                        <div class="form-group">
+                            <label>Avg Elective Grade</label>
+                            <input type="text" placeholder="e.g. 78.00">
+                        </div>
+                    </div>
+
+                    <div class="info-box" style="grid-column: span 2;">
+                        <div class="info-box-title">Skills Summary</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                            <div class="form-group">
+                                <label>Soft Skills Average</label>
+                                <input type="text" placeholder="e.g. 80.00">
+                            </div>
+                            <div class="form-group">
+                                <label>Hard Skills Average</label>
+                                <input type="text" placeholder="e.g. 63.08">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="document.getElementById('academicModal').style.display='none'">Close</button>
+                    <button type="button" class="btn-save">Save Academic Info</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="importModal">
+        <div class="modal-content" style="max-width: 460px;">
             <div class="modal-header">
                 <h2>Import Users</h2>
                 <button class="close-btn" onclick="document.getElementById('importModal').style.display='none'">&times;</button>
@@ -216,35 +275,20 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
     </div>
 
     <div class="modal-overlay" id="addUserModal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 460px;">
             <div class="modal-header">
                 <h2>Add New User</h2>
                 <button class="close-btn" onclick="document.getElementById('addUserModal').style.display='none'">&times;</button>
             </div>
             <form action="" method="POST"> 
-                <div class="form-group">
-                    <label>PLP ID Number</label>
-                    <input type="text" name="plp_id" required>
-                </div>
-                <div class="form-group">
-                    <label>Full Name</label>
-                    <input type="text" name="full_name" required>
-                </div>
-                <div class="form-group">
-                    <label>Email Address</label>
-                    <input type="email" name="email" required>
-                </div>
+                <div class="form-group"><label>PLP ID Number</label><input type="text" name="plp_id" required></div>
+                <div class="form-group"><label>Full Name</label><input type="text" name="full_name" required></div>
+                <div class="form-group"><label>Email Address</label><input type="email" name="email" required></div>
                 <div class="form-group">
                     <label>System Role</label>
-                    <select name="role">
-                        <option value="alumni">Alumni</option>
-                        <option value="admin">Administrator</option>
-                    </select>
+                    <select name="role"><option value="alumni">Alumni</option><option value="admin">Administrator</option></select>
                 </div>
-                <div class="form-group">
-                    <label>Temporary Password</label>
-                    <input type="password" name="temp_password" value="alumni123" required>
-                </div>
+                <div class="form-group"><label>Temporary Password</label><input type="password" name="temp_password" value="alumni123" required></div>
                 <div class="modal-actions">
                     <button type="button" class="btn-cancel" onclick="document.getElementById('addUserModal').style.display='none'">Cancel</button>
                     <button type="submit" class="btn-save">Save User</button>
@@ -254,7 +298,7 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
     </div>
 
     <div class="modal-overlay" id="editUserModal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 460px;">
             <div class="modal-header">
                 <h2>Edit User</h2>
                 <button class="close-btn" onclick="document.getElementById('editUserModal').style.display='none'">&times;</button>
@@ -262,24 +306,12 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
             <form action="" method="POST"> 
                 <input type="hidden" name="edit_user" value="1">
                 <input type="hidden" id="orig_student_id" name="orig_student_id">
-                <div class="form-group">
-                    <label>PLP ID Number</label>
-                    <input type="text" id="edit_plp_id" name="edit_plp_id" required>
-                </div>
-                <div class="form-group">
-                    <label>Full Name</label>
-                    <input type="text" id="edit_full_name" name="edit_full_name" required>
-                </div>
-                <div class="form-group">
-                    <label>Email Address</label>
-                    <input type="email" id="edit_email" name="edit_email" required>
-                </div>
+                <div class="form-group"><label>PLP ID Number</label><input type="text" id="edit_plp_id" name="edit_plp_id" required></div>
+                <div class="form-group"><label>Full Name</label><input type="text" id="edit_full_name" name="edit_full_name" required></div>
+                <div class="form-group"><label>Email Address</label><input type="email" id="edit_email" name="edit_email" required></div>
                 <div class="form-group">
                     <label>System Role</label>
-                    <select id="edit_role" name="edit_role">
-                        <option value="alumni">Alumni</option>
-                        <option value="admin">Administrator</option>
-                    </select>
+                    <select id="edit_role" name="edit_role"><option value="alumni">Alumni</option><option value="admin">Administrator</option></select>
                 </div>
                 <div class="modal-actions">
                     <button type="button" class="btn-cancel" onclick="document.getElementById('editUserModal').style.display='none'">Cancel</button>
@@ -291,7 +323,6 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // --- AUTO-HIDE SUCCESS MESSAGE ---
             const toast = document.getElementById('success-toast');
             if (toast) {
                 setTimeout(() => {
@@ -301,7 +332,13 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
                 }, 3000); 
             }
 
-            // MODAL CONTROLS
+            document.querySelectorAll('.action-academic').forEach(btn => {
+                btn.onclick = function() {
+                    document.getElementById('acad_full_name').value = this.dataset.name;
+                    document.getElementById('academicModal').style.display = 'flex';
+                }
+            });
+
             document.getElementById('openAddUserModal').onclick = () => document.getElementById('addUserModal').style.display = 'flex';
             document.getElementById('openImportModal').onclick = () => document.getElementById('importModal').style.display = 'flex';
 
@@ -316,7 +353,6 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
                 }
             });
 
-            // EXCEL LOGIC
             document.getElementById('excel_file').onchange = function(e) {
                 const file = e.target.files[0];
                 document.getElementById('file-name-text').innerText = "Selected: " + file.name;
@@ -331,22 +367,6 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
                 };
                 reader.readAsArrayBuffer(file);
             };
-
-            // SEARCH/FILTER
-            const searchInput = document.getElementById('searchInput');
-            const roleFilter = document.getElementById('roleFilter');
-            function filterTable() {
-                const s = searchInput.value.toLowerCase();
-                const r = roleFilter.value.toLowerCase();
-                document.querySelectorAll('#userTableBody tr').forEach(row => {
-                    const txt = row.innerText.toLowerCase();
-                    const matchesSearch = txt.includes(s);
-                    const matchesRole = r === "" || row.cells[3].innerText.toLowerCase().includes(r);
-                    row.style.display = matchesSearch && matchesRole ? "" : "none";
-                });
-            }
-            searchInput.oninput = filterTable;
-            roleFilter.onchange = filterTable;
         });
     </script>
 </body>
