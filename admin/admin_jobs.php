@@ -38,7 +38,7 @@ session_start();
     <main class="admin-main">
         <div class="page-title">
             <h1>Job Postings Database</h1>
-            <p>Monitor active job listings from API aggregators to match with alumni.</p>
+            <p>Philippines job listings via Careerjet (<code>en_PH</code>). Same backend as the Company Directory job panel.</p>
         </div>
 
         <div class="admin-card" style="padding: 20px;">
@@ -68,93 +68,88 @@ session_start();
     </main>
 
     <script>
-        function fetchJobsAPI() {
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text == null ? '' : String(text);
+            return div.innerHTML;
+        }
+
+        async function fetchJobsAPI() {
             const grid = document.getElementById('api-jobs-grid');
             const loader = document.getElementById('api-loading');
-            
+            const keywordEl = document.getElementById('searchKeyword');
+            const locationEl = document.getElementById('locationFilter');
+
+            const keywords = (keywordEl && keywordEl.value.trim()) ? keywordEl.value.trim() : 'IT';
+            const location = (locationEl && locationEl.value) ? locationEl.value.trim() : '';
+
             grid.innerHTML = '';
             loader.style.display = 'block';
 
-            /* =============================================================
-               API INTEGRATION POINT:
-               Replace this setTimeout block with your actual fetch() request 
-               to your chosen Job API.
-               =============================================================
-            */
-            setTimeout(() => {
-                // Simulated API Response Data
-                const mockApiResponse = [
-                    { 
-                        title: "Frontend Web Developer", 
-                        company: "TechNova Solutions", 
-                        location: "Makati City", 
-                        salary: "₱35,000 - ₱50,000",
-                        type: "Full-time", 
-                        tags: ["HTML", "CSS", "JavaScript"],
-                        posted: "2 days ago"
-                    },
-                    { 
-                        title: "UI/UX Designer", 
-                        company: "Creative Minds PH", 
-                        location: "Remote", 
-                        salary: "₱40,000 - ₱60,000",
-                        type: "Contract", 
-                        tags: ["Figma", "Prototyping", "Wireframing"],
-                        posted: "5 hours ago"
-                    },
-                    { 
-                        title: "Backend Developer", 
-                        company: "DataFlow Systems", 
-                        location: "Ortigas, Pasig", 
-                        salary: "₱45,000 - ₱65,000",
-                        type: "Full-time", 
-                        tags: ["PHP", "MySQL", "XAMPP"],
-                        posted: "1 week ago"
-                    }
-                ];
+            const params = new URLSearchParams({ keywords });
+            if (location) {
+                params.set('location', location);
+            }
+
+            try {
+                const res = await fetch('api_ph_jobs.php?' + params.toString());
+                const data = await res.json();
 
                 loader.style.display = 'none';
 
-                if (mockApiResponse.length === 0) {
+                if (!data.ok) {
+                    grid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: #b91c1c;">' + escapeHtml(data.error || 'Could not load jobs.') + '</p>';
+                    return;
+                }
+
+                const jobs = data.results || [];
+                if (jobs.length === 0) {
                     grid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: #6b7280;">No jobs found matching your criteria.</p>';
                     return;
                 }
 
-                mockApiResponse.forEach(job => {
+                jobs.forEach(job => {
                     const card = document.createElement('div');
                     card.className = 'job-card';
-                    
-                    // Map tags to HTML spans
-                    const tagsHtml = job.tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+
+                    const typeLabel = job.type ? escapeHtml(job.type) : 'Listing';
+                    const postedLabel = job.posted ? escapeHtml(job.posted) : '—';
+                    const linkHtml = job.url
+                        ? '<a href="' + escapeHtml(job.url) + '" target="_blank" rel="noopener noreferrer" style="font-size: 0.8rem; color: #0d5c34;">View listing <i class="fas fa-external-link-alt"></i></a>'
+                        : '';
 
                     card.innerHTML = `
                         <div>
                             <div class="job-header">
-                                <h3 class="job-title">${job.title}</h3>
-                                <div class="job-company"><i class="far fa-building"></i> ${job.company}</div>
+                                <h3 class="job-title">${escapeHtml(job.title)}</h3>
+                                <div class="job-company"><i class="far fa-building"></i> ${escapeHtml(job.company)}</div>
                             </div>
-                            
+
                             <div class="job-details">
-                                <span><i class="fas fa-map-marker-alt" style="width: 16px;"></i> ${job.location}</span>
-                                <span><i class="fas fa-money-bill-wave" style="width: 16px;"></i> ${job.salary}</span>
+                                <span><i class="fas fa-map-marker-alt" style="width: 16px;"></i> ${escapeHtml(job.location)}</span>
+                                <span><i class="fas fa-money-bill-wave" style="width: 16px;"></i> ${escapeHtml(job.salary)}</span>
                             </div>
 
                             <div class="job-tags">
-                                ${tagsHtml}
+                                <span class="tag"><i class="fas fa-plug"></i> Careerjet PH</span>
                             </div>
+                            ${linkHtml}
                         </div>
 
                         <div class="job-footer">
-                            <span class="job-type">${job.type}</span>
-                            <span style="font-size: 0.75rem; color: #9ca3af;"><i class="far fa-clock"></i> ${job.posted}</span>
+                            <span class="job-type">${typeLabel}</span>
+                            <span style="font-size: 0.75rem; color: #9ca3af;"><i class="far fa-clock"></i> ${postedLabel}</span>
                         </div>
                     `;
                     grid.appendChild(card);
                 });
-            }, 800);
+            } catch (e) {
+                console.error(e);
+                loader.style.display = 'none';
+                grid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: #b91c1c;">Error loading jobs. Check your connection and includes/careerjet_credentials.php (Publisher API key).</p>';
+            }
         }
 
-        // Auto-fetch when the page loads
         window.onload = fetchJobsAPI;
     </script>
 </body>
