@@ -3,6 +3,7 @@ session_start();
 
 require '../includes/db.php';
 
+// --- ORIGINAL LOGIC ---
 if (isset($_GET['delete_id'])) {
     $delete_id = $conn->real_escape_string($_GET['delete_id']);
     $conn->query("DELETE FROM users WHERE student_id = '$delete_id'");
@@ -54,19 +55,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['plp_id']) && !isset($_
             $_SESSION['success_msg'] = "New user successfully added.";
             header("Location: " . strtok($_SERVER["REQUEST_URI"], '?')); 
             exit();
-        } else {
-            echo "<script>alert('Database error: " . $conn->error . "');</script>";
         }
     }
 }
 
-// Preload programs for academic information dropdowns (used in admin-only modal)
 $programOptions = [];
 $prog_sql = "SELECT id, name FROM programs ORDER BY name ASC";
 if ($prog_result = $conn->query($prog_sql)) {
-    while ($p = $prog_result->fetch_assoc()) {
-        $programOptions[] = $p;
-    }
+    while ($p = $prog_result->fetch_assoc()) { $programOptions[] = $p; }
 }
 
 $results_per_page = 10;
@@ -86,96 +82,51 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
     <title>Users - PLP Admin</title>
     <link rel="stylesheet" href="../assets/css/admin-style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <style>
         .role-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
         .role-admin { background: #fee2e2; color: #ef4444; }
         .role-alumni { background: #e0f2fe; color: #0284c7; }
-        .action-btn { background: none; border: none; cursor: pointer; font-size: 1.1rem; margin: 0 5px; text-decoration: none; display: inline-block; }
+        .action-btn { background: none; border: none; cursor: pointer; font-size: 1.1rem; margin: 0 5px; display: inline-block; }
         .action-edit { color: #f59e0b; }
         .action-delete { color: #ef4444; }
         .action-academic { color: #0ea5e9; }
-
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17, 24, 39, 0.6); z-index: 1000; justify-content: center; align-items: center; }
-        .modal-content { background: #ffffff; padding: 25px 30px; border-radius: 10px; width: 100%; max-width: 460px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        .modal-content { background: #ffffff; padding: 25px 30px; border-radius: 10px; width: 100%; max-width: 460px; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .modal-header h2 { margin: 0; font-size: 1.25rem; color: #1f2937; }
-        .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #9ca3af; transition: 0.2s; }
-        .close-btn:hover { color: #ef4444; }
+        .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #9ca3af; }
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 6px; font-size: 0.85rem; color: #4b5563; font-weight: 600;}
-        .form-group input, .form-group select { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box; font-size: 0.9rem; color: #1f2937; outline: none; transition: 0.2s; }
-        .form-group input:focus, .form-group select:focus { border-color: #10b981; }
-        
-        .inline-error { color: #ef4444; font-size: 0.8rem; margin-top: 5px; display: none; font-weight: 500; }
-        .input-error-border { border-color: #ef4444 !important; }
-
+        .form-group input, .form-group select { width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.9rem; outline: none; }
         .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; }
-        .btn-cancel { padding: 8px 16px; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 6px; cursor: pointer; color: #4b5563; font-weight: 500; }
-        .btn-cancel:hover { background: #e5e7eb; }
-        .btn-save { padding: 8px 16px; background: #10b981; border: none; border-radius: 6px; cursor: pointer; color: white; font-weight: 500; transition: 0.2s; }
-        .btn-save:hover { background: #059669; }
-        .btn-danger { background: #ef4444; }
-        .btn-danger:hover { background: #dc2626; }
+        .btn-cancel { padding: 8px 16px; background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 6px; cursor: pointer; }
+        .btn-save { padding: 8px 16px; background: #10b981; border: none; border-radius: 6px; cursor: pointer; color: white; }
+        .import-zone { border: 2px dashed #10b981; padding: 20px; text-align: center; border-radius: 8px; background: #f0fdf4; cursor: pointer; margin-bottom: 10px; }
 
-        /* Academic modal layout */
-        .academic-grid {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 12px;
-        }
-
-        .academic-card {
-            border: 1px solid #e5e7eb;
+        /* TOAST STYLE (Upper Right) */
+        .toast-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 15px 25px;
             border-radius: 8px;
-            padding: 10px 12px;
-            background: #f9fafb;
+            z-index: 9999;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: opacity 0.5s ease, transform 0.5s ease;
         }
-
-        .academic-card .form-group {
-            margin-bottom: 8px;
-        }
-
-        .academic-card-title {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: #6b7280;
-            margin-bottom: 6px;
-        }
-
-        .academic-inline-2 {
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 8px 10px;
-        }
-
-        @media (max-width: 640px) {
-            .academic-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .toast-notification { position: fixed; top: 20px; right: 20px; color: white; padding: 15px 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); display: flex; align-items: center; gap: 12px; z-index: 9999; font-weight: 500; animation: slideIn 0.4s ease-out forwards, fadeOut 0.4s ease-in 4s forwards; }
-        .toast-success { background: #10b981; }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; visibility: hidden; } }
-        
-        .filters-container { display: flex; gap: 10px; }
-        .filter-select { padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; outline: none; }
-        .filter-select:focus { border-color: #10b981; }
-
-        .pagination-container { display: flex; justify-content: flex-end; align-items: center; margin-top: 20px; gap: 5px; }
-        .page-link { padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; text-decoration: none; color: #4b5563; font-size: 0.9rem; transition: 0.2s; background: white;}
-        .page-link:hover { background: #f3f4f6; }
-        .page-link.active { background: #10b981; color: white; border-color: #10b981; }
-        .page-link.disabled { color: #9ca3af; pointer-events: none; background: #f9fafb; }
     </style>
 </head>
 <body>
 
     <?php if (isset($_SESSION['success_msg'])): ?>
-        <div class="toast-notification toast-success">
-            <i class="fas fa-check-circle" style="font-size: 1.2rem;"></i> 
-            <div><?php echo $_SESSION['success_msg']; ?></div>
+        <div class="toast-notification" id="success-toast">
+            <i class="fas fa-check-circle"></i> 
+            <span><?php echo $_SESSION['success_msg']; ?></span>
         </div>
         <?php unset($_SESSION['success_msg']); ?>
     <?php endif; ?>
@@ -188,7 +139,10 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
                 <h1>User Management</h1>
                 <p>Manage alumni accounts and administrative access.</p>
             </div>
-            <button class="btn-upload" id="openAddUserModal"><i class="fas fa-plus"></i> Add New User</button>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-upload" id="openImportModal" style="background: #059669; color:white; border:none; padding:10px 20px; border-radius:6px; cursor:pointer;"><i class="fas fa-file-import"></i> Upload File</button>
+                <button class="btn-upload" id="openAddUserModal"><i class="fas fa-plus"></i> Add New User</button>
+            </div>
         </div>
 
         <div class="admin-card">
@@ -200,7 +154,7 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
                         <option value="Admin">Admin</option>
                         <option value="Alumni">Alumni</option>
                     </select>
-                    <input type="text" id="searchInput" placeholder="Search current page..." style="padding: 8px 15px; border: 1px solid #d1d5db; border-radius: 6px; width: 250px; outline: none;">
+                    <input type="text" id="searchInput" placeholder="Search current page..." style="padding: 8px 15px; border: 1px solid #d1d5db; border-radius: 6px; width: 250px;">
                 </div>
             </div>
 
@@ -219,165 +173,81 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
                     <?php
                     $fetch_sql = "SELECT * FROM users ORDER BY created_at DESC LIMIT $start_from, $results_per_page";
                     $result = $conn->query($fetch_sql);
-
-                    if ($result->num_rows > 0) {
-                        while($row = $result->fetch_assoc()) {
-                            $badge_class = ($row['role'] == 'admin') ? 'role-admin' : 'role-alumni';
-                            $display_role = ucfirst($row['role']); 
-                            $date_registered = date("M d, Y", strtotime($row['created_at']));
-
-                            echo "<tr>";
-                            echo "<td><strong>" . htmlspecialchars($row['student_id']) . "</strong></td>";
-                            echo "<td>" . htmlspecialchars($row['full_name']) . "</td>";
-                            echo "<td>" . htmlspecialchars($row['email']) . "</td>";
-                            echo "<td><span class='role-badge " . $badge_class . "'>" . $display_role . "</span></td>";
-                            echo "<td>" . $date_registered . "</td>";
-                            
-                            echo "<td style='text-align: right;'>
-                                    <button class='action-btn action-edit' 
-                                        data-id='" . htmlspecialchars($row['student_id']) . "'
-                                        data-name='" . htmlspecialchars($row['full_name']) . "'
-                                        data-email='" . htmlspecialchars($row['email']) . "'
-                                        data-role='" . htmlspecialchars($row['role']) . "'>
-                                        <i class='fas fa-edit'></i>
-                                    </button>
-                                    <button class='action-btn action-academic'
-                                        data-id='" . htmlspecialchars($row['student_id']) . "'
-                                        data-name='" . htmlspecialchars($row['full_name']) . "'>
-                                        <i class='fas fa-graduation-cap'></i>
-                                    </button>
-                                    <a href='?delete_id=" . urlencode($row['student_id']) . "' class='action-btn action-delete custom-delete-btn'>
-                                        <i class='fas fa-trash-alt'></i>
-                                    </a>
-                                  </td>";
-                            echo "</tr>";
-                        }
-                    } else {
-                        echo "<tr id='noResultsRow'><td colspan='6' style='text-align: center;'>No users found.</td></tr>";
-                    }
+                    while($row = $result->fetch_assoc()):
+                        $badge_class = ($row['role'] == 'admin') ? 'role-admin' : 'role-alumni';
                     ?>
+                    <tr>
+                        <td><strong><?php echo htmlspecialchars($row['student_id']); ?></strong></td>
+                        <td><?php echo htmlspecialchars($row['full_name']); ?></td>
+                        <td><?php echo htmlspecialchars($row['email']); ?></td>
+                        <td><span class='role-badge <?php echo $badge_class; ?>'><?php echo ucfirst($row['role']); ?></span></td>
+                        <td><?php echo date("M d, Y", strtotime($row['created_at'])); ?></td>
+                        <td style='text-align: right;'>
+                            <button class='action-btn action-edit' data-id='<?php echo $row['student_id']; ?>' data-name='<?php echo $row['full_name']; ?>' data-email='<?php echo $row['email']; ?>' data-role='<?php echo $row['role']; ?>'><i class='fas fa-edit'></i></button>
+                            <button class='action-btn action-academic' data-id='<?php echo $row['student_id']; ?>' data-name='<?php echo $row['full_name']; ?>'><i class='fas fa-graduation-cap'></i></button>
+                            <a href='?delete_id=<?php echo urlencode($row['student_id']); ?>' class='action-btn action-delete'><i class='fas fa-trash-alt'></i></a>
+                        </td>
+                    </tr>
+                    <?php endwhile; ?>
                 </tbody>
             </table>
-
-            <?php if($total_pages > 1): ?>
-            <div class="pagination-container">
-                <a href="?page=<?php echo max(1, $page - 1); ?>" class="page-link <?php if($page <= 1) echo 'disabled'; ?>">&laquo; Prev</a>
-                <?php for($i = 1; $i <= $total_pages; $i++): ?>
-                    <a href="?page=<?php echo $i; ?>" class="page-link <?php if($page == $i) echo 'active'; ?>"><?php echo $i; ?></a>
-                <?php endfor; ?>
-                <a href="?page=<?php echo min($total_pages, $page + 1); ?>" class="page-link <?php if($page >= $total_pages) echo 'disabled'; ?>">Next &raquo;</a>
-            </div>
-            <?php endif; ?>
-
         </div>
     </main>
 
-    <div class="modal-overlay" id="addUserModal">
+    <div class="modal-overlay" id="importModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Add New User</h2>
-                <button class="close-btn" id="closeModalIcon">&times;</button>
+                <h2>Import Users</h2>
+                <button class="close-btn" onclick="document.getElementById('importModal').style.display='none'">&times;</button>
             </div>
-            <form action="" method="POST" id="addUserForm"> 
-                <div class="form-group">
-                    <label for="plp_id">PLP ID Number</label>
-                    <input type="text" id="plp_id" name="plp_id" placeholder="e.g. 23-00186" maxlength="20" required>
-                    <div class="inline-error" id="add_id_error"><i class="fas fa-exclamation-circle"></i> ID Number can only contain numbers and dashes (-).</div>
-                </div>
-                <div class="form-group">
-                    <label for="full_name">Full Name</label>
-                    <input type="text" id="full_name" name="full_name" placeholder="e.g. Juan Dela Cruz" maxlength="100" required>
-                    <div class="inline-error" id="add_name_error"><i class="fas fa-exclamation-circle"></i> Full Name can only contain letters and spaces.</div>
-                </div>
-                <div class="form-group">
-                    <label for="email">Email Address</label>
-                    <input type="email" id="email" name="email" placeholder="e.g. alumni@plpasig.edu.ph" maxlength="255" required>
-                </div>
-                <div class="form-group">
-                    <label for="role">System Role</label>
-                    <select id="role" name="role" required>
-                        <option value="alumni">Alumni</option>
-                        <option value="admin">Administrator</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="temp_password">Temporary Password</label>
-                    <input type="password" id="temp_password" name="temp_password" value="alumni123" placeholder="••••••••" maxlength="16" required>
-                </div>
+            <div class="import-zone" onclick="document.getElementById('excel_file').click()">
+                <i class="fas fa-cloud-upload-alt" style="font-size: 2rem; color: #10b981;"></i>
+                <p id="file-name-text">Click to upload Excel/CSV</p>
+                <input type="file" id="excel_file" accept=".xlsx, .xls, .csv" style="display:none;">
+            </div>
+            <form action="process_import.php" method="POST">
+                <input type="hidden" name="json_data" id="json_data">
                 <div class="modal-actions">
-                    <button type="button" class="btn-cancel" id="closeModalBtn">Cancel</button>
-                    <button type="submit" class="btn-save">Save User</button>
+                    <button type="button" class="btn-cancel" onclick="document.getElementById('importModal').style.display='none'">Cancel</button>
+                    <button type="submit" id="processBtn" class="btn-save" disabled style="opacity:0.5;">Process File</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Academic Information Modal (Admin-only) -->
-    <div class="modal-overlay" id="academicModal">
+    <div class="modal-overlay" id="addUserModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Academic Information</h2>
-                <button class="close-btn" id="closeAcademicModalIcon">&times;</button>
+                <h2>Add New User</h2>
+                <button class="close-btn" onclick="document.getElementById('addUserModal').style.display='none'">&times;</button>
             </div>
-            <form>
-                <p style="font-size: 0.85rem; color: #6b7280; margin-bottom: 15px;">
-                    View or update the alumni's recorded academic profile.
-                </p>
+            <form action="" method="POST"> 
                 <div class="form-group">
-                    <label>Alumni Name</label>
-                    <input type="text" id="acad_full_name" readonly>
+                    <label>PLP ID Number</label>
+                    <input type="text" name="plp_id" required>
                 </div>
                 <div class="form-group">
-                    <label>Degree / Program</label>
-                    <select id="acad_program">
-                        <option value="">Select program...</option>
-                        <?php foreach ($programOptions as $p): ?>
-                            <option value="<?php echo htmlspecialchars($p['id']); ?>">
-                                <?php echo htmlspecialchars($p['name']); ?>
-                            </option>
-                        <?php endforeach; ?>
+                    <label>Full Name</label>
+                    <input type="text" name="full_name" required>
+                </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label>System Role</label>
+                    <select name="role">
+                        <option value="alumni">Alumni</option>
+                        <option value="admin">Administrator</option>
                     </select>
                 </div>
-                <div class="academic-grid" style="margin-top: 10px;">
-                    <div class="academic-card">
-                        <div class="academic-card-title">Overall Performance</div>
-                        <div class="form-group">
-                            <label>Average Grade</label>
-                            <input type="text" id="acad_avg_grade" placeholder="e.g. 90.00">
-                        </div>
-                        <div class="form-group">
-                            <label>OJT Grade</label>
-                            <input type="text" id="acad_ojt_grade" placeholder="e.g. 87.00">
-                        </div>
-                    </div>
-                    <div class="academic-card">
-                        <div class="academic-card-title">Coursework Averages</div>
-                        <div class="form-group">
-                            <label>Avg Professional Grade</label>
-                            <input type="text" id="acad_prof_grade" placeholder="e.g. 88.00">
-                        </div>
-                        <div class="form-group">
-                            <label>Avg Elective Grade</label>
-                            <input type="text" id="acad_elec_grade" placeholder="e.g. 78.00">
-                        </div>
-                    </div>
-                    <div class="academic-card" style="grid-column: span 2;">
-                        <div class="academic-card-title">Skills Summary</div>
-                        <div class="academic-inline-2">
-                            <div class="form-group">
-                                <label>Soft Skills Average</label>
-                                <input type="text" id="acad_soft_avg" placeholder="e.g. 80.00">
-                            </div>
-                            <div class="form-group">
-                                <label>Hard Skills Average</label>
-                                <input type="text" id="acad_hard_avg" placeholder="e.g. 63.08">
-                            </div>
-                        </div>
-                    </div>
+                <div class="form-group">
+                    <label>Temporary Password</label>
+                    <input type="password" name="temp_password" value="alumni123" required>
                 </div>
                 <div class="modal-actions">
-                    <button type="button" class="btn-cancel" id="closeAcademicModalBtn">Close</button>
-                    <button type="button" class="btn-save">Save Academic Info</button>
+                    <button type="button" class="btn-cancel" onclick="document.getElementById('addUserModal').style.display='none'">Cancel</button>
+                    <button type="submit" class="btn-save">Save User</button>
                 </div>
             </form>
         </div>
@@ -387,213 +257,96 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Edit User</h2>
-                <button class="close-btn" id="closeEditModalIcon">&times;</button>
+                <button class="close-btn" onclick="document.getElementById('editUserModal').style.display='none'">&times;</button>
             </div>
-            <form action="" method="POST" id="editUserForm"> 
+            <form action="" method="POST"> 
                 <input type="hidden" name="edit_user" value="1">
                 <input type="hidden" id="orig_student_id" name="orig_student_id">
-                
                 <div class="form-group">
-                    <label for="edit_plp_id">PLP ID Number</label>
-                    <input type="text" id="edit_plp_id" name="edit_plp_id" maxlength="20" required>
-                    <div class="inline-error" id="edit_id_error"><i class="fas fa-exclamation-circle"></i> ID Number can only contain numbers and dashes (-).</div>
+                    <label>PLP ID Number</label>
+                    <input type="text" id="edit_plp_id" name="edit_plp_id" required>
                 </div>
                 <div class="form-group">
-                    <label for="edit_full_name">Full Name</label>
-                    <input type="text" id="edit_full_name" name="edit_full_name" maxlength="100" required>
-                    <div class="inline-error" id="edit_name_error"><i class="fas fa-exclamation-circle"></i> Full Name can only contain letters and spaces.</div>
+                    <label>Full Name</label>
+                    <input type="text" id="edit_full_name" name="edit_full_name" required>
                 </div>
                 <div class="form-group">
-                    <label for="edit_email">Email Address</label>
-                    <input type="email" id="edit_email" name="edit_email" maxlength="255" required>
+                    <label>Email Address</label>
+                    <input type="email" id="edit_email" name="edit_email" required>
                 </div>
                 <div class="form-group">
-                    <label for="edit_role">System Role</label>
-                    <select id="edit_role" name="edit_role" required>
+                    <label>System Role</label>
+                    <select id="edit_role" name="edit_role">
                         <option value="alumni">Alumni</option>
                         <option value="admin">Administrator</option>
                     </select>
                 </div>
                 <div class="modal-actions">
-                    <button type="button" class="btn-cancel" id="closeEditModalBtn">Cancel</button>
+                    <button type="button" class="btn-cancel" onclick="document.getElementById('editUserModal').style.display='none'">Cancel</button>
                     <button type="submit" class="btn-save">Update User</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <div class="modal-overlay" id="deleteConfirmModal">
-        <div class="modal-content" style="text-align: center; padding-top: 35px;">
-            <div style="font-size: 3rem; color: #ef4444; margin-bottom: 15px;">
-                <i class="fas fa-exclamation-circle"></i>
-            </div>
-            <h2 style="margin: 0 0 10px 0; color: #1f2937; font-size: 1.4rem;">Confirm Deletion</h2>
-            <p style="color: #6b7280; margin-bottom: 25px; line-height: 1.5;">Are you sure you want to delete this user? This action cannot be undone.</p>
-            <div class="modal-actions" style="justify-content: center; gap: 15px;">
-                <button type="button" class="btn-cancel" id="cancelDeleteBtn" style="width: 120px;">Cancel</button>
-                <a href="#" id="confirmDeleteLink" class="btn-save btn-danger" style="text-decoration: none; width: 120px; box-sizing: border-box;">Yes, Delete</a>
-            </div>
-        </div>
-    </div>
-
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const addModal = document.getElementById('addUserModal');
-            const openAddBtn = document.getElementById('openAddUserModal');
-            const closeAddBtn = document.getElementById('closeModalBtn');
-            const closeAddIcon = document.getElementById('closeModalIcon');
-            openAddBtn.addEventListener('click', () => {
-                document.getElementById('addUserForm').reset();
-                resetErrors(document.getElementById('plp_id'), document.getElementById('add_id_error'));
-                resetErrors(document.getElementById('full_name'), document.getElementById('add_name_error'));
-                addModal.style.display = 'flex';
-            });
-            const closeAddModal = () => addModal.style.display = 'none';
-            closeAddBtn.addEventListener('click', closeAddModal);
-            closeAddIcon.addEventListener('click', closeAddModal);
-
-            const editModal = document.getElementById('editUserModal');
-            const editBtns = document.querySelectorAll('.action-edit');
-            const closeEditBtn = document.getElementById('closeEditModalBtn');
-            const closeEditIcon = document.getElementById('closeEditModalIcon');
-            editBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    document.getElementById('orig_student_id').value = this.getAttribute('data-id');
-                    document.getElementById('edit_plp_id').value = this.getAttribute('data-id');
-                    document.getElementById('edit_full_name').value = this.getAttribute('data-name');
-                    document.getElementById('edit_email').value = this.getAttribute('data-email');
-                    document.getElementById('edit_role').value = this.getAttribute('data-role');
-                    
-                    resetErrors(document.getElementById('edit_plp_id'), document.getElementById('edit_id_error'));
-                    resetErrors(document.getElementById('edit_full_name'), document.getElementById('edit_name_error'));
-                    
-                    editModal.style.display = 'flex';
-                });
-            });
-            const closeEditModal = () => editModal.style.display = 'none';
-            closeEditBtn.addEventListener('click', closeEditModal);
-            closeEditIcon.addEventListener('click', closeEditModal);
-
-            // Academic Information modal
-            const academicModal = document.getElementById('academicModal');
-            const academicBtns = document.querySelectorAll('.action-academic');
-            const closeAcademicBtn = document.getElementById('closeAcademicModalBtn');
-            const closeAcademicIcon = document.getElementById('closeAcademicModalIcon');
-
-            academicBtns.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    document.getElementById('acad_full_name').value = this.getAttribute('data-name');
-                    academicModal.style.display = 'flex';
-                });
-            });
-
-            const closeAcademicModal = () => academicModal.style.display = 'none';
-            closeAcademicBtn.addEventListener('click', closeAcademicModal);
-            closeAcademicIcon.addEventListener('click', closeAcademicModal);
-
-            const deleteModal = document.getElementById('deleteConfirmModal');
-            const deleteBtns = document.querySelectorAll('.custom-delete-btn');
-            const confirmDeleteLink = document.getElementById('confirmDeleteLink');
-            const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
-            deleteBtns.forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    e.preventDefault(); 
-                    const deleteUrl = this.getAttribute('href');
-                    confirmDeleteLink.setAttribute('href', deleteUrl);
-                    deleteModal.style.display = 'flex';
-                });
-            });
-            const closeDeleteModal = () => deleteModal.style.display = 'none';
-            cancelDeleteBtn.addEventListener('click', closeDeleteModal);
-
-            window.addEventListener('click', (e) => {
-                if (e.target === addModal) closeAddModal();
-                if (e.target === editModal) closeEditModal();
-                if (e.target === deleteModal) closeDeleteModal();
-                if (e.target === academicModal) closeAcademicModal();
-            });
-
-            // Input Validation Logic
-            function validateInput(inputElement, errorElement, regex) {
-                if (inputElement.value.trim() === "") {
-                    resetErrors(inputElement, errorElement);
-                    return false;
-                }
-                if (!regex.test(inputElement.value.trim())) {
-                    inputElement.classList.add('input-error-border');
-                    errorElement.style.display = 'block';
-                    return false;
-                } else {
-                    inputElement.classList.remove('input-error-border');
-                    errorElement.style.display = 'none';
-                    return true;
-                }
+            // --- AUTO-HIDE SUCCESS MESSAGE ---
+            const toast = document.getElementById('success-toast');
+            if (toast) {
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transform = 'translateY(-20px)';
+                    setTimeout(() => toast.remove(), 500);
+                }, 3000); 
             }
 
-            function resetErrors(inputElement, errorElement) {
-                inputElement.classList.remove('input-error-border');
-                errorElement.style.display = 'none';
-            }
+            // MODAL CONTROLS
+            document.getElementById('openAddUserModal').onclick = () => document.getElementById('addUserModal').style.display = 'flex';
+            document.getElementById('openImportModal').onclick = () => document.getElementById('importModal').style.display = 'flex';
 
-            const idRegex = /^[0-9\-]+$/;
-            const nameRegex = /^[a-zA-Z\s]+$/;
-
-            // Real-Time Validation Listeners
-            document.getElementById('plp_id').addEventListener('input', function() { validateInput(this, document.getElementById('add_id_error'), idRegex); });
-            document.getElementById('full_name').addEventListener('input', function() { validateInput(this, document.getElementById('add_name_error'), nameRegex); });
-            
-            document.getElementById('edit_plp_id').addEventListener('input', function() { validateInput(this, document.getElementById('edit_id_error'), idRegex); });
-            document.getElementById('edit_full_name').addEventListener('input', function() { validateInput(this, document.getElementById('edit_name_error'), nameRegex); });
-
-            // Validate on Submit
-            document.getElementById('addUserForm').addEventListener('submit', function(e) {
-                const isIdValid = validateInput(document.getElementById('plp_id'), document.getElementById('add_id_error'), idRegex);
-                const isNameValid = validateInput(document.getElementById('full_name'), document.getElementById('add_name_error'), nameRegex);
-                
-                if (!isIdValid || !isNameValid) e.preventDefault();
+            document.querySelectorAll('.action-edit').forEach(btn => {
+                btn.onclick = function() {
+                    document.getElementById('orig_student_id').value = this.dataset.id;
+                    document.getElementById('edit_plp_id').value = this.dataset.id;
+                    document.getElementById('edit_full_name').value = this.dataset.name;
+                    document.getElementById('edit_email').value = this.dataset.email;
+                    document.getElementById('edit_role').value = this.dataset.role;
+                    document.getElementById('editUserModal').style.display = 'flex';
+                }
             });
 
-            document.getElementById('editUserForm').addEventListener('submit', function(e) {
-                const isIdValid = validateInput(document.getElementById('edit_plp_id'), document.getElementById('edit_id_error'), idRegex);
-                const isNameValid = validateInput(document.getElementById('edit_full_name'), document.getElementById('edit_name_error'), nameRegex);
-                
-                if (!isIdValid || !isNameValid) e.preventDefault();
-            });
+            // EXCEL LOGIC
+            document.getElementById('excel_file').onchange = function(e) {
+                const file = e.target.files[0];
+                document.getElementById('file-name-text').innerText = "Selected: " + file.name;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+                    document.getElementById('json_data').value = JSON.stringify(jsonData);
+                    document.getElementById('processBtn').disabled = false;
+                    document.getElementById('processBtn').style.opacity = "1";
+                };
+                reader.readAsArrayBuffer(file);
+            };
 
-            // Search Logic
+            // SEARCH/FILTER
             const searchInput = document.getElementById('searchInput');
             const roleFilter = document.getElementById('roleFilter');
-            const tableBody = document.getElementById('userTableBody');
-            const rows = tableBody.getElementsByTagName('tr');
-
             function filterTable() {
-                const searchTerm = searchInput.value.toLowerCase();
-                const roleTerm = roleFilter.value.toLowerCase();
-
-                for (let i = 0; i < rows.length; i++) {
-                    if (rows[i].id === 'noResultsRow') continue;
-                    const idCol = rows[i].getElementsByTagName('td')[0];
-                    const nameCol = rows[i].getElementsByTagName('td')[1];
-                    const roleCol = rows[i].getElementsByTagName('td')[3];
-
-                    if (idCol && nameCol && roleCol) {
-                        const idValue = idCol.textContent.toLowerCase();
-                        const nameValue = nameCol.textContent.toLowerCase();
-                        const roleValue = roleCol.textContent.toLowerCase();
-
-                        const matchesSearch = idValue.includes(searchTerm) || nameValue.includes(searchTerm);
-                        const matchesRole = roleTerm === "" || roleValue.includes(roleTerm);
-
-                        if (matchesSearch && matchesRole) {
-                            rows[i].style.display = "";
-                        } else {
-                            rows[i].style.display = "none";
-                        }
-                    }
-                }
+                const s = searchInput.value.toLowerCase();
+                const r = roleFilter.value.toLowerCase();
+                document.querySelectorAll('#userTableBody tr').forEach(row => {
+                    const txt = row.innerText.toLowerCase();
+                    const matchesSearch = txt.includes(s);
+                    const matchesRole = r === "" || row.cells[3].innerText.toLowerCase().includes(r);
+                    row.style.display = matchesSearch && matchesRole ? "" : "none";
+                });
             }
-            searchInput.addEventListener('keyup', filterTable);
-            roleFilter.addEventListener('change', filterTable);
+            searchInput.oninput = filterTable;
+            roleFilter.onchange = filterTable;
         });
     </script>
 </body>
