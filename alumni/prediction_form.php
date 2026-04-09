@@ -49,8 +49,8 @@ $programs = $conn->query("SELECT * FROM programs");
                     <p class="text-center sub-label">Tell us about your educational background</p>
 
                     <div class="input-group mt-4">
-                        <label>Your Name <span class="error-icon" id="nameError"><i class="fas fa-exclamation-circle"></i></span></label>
-                        <input type="text" id="nameInput" name="name" required placeholder="e.g. Juan Dela Cruz" maxlength="50">
+                        <label>Your Name</label>
+                        <input type="text" id="nameInput" name="name" value="<?= htmlspecialchars($_SESSION['full_name'] ?? 'Alumni') ?>" readonly style="background-color: #f3f4f6; cursor: not-allowed;">
                     </div>
 
                     <div class="input-group">
@@ -362,7 +362,7 @@ $programs = $conn->query("SELECT * FROM programs");
         });
 
         // --- GLOBAL VARIABLES ---
-        let nameInput, nameError, yearInput, yearError;
+        let yearInput, yearError;
         let posInput, posError, compInput, compError, expInput, expError;
         let gpaInput, gpaError, ojtInput, ojtError;
 
@@ -371,7 +371,6 @@ $programs = $conn->query("SELECT * FROM programs");
         }
 
         function initValidation() {
-            nameInput = document.getElementById("nameInput"); nameError = document.getElementById("nameError");
             yearInput = document.getElementById("gradYearInput"); yearError = document.getElementById("yearError");
             posInput = document.getElementById("req_pos"); posError = document.getElementById("posError");
             compInput = document.getElementById("req_comp"); compError = document.getElementById("compError");
@@ -388,7 +387,7 @@ $programs = $conn->query("SELECT * FROM programs");
                 input.addEventListener("blur", function() { this.value = toTitleCase(this.value.trim()); });
             });
 
-            const textFields = [[nameInput, nameError], [posInput, posError], [compInput, compError]];
+            const textFields = [[posInput, posError], [compInput, compError]];
             textFields.forEach(([input, error]) => {
                 if(!input) return;
                 input.addEventListener("input", function() {
@@ -499,7 +498,6 @@ $programs = $conn->query("SELECT * FROM programs");
                 const progInput = document.getElementById('progInput');
                 const empStatus = document.getElementById('empStatus');
 
-                if (!nameInput.value.trim()) markInvalid(nameInput, nameError);
                 if (!progInput.value) { progInput.classList.add("input-error"); isValid = false; if(!firstInvalidInput) firstInvalidInput = progInput; } else { progInput.classList.remove("input-error"); }
                 if (!yearInput.value || yearInput.value > new Date().getFullYear()) markInvalid(yearInput, yearError);
                 if (!empStatus.value) { empStatus.classList.add("input-error"); isValid = false; if(!firstInvalidInput) firstInvalidInput = empStatus; } else { empStatus.classList.remove("input-error"); }

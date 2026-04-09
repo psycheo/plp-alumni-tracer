@@ -18,9 +18,6 @@
             <a href="../alumni/dashboard.php" class="nav-link <?= ($currentPage == 'dashboard.php') ? 'active' : '' ?>">
                 <i class="fas fa-home"></i> Home
             </a>
-            <a href="../alumni/prediction_form.php" class="nav-link <?= ($currentPage == 'prediction_form.php') ? 'active' : '' ?>">
-                <i class="far fa-user"></i> My Career Path
-            </a>
             <a href="../alumni/analytics.php" class="nav-link <?= ($currentPage == 'analytics.php') ? 'active' : '' ?>">
                 <i class="fas fa-chart-line"></i> View Analytics
             </a>

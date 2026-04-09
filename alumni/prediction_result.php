@@ -82,7 +82,19 @@ if ($ml_dir && $python_exe && $predict_py && file_exists($predict_py)) {
             $match_score = (float) $ai_result['probability_percent'];
         }
         if (isset($ai_result['profession'])) {
+            // 1. Get the real AI prediction for the UI
             $profession = htmlspecialchars($ai_result['profession']);
+            
+            // 2. UPDATE THE DATABASE to match the AI prediction!
+            if (!empty($res['assessment_id'])) {
+                $real_profession = $ai_result['profession']; // Raw string for DB
+                $update_stmt = $conn->prepare("UPDATE alumni_assessments SET recommended_profession = ? WHERE id = ?");
+                if ($update_stmt) {
+                    $update_stmt->bind_param("si", $real_profession, $res['assessment_id']);
+                    $update_stmt->execute();
+                    $update_stmt->close();
+                }
+            }
         }
         if (!empty($ai_result['model_degree'])) {
             $model_degree_label = htmlspecialchars($ai_result['model_degree']);

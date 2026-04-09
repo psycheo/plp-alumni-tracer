@@ -89,6 +89,30 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
     }
+
+    // ==========================================
+    // 3. NOTIFICATION TOGGLE LOGIC
+    // ==========================================
+    const bellBtn = document.getElementById('notificationBell');
+    const notifDropdown = document.getElementById('notificationDropdown');
+
+    if (bellBtn && notifDropdown) {
+        bellBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevents the window click from firing immediately
+            if (notifDropdown.style.display === 'block') {
+                notifDropdown.style.display = 'none';
+            } else {
+                notifDropdown.style.display = 'block';
+            }
+        });
+
+        // Close dropdown when clicking anywhere else on the page
+        window.addEventListener('click', (event) => {
+            if (notifDropdown.style.display === 'block' && !notifDropdown.contains(event.target)) {
+                notifDropdown.style.display = 'none';
+            }
+        });
+    }
 });
 
 // ==========================================
@@ -154,5 +178,51 @@ window.addEventListener('click', function(event) {
     }
     if (feedbackModal && event.target === feedbackModal) {
         feedbackModal.style.display = "none";
+    }
+});
+
+// ==========================================
+// 5. ACTIVITY FEED PAGINATION
+// ==========================================
+document.addEventListener("DOMContentLoaded", () => {
+    const itemsPerPage = 6; 
+    const rows = document.querySelectorAll('.activity-row');
+    const paginationWrapper = document.getElementById('feedPagination');
+    const prevBtn = document.getElementById('btnPrevPage');
+    const nextBtn = document.getElementById('btnNextPage');
+    const indicator = document.getElementById('pageIndicator');
+    
+    if (rows.length > itemsPerPage) {
+        let currentPage = 1;
+        const totalPages = Math.ceil(rows.length / itemsPerPage);
+        
+        // Show pagination controls if we have more than 1 page
+        if(paginationWrapper) paginationWrapper.style.display = 'flex';
+
+        function renderPage(page) {
+            rows.forEach((row, index) => {
+                row.style.display = 'none'; // Hide all
+                // Show only items for current page
+                if (index >= (page - 1) * itemsPerPage && index < page * itemsPerPage) {
+                    row.style.display = 'flex';
+                }
+            });
+            
+            // Update UI
+            if(indicator) indicator.innerText = `Page ${page} of ${totalPages}`;
+            if(prevBtn) prevBtn.disabled = (page === 1);
+            if(nextBtn) nextBtn.disabled = (page === totalPages);
+        }
+
+        if(prevBtn) prevBtn.addEventListener('click', () => {
+            if (currentPage > 1) { currentPage--; renderPage(currentPage); }
+        });
+
+        if(nextBtn) nextBtn.addEventListener('click', () => {
+            if (currentPage < totalPages) { currentPage++; renderPage(currentPage); }
+        });
+
+        // Initialize first page
+        renderPage(1);
     }
 });

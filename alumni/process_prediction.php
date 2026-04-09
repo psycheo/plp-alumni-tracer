@@ -2,6 +2,10 @@
 session_start();
 require '../includes/db.php';
 
+// Trust the session for identity
+$user_id = $_SESSION['user_id'];
+$name = $conn->real_escape_string($_SESSION['full_name']);
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     
     // Common Inputs
@@ -124,9 +128,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     $sql = "INSERT INTO alumni_assessments 
-            (name, program_id, grad_year, employment_status, current_company, current_position, current_salary, years_experience, gpa, ojt_grade, soft_skills_avg, hard_skills_avg, cv_filename, employability_status, recommended_profession) 
+            (user_id, name, program_id, grad_year, employment_status, current_company, current_position, current_salary, years_experience, gpa, ojt_grade, soft_skills_avg, hard_skills_avg, cv_filename, employability_status, recommended_profession) 
             VALUES 
-            ('$name', $program_id, $grad_year, '$emp_status', '$current_company', '$current_pos', '$current_salary', $years_exp, $gpa, $ojt_grade_100, $ss_avg, $hs_avg, '$cv_filename', '$employability_status', '$recommended_profession')";
+            ($user_id, '$name', $program_id, $grad_year, '$emp_status', '$current_company', '$current_pos', '$current_salary', $years_exp, $gpa, $ojt_grade_100, $ss_avg, $hs_avg, '$cv_filename', '$employability_status', '$recommended_profession')";
     
     $conn->query($sql);
     $assessment_id = (int) $conn->insert_id;
