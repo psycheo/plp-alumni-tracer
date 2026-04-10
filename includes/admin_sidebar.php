@@ -22,7 +22,7 @@
         </li>
         <li>
             <a href="../admin/admin_employment_comp.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'admin_employment_comp.php' ? 'active' : ''; ?>">
-                <i class="fas fa-exchange-alt"></i> Employment Comparison
+                <i class="fas fa-exchange-alt"></i> Job Comparison
             </a>
         </li>
         <li>

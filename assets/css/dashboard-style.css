@@ -8,7 +8,7 @@
 }
 
 body {
-    background-color: #f0fdf4; 
+    background-color: #f4f7f6; 
     color: #1f2937;
 }
 
@@ -335,19 +335,26 @@ body {
     position: relative; /* Crucial for holding the bell inside */
 }
 
+.welcome-icon {
+    font-size: 4rem;       
+    flex-shrink: 0;        
+    color: rgba(255, 255, 255, 0.95);
+}
+
+.welcome-text-group {
+    display: flex;
+    flex-direction: column;
+}
+
 .welcome-content {
-    /* Removed margin: 0 auto; so it stops pushing to the center */
     max-width: 100%;
-    padding-right: 60px; /* Ensures long text doesn't overlap the bell */
+    padding-right: 60px; 
 }
 
 .welcome-greeting {
     font-size: 2.5rem;
     font-weight: bold;
-    margin-bottom: 0.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
+    margin-bottom: 0.25rem;
 }
 
 .welcome-greeting i {
@@ -357,7 +364,7 @@ body {
 .welcome-subtitle {
     font-size: 1.2rem;
     opacity: 0.95;
-    margin-bottom: 2rem;
+    margin-bottom: 0;
 }
 
 .quick-stats {
@@ -451,9 +458,10 @@ body {
 
 .content-card {
     background: white;
-    padding: 2rem;
+    padding: 25px; /* Standardized padding across all cards */
     border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e5e7eb; /* Added border to match KPI cards */
 }
 
 .content-card h3 {
@@ -762,12 +770,68 @@ body {
     animation: glint 2s infinite;
 }
 
-/* Update container to reduce top/bottom dead space */
+/* Update container to restore top/bottom breathing room */
 .dashboard-container {
     max-width: 1400px; 
     width: 95%;
-    margin: 20px auto; /* Reduced from 40px to pull everything up */
+    margin: 40px auto; /* Increased from 20px */
 }
+
+/* --- SPACIOUS KPI CARDS --- */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 25px; /* Increased from 15px for better separation */
+    margin-bottom: 25px; 
+}
+
+.kpi-card {
+    background: white;
+    border-radius: 12px;
+    padding: 25px 20px; /* Increased padding to make cards bigger */
+    display: flex;
+    align-items: center;
+    gap: 15px; /* More space between icon and text */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+    border: 1px solid #e5e7eb; 
+    transition: transform 0.2s ease;
+    min-height: 110px; /* Ensures all cards are uniformly sized */
+}
+
+.kpi-card:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0,0,0,0.06); }
+
+.kpi-icon {
+    width: 50px; height: 50px; /* Scaled up icon background */
+    border-radius: 12px;
+    margin-left: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; /* Scaled up icon */
+    flex-shrink: 0;
+}
+
+/* --- 2-COLUMN LAYOUT --- */
+.dashboard-grid-2col {
+    display: grid;
+    grid-template-columns: 1fr 2fr; 
+    gap: 30px; /* Increased from 15px to properly separate main sections */
+    align-items: start;
+}
+
+.content-card {
+    background: white;
+    padding: 25px; /* Standardized padding across all cards */
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e5e7eb; /* Added border to match KPI cards */
+}
+
+/* --- ACTIVITY FEED --- */
+.activity-row {
+    display: flex; align-items: center; gap: 15px; 
+    padding: 16px 0; /* Increased vertical padding so text doesn't feel squished */
+    border-bottom: 1px solid #f3f4f6;
+}
+.activity-row:last-child { border-bottom: none; }
 
 /* --- WELCOME PANEL WITH BUILDING OVERLAY --- */
 .welcome-section {
@@ -788,6 +852,9 @@ body {
 .welcome-content {
     max-width: 100%;
     padding-right: 60px; 
+    display: flex;          
+    align-items: center;    
+    gap: 1.8rem;           
 }
 
 .notification-wrapper {

@@ -81,7 +81,7 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Users - PLP Admin</title>
-    <link rel="stylesheet" href="../assets/css/admin-style.css">
+    <link rel="stylesheet" href="../assets/css/admin-style.css?v=2">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <style>
@@ -122,6 +122,8 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
 </head>
 <body>
 
+    <?php include '../includes/admin_sidebar.php'; ?>
+
     <?php if (isset($_SESSION['success_msg'])): ?>
         <div class="toast-notification" id="success-toast">
             <i class="fas fa-check-circle"></i> 
@@ -129,8 +131,6 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
         </div>
         <?php unset($_SESSION['success_msg']); ?>
     <?php endif; ?>
-
-    <?php include '../includes/admin_sidebar.php'; ?>
 
     <main class="admin-main">
         <div class="page-title" style="display: flex; justify-content: space-between; align-items: center;">

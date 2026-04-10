@@ -2,13 +2,12 @@
 session_start();
 require '../includes/db.php';
 
-// 1. MARK AS READ (Removes from unresolved list)
 if (isset($_GET['read_id'])) {
     $id = $_GET['read_id'];
     $stmt = $conn->prepare("UPDATE feedbacks SET status = 'Resolved' WHERE id = ?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
-    header("Location: admin_feedback.php?msg=marked_read");
+    header("Location: admin_feedbacks.php?msg=marked_read");
     exit;
 }
 
@@ -26,7 +25,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['send_reply'])) {
     if ($stmt->execute()) {
         // Automatically resolve the feedback once replied
         $conn->query("UPDATE feedbacks SET status = 'Resolved' WHERE id = $feedback_id");
-        header("Location: admin_feedback.php?msg=reply_sent");
+        header("Location: admin_feedbacks.php?msg=reply_sent");
     } else {
         echo "Error: " . $conn->error;
     }

@@ -77,7 +77,7 @@ $stmt->close();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - PLP Alumni Tracer</title>
-    <link rel="stylesheet" href="../assets/css/dashboard-style.css?v=5.0">
+    <link rel="stylesheet" href="../assets/css/dashboard-style.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
@@ -119,11 +119,14 @@ $stmt->close();
         </div>
 
         <div class="welcome-content">
-            <div class="welcome-greeting">
-                <i class="fas fa-hand-sparkles"></i>
-                <span>Hi, <?php echo htmlspecialchars($user_name); ?>!</span>
+            <i class="fas fa-hand-sparkles welcome-icon"></i>
+            
+            <div class="welcome-text-group">
+                <div class="welcome-greeting">
+                    Hi, <?php echo htmlspecialchars($user_name); ?>!
+                </div>
+                <p class="welcome-subtitle">Welcome to your alumni command center. Track your professional journey.</p>
             </div>
-            <p class="welcome-subtitle">Welcome to your alumni command center. Track your professional journey.</p>
         </div>
     </div>
 

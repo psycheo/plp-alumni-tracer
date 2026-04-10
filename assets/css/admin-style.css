@@ -18,7 +18,8 @@ body {
    ========================================= */
 .admin-sidebar {
     width: 260px;
-    background-color: #0d5c34; /* PLP Dark Green */
+    /* Updated to a nice dark-to-light green gradient */
+    background: linear-gradient(135deg, #0d5c34 0%, #10b981 100%); 
     color: white;
     height: 100vh;
     position: fixed;
@@ -57,10 +58,12 @@ body {
 .sidebar-menu li a {
     display: flex;
     align-items: center;
-    padding: 15px 25px;
-    color: rgba(255,255,255,0.8);
+    padding: 14px 18px; /* Rounded rectangle padding */
+    margin: 6px 15px;
+    color: rgba(255,255,255,0.9);
     text-decoration: none;
     font-weight: 500;
+    border-radius: 12px; /* Rounded rectangle shape */
     transition: all 0.3s ease;
     gap: 15px;
 }
@@ -69,13 +72,21 @@ body {
     width: 20px;
     text-align: center;
     font-size: 1.1rem;
+    transition: color 0.3s ease;
 }
 
+/* Hover and Active States */
 .sidebar-menu li a:hover, 
 .sidebar-menu li a.active {
-    background-color: #10b981; /* Lighter Green */
-    color: white;
-    border-left: 4px solid white;
+    background-color: #ffffff; /* Solid white background */
+    color: #0d5c34;            /* Green text */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05); /* Soft shadow for depth */
+}
+
+/* Ensure the icon also turns green on hover/active */
+.sidebar-menu li a:hover i, 
+.sidebar-menu li a.active i {
+    color: #0d5c34;
 }
 
 .sidebar-footer {
