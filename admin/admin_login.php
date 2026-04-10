@@ -20,7 +20,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if ($result && $result->num_rows === 1) {
                 $user = $result->fetch_assoc();
 
-                if ($password === $user['password']) {
+                $stored = $user['password'];
+                $ok = ($password === $stored)
+                    || (is_string($stored) && str_starts_with($stored, '$2')
+                        && password_verify($password, $stored));
+
+                if ($ok) {
                     $_SESSION['loggedin'] = true;
                     $_SESSION['user_id'] = $user['id'];
                     $_SESSION['student_id'] = $user['student_id'];

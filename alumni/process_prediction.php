@@ -2,25 +2,48 @@
 session_start();
 require '../includes/db.php';
 
-// Trust the session for identity
-$user_id = $_SESSION['user_id'];
+if (!isset($_SESSION['loggedin']) || empty($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
+
+$user_id = (int) $_SESSION['user_id'];
 $name = $conn->real_escape_string($_SESSION['full_name']);
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    $stmt_acad = $conn->prepare('SELECT gpa, ojt_grade_percent FROM users WHERE id = ? LIMIT 1');
+    $stmt_acad->bind_param('i', $user_id);
+    $stmt_acad->execute();
+    $acad_row = $stmt_acad->get_result()->fetch_assoc();
+    $stmt_acad->close();
+
+    if (!$acad_row || $acad_row['gpa'] === null || $acad_row['ojt_grade_percent'] === null) {
+        $_SESSION['prediction_form_error'] = 'Your official GPA and OJT grade are not on file. Please ask an administrator to enter them under Admin → Users → Academic Information.';
+        header('Location: prediction_form.php');
+        exit;
+    }
+
+    $gpa = (float) $acad_row['gpa'];
+    $ojt_grade_100 = (float) $acad_row['ojt_grade_percent'];
+    if ($ojt_grade_100 < 60) {
+        $ojt_grade_100 = 60;
+    }
+    if ($ojt_grade_100 > 100) {
+        $ojt_grade_100 = 100;
+    }
+    if ($gpa < 1.0) {
+        $gpa = 1.0;
+    }
+    if ($gpa > 5.0) {
+        $gpa = 5.0;
+    }
+
     // Common Inputs
     $name = $conn->real_escape_string($_POST['name']);
     $program_id = intval($_POST['program_id']);
     $grad_year = intval($_POST['grad_year']);
     $emp_status = $conn->real_escape_string($_POST['employment_status']);
-    
-    // GPA stays 1.0 - 5.0 (Lower is better!)
-    $gpa = floatval($_POST['gpa']);
-    
-    // OJT is safely taken directly as a percentage (e.g. 92.50)
-    $ojt_grade_100 = floatval($_POST['ojt_grade']);
-    if ($ojt_grade_100 < 60) $ojt_grade_100 = 60; 
-    if ($ojt_grade_100 > 100) $ojt_grade_100 = 100;
     
     // Initialize variables
     $ss_avg = 0; $hs_avg = 0;
@@ -127,10 +150,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         move_uploaded_file($_FILES['cv_file']['tmp_name'], $upload_dir . $cv_filename);
     }
 
+    $employability_status_esc = $conn->real_escape_string($employability_status);
+    $recommended_profession_esc = $conn->real_escape_string($recommended_profession);
+
     $sql = "INSERT INTO alumni_assessments 
             (user_id, name, program_id, grad_year, employment_status, current_company, current_position, current_salary, years_experience, gpa, ojt_grade, soft_skills_avg, hard_skills_avg, cv_filename, employability_status, recommended_profession) 
             VALUES 
-            ($user_id, '$name', $program_id, $grad_year, '$emp_status', '$current_company', '$current_pos', '$current_salary', $years_exp, $gpa, $ojt_grade_100, $ss_avg, $hs_avg, '$cv_filename', '$employability_status', '$recommended_profession')";
+            ($user_id, '$name', $program_id, $grad_year, '$emp_status', '$current_company', '$current_pos', '$current_salary', $years_exp, $gpa, $ojt_grade_100, $ss_avg, $hs_avg, '$cv_filename', '$employability_status_esc', '$recommended_profession_esc')";
     
     $conn->query($sql);
     $assessment_id = (int) $conn->insert_id;

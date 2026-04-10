@@ -10,7 +10,8 @@ require_once '../includes/db.php';
 require_once '../includes/career_ml_config.php';
 
 $name = htmlspecialchars($res['name']);
-$profession = htmlspecialchars($res['profession']);
+$profession_raw = isset($res['profession']) ? (string) $res['profession'] : '';
+$profession = htmlspecialchars($profession_raw);
 $status = $res['status'];
 $emp_status = isset($res['emp_status']) ? $res['emp_status'] : 'Not Employed';
 $user_grades = null;
@@ -82,9 +83,9 @@ if ($ml_dir && $python_exe && $predict_py && file_exists($predict_py)) {
             $match_score = (float) $ai_result['probability_percent'];
         }
         if (isset($ai_result['profession'])) {
-            // 1. Get the real AI prediction for the UI
-            $profession = htmlspecialchars($ai_result['profession']);
-            
+            $profession_raw = (string) $ai_result['profession'];
+            $profession = htmlspecialchars($profession_raw);
+
             // 2. UPDATE THE DATABASE to match the AI prediction!
             if (!empty($res['assessment_id'])) {
                 $real_profession = $ai_result['profession']; // Raw string for DB
@@ -112,6 +113,18 @@ if ($ml_dir && $python_exe && $predict_py && file_exists($predict_py)) {
 
 $score_color = ($match_score >= 70) ? '#10b981' : (($match_score >= 50) ? '#f59e0b' : '#ef4444');
 $display_ojt = isset($res['ojt_grade']) ? (float) $res['ojt_grade'] : (float) ($user_grades['ojt_grade'] ?? 0);
+
+$status_lower = strtolower((string) $status);
+if (strpos($status_lower, 'good') !== false) {
+    $band_color = '#059669';
+    $band_bg = '#ecfdf5';
+} elseif (strpos($status_lower, 'moderate') !== false) {
+    $band_color = '#d97706';
+    $band_bg = '#fffbeb';
+} else {
+    $band_color = '#64748b';
+    $band_bg = '#f1f5f9';
+}
 
 // Top skills from program-specific ratings (truthful, not random)
 $specific_skills = isset($res['specific_skills']) && is_array($res['specific_skills']) ? $res['specific_skills'] : [];
@@ -141,7 +154,7 @@ $second_title = ($second_match && isset($second_match['profession'])) ? htmlspec
     <title>Your Career Recommendations - PLP Alumni Tracer</title>
     
     <link rel="stylesheet" href="../assets/css/dashboard-style.css">
-    <link rel="stylesheet" href="../assets/css/prediction-style.css">
+    <link rel="stylesheet" href="../assets/css/prediction-style.css?v=1.2">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-light">
@@ -199,11 +212,11 @@ $second_title = ($second_match && isset($second_match['profession'])) ? htmlspec
                         <strong><?= htmlspecialchars((string) round($display_ojt)) ?>%</strong>
                     </div>
                 </div>
-                <div class="chip chip-purple">
-                    <i class="fas fa-layer-group"></i>
+                <div class="chip chip-purple" style="--band: <?= htmlspecialchars($band_color) ?>; background: <?= htmlspecialchars($band_bg) ?>; border-color: <?= htmlspecialchars($band_color) ?>20;">
+                    <i class="fas fa-layer-group" style="color: <?= htmlspecialchars($band_color) ?>;"></i>
                     <div>
                         <span>Employability band</span>
-                        <strong><?= htmlspecialchars($status) ?></strong>
+                        <strong style="color: <?= htmlspecialchars($band_color) ?>;"><?= htmlspecialchars($status) ?></strong>
                     </div>
                 </div>
             </div>
@@ -256,8 +269,106 @@ $second_title = ($second_match && isset($second_match['profession'])) ? htmlspec
             
         </div>
 
+        <section class="insights-section" aria-labelledby="insights-heading">
+            <h2 id="insights-heading" class="insights-title"><i class="fas fa-map-marked-alt"></i> Explore employers &amp; jobs</h2>
+            <p class="insights-lead">Places are sampled around <strong>Metro Manila</strong> via OpenStreetMap (Overpass). Jobs are searched on <strong>Careerjet Philippines</strong> using your top match title. Results depend on live APIs and your API configuration.</p>
+
+            <div class="insights-grid">
+                <div class="insights-card">
+                    <div class="insights-card-head">
+                        <span class="insights-badge osm"><i class="fas fa-map"></i> Overpass / OSM</span>
+                        <h3>Places &amp; employers</h3>
+                    </div>
+                    <div id="placesMount" class="insights-mount">
+                        <p class="insights-loading"><i class="fas fa-spinner fa-spin"></i> Loading map places…</p>
+                    </div>
+                </div>
+                <div class="insights-card">
+                    <div class="insights-card-head">
+                        <span class="insights-badge cj"><i class="fas fa-briefcase"></i> Careerjet PH</span>
+                        <h3>Job listings</h3>
+                    </div>
+                    <div id="jobsMount" class="insights-mount">
+                        <p class="insights-loading"><i class="fas fa-spinner fa-spin"></i> Loading jobs…</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
     </div>
 
     <script src="../assets/js/dashboard.js"></script>
+    <script>
+    (function () {
+        const kw = <?= json_encode($profession_raw, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+        const placesEl = document.getElementById('placesMount');
+        const jobsEl = document.getElementById('jobsMount');
+
+        function esc(s) {
+            const d = document.createElement('div');
+            d.textContent = s == null ? '' : String(s);
+            return d.innerHTML;
+        }
+
+        function renderPlaces(list) {
+            if (!list || list.length === 0) {
+                placesEl.innerHTML = '<p class="insights-empty">No places returned. Try again later or widen your search from the admin Companies page.</p>';
+                return;
+            }
+            const ul = document.createElement('ul');
+            ul.className = 'insights-list';
+            list.slice(0, 10).forEach(function (p) {
+                const li = document.createElement('li');
+                li.innerHTML = '<strong>' + esc(p.name) + '</strong><span class="meta">' + esc(p.type) + '</span>';
+                ul.appendChild(li);
+            });
+            placesEl.innerHTML = '';
+            placesEl.appendChild(ul);
+        }
+
+        function renderJobs(list, err) {
+            if (err) {
+                jobsEl.innerHTML = '<p class="insights-empty">' + esc(err) + '</p>';
+                return;
+            }
+            if (!list || list.length === 0) {
+                jobsEl.innerHTML = '<p class="insights-empty">No listings matched this search. Check <code>includes/careerjet_credentials.php</code> or try a broader keyword.</p>';
+                return;
+            }
+            const frag = document.createElement('div');
+            frag.className = 'insights-jobs';
+            list.slice(0, 8).forEach(function (j) {
+                const a = document.createElement('div');
+                a.className = 'insights-job';
+                const link = j.url
+                    ? '<a href="' + esc(j.url) + '" target="_blank" rel="noopener noreferrer" class="job-link">Open <i class="fas fa-external-link-alt"></i></a>'
+                    : '';
+                a.innerHTML = '<div class="job-title">' + esc(j.title) + '</div>' +
+                    '<div class="job-co">' + esc(j.company) + '</div>' +
+                    '<div class="job-meta"><i class="fas fa-map-marker-alt"></i> ' + esc(j.location) + ' · <i class="fas fa-money-bill-wave"></i> ' + esc(j.salary) + '</div>' +
+                    link;
+                frag.appendChild(a);
+            });
+            jobsEl.innerHTML = '';
+            jobsEl.appendChild(frag);
+        }
+
+        fetch('api_career_resources.php?keywords=' + encodeURIComponent(kw) + '&location=' + encodeURIComponent('Metro Manila'))
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (!data.ok) {
+                    placesEl.innerHTML = '<p class="insights-empty">Could not load resources.</p>';
+                    jobsEl.innerHTML = '<p class="insights-empty">Could not load resources.</p>';
+                    return;
+                }
+                renderPlaces(data.places || []);
+                renderJobs(data.jobs || [], data.careerjet_error || null);
+            })
+            .catch(function () {
+                placesEl.innerHTML = '<p class="insights-empty">Network error loading places.</p>';
+                jobsEl.innerHTML = '<p class="insights-empty">Network error loading jobs.</p>';
+            });
+    })();
+    </script>
 </body>
 </html>

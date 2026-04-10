@@ -3,6 +3,80 @@ session_start();
 
 require '../includes/db.php';
 
+// --- Save official academic profile (GPA/OJT required for alumni assessment; all fields read-only for alumni) ---
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['save_academic'])) {
+    $sid = trim($_POST['acad_student_id'] ?? '');
+    $gpa_raw = trim($_POST['acad_gpa'] ?? '');
+    $ojt_raw = trim($_POST['acad_ojt'] ?? '');
+    $prog_raw = trim($_POST['acad_program_id'] ?? '');
+    $avg_prof_raw = trim($_POST['acad_avg_prof'] ?? '');
+    $avg_elec_raw = trim($_POST['acad_avg_elec'] ?? '');
+    $soft_raw = trim($_POST['acad_soft'] ?? '');
+    $hard_raw = trim($_POST['acad_hard'] ?? '');
+
+    if ($sid === '') {
+        $_SESSION['error_msg'] = 'Missing student ID.';
+        header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?'));
+        exit;
+    }
+
+    $gpa_val = $gpa_raw === '' ? null : round((float) $gpa_raw, 2);
+    $ojt_val = $ojt_raw === '' ? null : round((float) $ojt_raw, 2);
+    $program_id_val = ($prog_raw === '' || $prog_raw === '0') ? null : (int) $prog_raw;
+
+    $pct = function ($raw) {
+        $raw = trim((string) $raw);
+        if ($raw === '') {
+            return null;
+        }
+        return round((float) $raw, 2);
+    };
+    $avg_prof_val = $pct($avg_prof_raw);
+    $avg_elec_val = $pct($avg_elec_raw);
+    $soft_val = $pct($soft_raw);
+    $hard_val = $pct($hard_raw);
+
+    if ($gpa_val !== null && ($gpa_val < 1.0 || $gpa_val > 5.0)) {
+        $_SESSION['error_msg'] = 'GPA must be between 1.00 and 5.00 (PLP scale).';
+        header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?'));
+        exit;
+    }
+    if ($ojt_val !== null && ($ojt_val < 60.0 || $ojt_val > 100.0)) {
+        $_SESSION['error_msg'] = 'OJT grade must be between 60 and 100.';
+        header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?'));
+        exit;
+    }
+    if ($program_id_val !== null) {
+        $chk = $conn->query('SELECT id FROM programs WHERE id = ' . (int) $program_id_val . ' LIMIT 1');
+        if (!$chk || $chk->num_rows === 0) {
+            $_SESSION['error_msg'] = 'Invalid degree / program selected.';
+            header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?'));
+            exit;
+        }
+    }
+    foreach ([$avg_prof_val, $avg_elec_val, $soft_val, $hard_val] as $v) {
+        if ($v !== null && ($v < 0 || $v > 100)) {
+            $_SESSION['error_msg'] = 'Percentage fields must be between 0 and 100.';
+            header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?'));
+            exit;
+        }
+    }
+
+    $sid_esc = $conn->real_escape_string($sid);
+    $gpa_sql = $gpa_val === null ? 'NULL' : "'" . $conn->real_escape_string((string) $gpa_val) . "'";
+    $ojt_sql = $ojt_val === null ? 'NULL' : "'" . $conn->real_escape_string((string) $ojt_val) . "'";
+    $pid_sql = $program_id_val === null ? 'NULL' : (string) (int) $program_id_val;
+    $ap_sql = $avg_prof_val === null ? 'NULL' : "'" . $conn->real_escape_string((string) $avg_prof_val) . "'";
+    $ae_sql = $avg_elec_val === null ? 'NULL' : "'" . $conn->real_escape_string((string) $avg_elec_val) . "'";
+    $ss_sql = $soft_val === null ? 'NULL' : "'" . $conn->real_escape_string((string) $soft_val) . "'";
+    $hs_sql = $hard_val === null ? 'NULL' : "'" . $conn->real_escape_string((string) $hard_val) . "'";
+
+    $conn->query("UPDATE users SET gpa = $gpa_sql, ojt_grade_percent = $ojt_sql, program_id = $pid_sql, avg_professional_grade = $ap_sql, avg_elective_grade = $ae_sql, record_soft_skills_avg = $ss_sql, record_hard_skills_avg = $hs_sql WHERE student_id = '$sid_esc' AND role = 'alumni'");
+    $_SESSION['success_msg'] = 'Academic record updated successfully.';
+    header('Location: ' . strtok($_SERVER['REQUEST_URI'], '?'));
+    exit;
+}
+
 // --- ORIGINAL LOGIC ---
 if (isset($_GET['delete_id'])) {
     $delete_id = $conn->real_escape_string($_GET['delete_id']);
@@ -96,6 +170,7 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
         
         /* UPDATED MODAL CONTENT FOR ACADEMIC INFO */
         .modal-content { background: #ffffff; padding: 25px 30px; border-radius: 10px; width: 100%; max-width: 580px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        .modal-content.modal-academic { max-width: 640px; max-height: 92vh; overflow-y: auto; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
         .modal-header h2 { font-size: 1.25rem; font-weight: 700; margin: 0; }
         .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #9ca3af; }
@@ -117,7 +192,7 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
         .btn-save { padding: 8px 20px; background: #10b981; border: none; border-radius: 6px; cursor: pointer; color: white; font-weight: 600; }
         .import-zone { border: 2px dashed #10b981; padding: 20px; text-align: center; border-radius: 8px; background: #f0fdf4; cursor: pointer; margin-bottom: 10px; }
 
-        .toast-notification { position: fixed; top: 20px; right: 20px; background: #10b981; color: white; padding: 15px 25px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 10px; transition: opacity 0.5s ease, transform 0.5s ease; }
+        .toast-notification { position: fixed; top: 20px; right: 20px; background: #10b981; color: white; padding: 15px 25px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 10px; transition: opacity 0.5s ease, transform 0.5s ease; max-width: min(440px, 94vw); }
     </style>
 </head>
 <body>
@@ -127,9 +202,17 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
     <?php if (isset($_SESSION['success_msg'])): ?>
         <div class="toast-notification" id="success-toast">
             <i class="fas fa-check-circle"></i> 
-            <span><?php echo $_SESSION['success_msg']; ?></span>
+            <span><?php echo htmlspecialchars($_SESSION['success_msg']); ?></span>
         </div>
         <?php unset($_SESSION['success_msg']); ?>
+    <?php endif; ?>
+
+    <?php if (isset($_SESSION['error_msg'])): ?>
+        <div class="toast-notification" id="error-toast" style="background:#dc2626;">
+            <i class="fas fa-exclamation-circle"></i>
+            <span><?php echo htmlspecialchars($_SESSION['error_msg']); ?></span>
+        </div>
+        <?php unset($_SESSION['error_msg']); ?>
     <?php endif; ?>
 
     <main class="admin-main">
@@ -171,7 +254,14 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
                         <td style='text-align: right;'>
                             <button class='action-btn action-edit' data-id='<?php echo $row['student_id']; ?>' data-name='<?php echo $row['full_name']; ?>' data-email='<?php echo $row['email']; ?>' data-role='<?php echo $row['role']; ?>'><i class='fas fa-edit'></i></button>
                             
-                            <button class='action-btn action-academic' data-id='<?php echo $row['student_id']; ?>' data-name='<?php echo strtoupper($row['full_name']); ?>'><i class='fas fa-graduation-cap'></i></button>
+                            <?php
+                            $btn_pid = isset($row['program_id']) && $row['program_id'] !== null ? (string) (int) $row['program_id'] : '';
+                            $btn_ap = isset($row['avg_professional_grade']) && $row['avg_professional_grade'] !== null ? htmlspecialchars((string) $row['avg_professional_grade'], ENT_QUOTES, 'UTF-8') : '';
+                            $btn_ae = isset($row['avg_elective_grade']) && $row['avg_elective_grade'] !== null ? htmlspecialchars((string) $row['avg_elective_grade'], ENT_QUOTES, 'UTF-8') : '';
+                            $btn_ss = isset($row['record_soft_skills_avg']) && $row['record_soft_skills_avg'] !== null ? htmlspecialchars((string) $row['record_soft_skills_avg'], ENT_QUOTES, 'UTF-8') : '';
+                            $btn_hs = isset($row['record_hard_skills_avg']) && $row['record_hard_skills_avg'] !== null ? htmlspecialchars((string) $row['record_hard_skills_avg'], ENT_QUOTES, 'UTF-8') : '';
+                            ?>
+                            <button type="button" class='action-btn action-academic' data-id='<?php echo htmlspecialchars($row['student_id']); ?>' data-name='<?php echo htmlspecialchars(strtoupper($row['full_name'])); ?>' data-gpa='<?php echo isset($row['gpa']) && $row['gpa'] !== null ? htmlspecialchars((string) $row['gpa']) : ''; ?>' data-ojt='<?php echo isset($row['ojt_grade_percent']) && $row['ojt_grade_percent'] !== null ? htmlspecialchars((string) $row['ojt_grade_percent']) : ''; ?>' data-program-id='<?php echo htmlspecialchars($btn_pid); ?>' data-avg-prof='<?php echo $btn_ap; ?>' data-avg-elec='<?php echo $btn_ae; ?>' data-soft='<?php echo $btn_ss; ?>' data-hard='<?php echo $btn_hs; ?>'><i class='fas fa-graduation-cap'></i></button>
                             
                             <a href='?delete_id=<?php echo urlencode($row['student_id']); ?>' class='action-btn action-delete' onclick="return confirm('Delete this user?');"><i class='fas fa-trash-alt'></i></a>
                         </td>
@@ -183,24 +273,26 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
     </main>
 
     <div class="modal-overlay" id="academicModal">
-        <div class="modal-content">
+        <div class="modal-content modal-academic">
             <div class="modal-header">
                 <h2>Academic Information</h2>
                 <button class="close-btn" onclick="document.getElementById('academicModal').style.display='none'">&times;</button>
             </div>
-            <p style="font-size:0.85rem; color:#6b7280; margin-bottom:20px;">View or update the alumni's recorded academic profile.</p>
+            <p style="font-size:0.85rem; color:#6b7280; margin-bottom:16px;">View or update the alumni&rsquo;s recorded academic profile. <strong>GPA</strong> and <strong>OJT</strong> are required before the alumni can submit the career assessment; alumni see all values on file as <strong>read-only</strong>.</p>
             
-            <form>
+            <form method="POST" action="">
+                <input type="hidden" name="save_academic" value="1">
+                <input type="hidden" name="acad_student_id" id="acad_student_id" value="">
                 <div class="form-group">
                     <label>Alumni Name</label>
                     <input type="text" id="acad_full_name" readonly style="background-color: #f9fafb; font-weight: 600;">
                 </div>
                 <div class="form-group">
                     <label>Degree / Program</label>
-                    <select id="acad_program">
+                    <select name="acad_program_id" id="acad_program_id">
                         <option value="">Select program...</option>
                         <?php foreach ($programOptions as $p): ?>
-                            <option value="<?php echo htmlspecialchars($p['id']); ?>"><?php echo htmlspecialchars($p['name']); ?></option>
+                            <option value="<?php echo (int) $p['id']; ?>"><?php echo htmlspecialchars($p['name']); ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -209,45 +301,44 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
                     <div class="info-box">
                         <div class="info-box-title">Overall Performance</div>
                         <div class="form-group">
-                            <label>Average Grade</label>
-                            <input type="text" placeholder="e.g. 90.00">
+                            <label>GPA (1.00 &ndash; 5.00, PLP scale)</label>
+                            <input type="number" name="acad_gpa" id="acad_gpa" step="0.01" min="1" max="5" placeholder="e.g. 1.75">
                         </div>
                         <div class="form-group">
-                            <label>OJT Grade</label>
-                            <input type="text" placeholder="e.g. 87.00">
+                            <label>OJT Grade (%)</label>
+                            <input type="number" name="acad_ojt" id="acad_ojt" step="0.01" min="60" max="100" placeholder="e.g. 87.00">
                         </div>
                     </div>
-
                     <div class="info-box">
                         <div class="info-box-title">Coursework Averages</div>
                         <div class="form-group">
-                            <label>Avg Professional Grade</label>
-                            <input type="text" placeholder="e.g. 88.00">
+                            <label>Avg Professional Grade (%)</label>
+                            <input type="number" name="acad_avg_prof" id="acad_avg_prof" step="0.01" min="0" max="100" placeholder="e.g. 88.00">
                         </div>
                         <div class="form-group">
-                            <label>Avg Elective Grade</label>
-                            <input type="text" placeholder="e.g. 78.00">
-                        </div>
-                    </div>
-
-                    <div class="info-box" style="grid-column: span 2;">
-                        <div class="info-box-title">Skills Summary</div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                            <div class="form-group">
-                                <label>Soft Skills Average</label>
-                                <input type="text" placeholder="e.g. 80.00">
-                            </div>
-                            <div class="form-group">
-                                <label>Hard Skills Average</label>
-                                <input type="text" placeholder="e.g. 63.08">
-                            </div>
+                            <label>Avg Elective Grade (%)</label>
+                            <input type="number" name="acad_avg_elec" id="acad_avg_elec" step="0.01" min="0" max="100" placeholder="e.g. 78.00">
                         </div>
                     </div>
                 </div>
+                <div class="info-box" style="margin-top: 15px;">
+                    <div class="info-box-title">Skills Summary</div>
+                    <div class="academic-grid">
+                        <div class="form-group">
+                            <label>Soft Skills Average (%)</label>
+                            <input type="number" name="acad_soft" id="acad_soft" step="0.01" min="0" max="100" placeholder="e.g. 80.00">
+                        </div>
+                        <div class="form-group">
+                            <label>Hard Skills Average (%)</label>
+                            <input type="number" name="acad_hard" id="acad_hard" step="0.01" min="0" max="100" placeholder="e.g. 63.08">
+                        </div>
+                    </div>
+                </div>
+                <p style="font-size:0.75rem; color:#9ca3af; margin:12px 0 0;">Leave any field blank to clear it. Percentage fields use 0&ndash;100.</p>
 
                 <div class="modal-actions">
                     <button type="button" class="btn-cancel" onclick="document.getElementById('academicModal').style.display='none'">Close</button>
-                    <button type="button" class="btn-save">Save Academic Info</button>
+                    <button type="submit" class="btn-save">Save Academic Info</button>
                 </div>
             </form>
         </div>
@@ -323,18 +414,29 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const toast = document.getElementById('success-toast');
-            if (toast) {
+            function fadeToast(id, ms) {
+                const el = document.getElementById(id);
+                if (!el) return;
                 setTimeout(() => {
-                    toast.style.opacity = '0';
-                    toast.style.transform = 'translateY(-20px)';
-                    setTimeout(() => toast.remove(), 500);
-                }, 3000); 
+                    el.style.opacity = '0';
+                    el.style.transform = 'translateY(-20px)';
+                    setTimeout(() => el.remove(), 500);
+                }, ms);
             }
+            fadeToast('success-toast', 3500);
+            fadeToast('error-toast', 6000);
 
             document.querySelectorAll('.action-academic').forEach(btn => {
                 btn.onclick = function() {
-                    document.getElementById('acad_full_name').value = this.dataset.name;
+                    document.getElementById('acad_student_id').value = this.dataset.id || '';
+                    document.getElementById('acad_full_name').value = this.dataset.name || '';
+                    document.getElementById('acad_gpa').value = this.dataset.gpa || '';
+                    document.getElementById('acad_ojt').value = this.dataset.ojt || '';
+                    document.getElementById('acad_program_id').value = this.dataset.programId || '';
+                    document.getElementById('acad_avg_prof').value = this.dataset.avgProf || '';
+                    document.getElementById('acad_avg_elec').value = this.dataset.avgElec || '';
+                    document.getElementById('acad_soft').value = this.dataset.soft || '';
+                    document.getElementById('acad_hard').value = this.dataset.hard || '';
                     document.getElementById('academicModal').style.display = 'flex';
                 }
             });

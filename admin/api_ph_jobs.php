@@ -8,127 +8,17 @@
  */
 header('Content-Type: application/json; charset=utf-8');
 
-$credFile = dirname(__DIR__) . '/includes/careerjet_credentials.php';
-if (!is_readable($credFile)) {
+require_once dirname(__DIR__) . '/includes/careerjet_api.php';
+
+$cred = careerjet_load_credentials();
+if (!$cred['ok']) {
     http_response_code(503);
-    echo json_encode([
-        'ok' => false,
-        'error' => 'Careerjet is not configured. Copy includes/careerjet_credentials.example.php to includes/careerjet_credentials.php and add your Publisher API key from careerjet.ph/partners.',
-    ]);
+    echo json_encode(['ok' => false, 'error' => $cred['error']]);
     exit;
 }
+$apiKey = $cred['api_key'];
 
-$creds = require $credFile;
-$apiKey = isset($creds['api_key']) ? trim((string) $creds['api_key']) : '';
-if ($apiKey === '' || $apiKey === 'YOUR_CAREERJET_API_KEY') {
-    http_response_code(503);
-    echo json_encode([
-        'ok' => false,
-        'error' => 'Set your Careerjet Publisher API key in includes/careerjet_credentials.php (Philippines data; register at careerjet.ph/partners).',
-    ]);
-    exit;
-}
-
-$userIp = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
-if (strpos($userIp, ',') !== false) {
-    $userIp = trim(explode(',', $userIp)[0]);
-}
-$userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'Mozilla/5.0 (compatible; PLP-Alumni-Tracer/1.0)';
-
-/**
- * @return array{ok:bool,results?:array,error?:string}
- */
-function careerjet_ph_query(string $apiKey, array $params, string $userIp, string $userAgent): array
-{
-    $params['locale_code'] = 'en_PH';
-    $params['user_ip'] = $userIp;
-    $params['user_agent'] = $userAgent;
-    if (!isset($params['sort'])) {
-        $params['sort'] = 'relevance';
-    }
-
-    $url = 'https://search.api.careerjet.net/v4/query?' . http_build_query($params);
-    $ch = curl_init($url);
-    $basic = base64_encode($apiKey . ':');
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_TIMEOUT => 25,
-        CURLOPT_REFERER => 'https://www.careerjet.ph/',
-        CURLOPT_HTTPHEADER => [
-            'Accept: application/json',
-            'Authorization: Basic ' . $basic,
-        ],
-    ]);
-    $raw = curl_exec($ch);
-    $errno = curl_errno($ch);
-    $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-
-    if ($errno !== 0 || $raw === false) {
-        return ['ok' => false, 'error' => 'Could not reach Careerjet.'];
-    }
-
-    $data = json_decode($raw, true);
-    if (!is_array($data)) {
-        return ['ok' => false, 'error' => 'Invalid JSON from Careerjet.'];
-    }
-
-    if ($httpCode >= 400) {
-        return ['ok' => false, 'error' => isset($data['message']) ? (string) $data['message'] : 'Careerjet error (' . $httpCode . ').'];
-    }
-
-    $type = $data['type'] ?? '';
-    if ($type === 'LOCATIONS') {
-        return ['ok' => true, 'results' => [], 'locations_hint' => $data['locations'] ?? []];
-    }
-
-    if ($type !== 'JOBS' || empty($data['jobs']) || !is_array($data['jobs'])) {
-        return ['ok' => true, 'results' => []];
-    }
-
-    return ['ok' => true, 'jobs_raw' => $data['jobs']];
-}
-
-/**
- * @param mixed $job
- */
-function normalize_careerjet_job($job, ?string $matchedCompany = null, ?string $matchedLocation = null): array
-{
-    $title = is_array($job) ? ($job['title'] ?? '') : '';
-    $company = is_array($job) ? ($job['company'] ?? '') : '';
-    $loc = is_array($job) ? ($job['locations'] ?? '') : '';
-    $salary = is_array($job) ? ($job['salary'] ?? '') : '';
-    if ($salary === '' || $salary === null) {
-        $salary = 'Not stated';
-    }
-    $dateRaw = is_array($job) ? ($job['date'] ?? '') : '';
-    $posted = '';
-    if ($dateRaw !== '') {
-        $ts = strtotime($dateRaw);
-        if ($ts !== false) {
-            $posted = date('M j, Y', $ts);
-        }
-    }
-    $url = is_array($job) ? ($job['url'] ?? '') : '';
-
-    $out = [
-        'title' => (string) $title,
-        'company' => (string) $company,
-        'location' => (string) $loc,
-        'salary' => (string) $salary,
-        'type' => '—',
-        'posted' => $posted,
-        'url' => (string) $url,
-    ];
-    if ($matchedCompany !== null) {
-        $out['matched_company'] = $matchedCompany;
-    }
-    if ($matchedLocation !== null) {
-        $out['matched_location'] = $matchedLocation;
-    }
-    return $out;
-}
+[$userIp, $userAgent] = careerjet_request_meta();
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 

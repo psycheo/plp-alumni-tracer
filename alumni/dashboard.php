@@ -69,6 +69,30 @@ $stmt->execute();
 $res = $stmt->get_result();
 if ($u = $res->fetch_assoc()) { $is_temporary = $u['is_temporary']; }
 $stmt->close();
+
+$record_gpa = null;
+$record_ojt = null;
+$record_program_name = null;
+$record_avg_prof = $record_avg_elec = $record_soft = $record_hard = null;
+$stmt = $conn->prepare('SELECT u.gpa, u.ojt_grade_percent, u.avg_professional_grade, u.avg_elective_grade, u.record_soft_skills_avg, u.record_hard_skills_avg, p.name AS program_name FROM users u LEFT JOIN programs p ON p.id = u.program_id WHERE u.id = ? LIMIT 1');
+$stmt->bind_param('i', $user_id);
+$stmt->execute();
+if ($row = $stmt->get_result()->fetch_assoc()) {
+    $record_gpa = isset($row['gpa']) && $row['gpa'] !== null ? (float) $row['gpa'] : null;
+    $record_ojt = isset($row['ojt_grade_percent']) && $row['ojt_grade_percent'] !== null ? (float) $row['ojt_grade_percent'] : null;
+    $record_program_name = !empty($row['program_name']) ? (string) $row['program_name'] : null;
+    $record_avg_prof = isset($row['avg_professional_grade']) && $row['avg_professional_grade'] !== null ? (float) $row['avg_professional_grade'] : null;
+    $record_avg_elec = isset($row['avg_elective_grade']) && $row['avg_elective_grade'] !== null ? (float) $row['avg_elective_grade'] : null;
+    $record_soft = isset($row['record_soft_skills_avg']) && $row['record_soft_skills_avg'] !== null ? (float) $row['record_soft_skills_avg'] : null;
+    $record_hard = isset($row['record_hard_skills_avg']) && $row['record_hard_skills_avg'] !== null ? (float) $row['record_hard_skills_avg'] : null;
+}
+$stmt->close();
+$dash_fmt_pct = function ($v) {
+    if ($v === null) {
+        return '—';
+    }
+    return htmlspecialchars(number_format((float) $v, 2, '.', '')) . '%';
+};
 ?>
 
 <!DOCTYPE html>
@@ -83,6 +107,9 @@ $stmt->close();
     <style>
         .notif-badge-new { background: #ef4444; color: white; font-size: 0.65rem; padding: 2px 6px; border-radius: 10px; margin-left: 5px; text-transform: uppercase; }
         .reply-text { font-style: italic; color: #4b5563; border-left: 3px solid #0d5c34; padding-left: 10px; margin-top: 5px; }
+        .academic-record-line { font-size: 0.85rem; color: #4b5563; margin-top: 10px; padding: 10px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e5e7eb; max-width: 560px; }
+        .academic-record-line.muted { color: #9ca3af; font-style: italic; }
+        .academic-record-detail { font-size: 0.8rem; color: #6b7280; margin-top: 8px; line-height: 1.5; }
     </style>
 </head>
 <body>
@@ -126,6 +153,22 @@ $stmt->close();
                     Hi, <?php echo htmlspecialchars($user_name); ?>!
                 </div>
                 <p class="welcome-subtitle">Welcome to your alumni command center. Track your professional journey.</p>
+                <?php if ($record_gpa !== null && $record_ojt !== null): ?>
+                    <p class="academic-record-line"><i class="fas fa-graduation-cap" style="color:#0d5c34;"></i> Official record (read-only): GPA <strong><?php echo htmlspecialchars(number_format($record_gpa, 2, '.', '')); ?></strong> · OJT <strong><?php echo htmlspecialchars(number_format($record_ojt, 2, '.', '')); ?>%</strong></p>
+                    <?php if ($record_program_name || $record_avg_prof !== null || $record_avg_elec !== null || $record_soft !== null || $record_hard !== null): ?>
+                        <p class="academic-record-line" style="margin-top:8px;">
+                            <?php if ($record_program_name): ?><span class="academic-record-detail"><strong>Program:</strong> <?php echo htmlspecialchars($record_program_name); ?></span><br><?php endif; ?>
+                            <?php if ($record_avg_prof !== null || $record_avg_elec !== null): ?>
+                                <span class="academic-record-detail"><strong>Coursework:</strong> Prof <?php echo $dash_fmt_pct($record_avg_prof); ?> · Elective <?php echo $dash_fmt_pct($record_avg_elec); ?></span><br>
+                            <?php endif; ?>
+                            <?php if ($record_soft !== null || $record_hard !== null): ?>
+                                <span class="academic-record-detail"><strong>Skills (on file):</strong> Soft <?php echo $dash_fmt_pct($record_soft); ?> · Hard <?php echo $dash_fmt_pct($record_hard); ?></span>
+                            <?php endif; ?>
+                        </p>
+                    <?php endif; ?>
+                <?php else: ?>
+                    <p class="academic-record-line muted">Official GPA and OJT are not on file yet. Please contact the Office of the Registrar or an administrator.</p>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -268,7 +311,7 @@ $stmt->close();
                 cancelButtonText: 'Later'   
             }).then((result) => {
                 if (result.isConfirmed) {
-                    window.location.href = 'profile_settings.php';
+                    window.location.href = 'settings.php';
                 }
             });
         }

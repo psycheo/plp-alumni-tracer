@@ -1,7 +1,44 @@
 <?php
 session_start();
-require '../includes/db.php'; 
-$programs = $conn->query("SELECT * FROM programs");
+require '../includes/db.php';
+
+if (!isset($_SESSION['loggedin']) || empty($_SESSION['user_id'])) {
+    header('Location: login.php');
+    exit;
+}
+
+$uid = (int) $_SESSION['user_id'];
+$stmt_u = $conn->prepare('SELECT u.gpa, u.ojt_grade_percent, u.program_id, u.avg_professional_grade, u.avg_elective_grade, u.record_soft_skills_avg, u.record_hard_skills_avg, p.name AS program_name FROM users u LEFT JOIN programs p ON p.id = u.program_id WHERE u.id = ? LIMIT 1');
+$stmt_u->bind_param('i', $uid);
+$stmt_u->execute();
+$user_acad = $stmt_u->get_result()->fetch_assoc();
+$stmt_u->close();
+
+$gpa_on_file = isset($user_acad['gpa']) && $user_acad['gpa'] !== null ? (float) $user_acad['gpa'] : null;
+$ojt_on_file = isset($user_acad['ojt_grade_percent']) && $user_acad['ojt_grade_percent'] !== null ? (float) $user_acad['ojt_grade_percent'] : null;
+$academic_ready = ($gpa_on_file !== null && $ojt_on_file !== null);
+
+$official_program_id = isset($user_acad['program_id']) && $user_acad['program_id'] !== null ? (int) $user_acad['program_id'] : null;
+$official_program_name = !empty($user_acad['program_name']) ? (string) $user_acad['program_name'] : null;
+$fmt_pct_ro = function ($v) {
+    if ($v === null || $v === '') {
+        return '—';
+    }
+    return htmlspecialchars(number_format((float) $v, 2, '.', '')) . '%';
+};
+$avg_prof_on_file = isset($user_acad['avg_professional_grade']) && $user_acad['avg_professional_grade'] !== null ? (float) $user_acad['avg_professional_grade'] : null;
+$avg_elec_on_file = isset($user_acad['avg_elective_grade']) && $user_acad['avg_elective_grade'] !== null ? (float) $user_acad['avg_elective_grade'] : null;
+$soft_rec_on_file = isset($user_acad['record_soft_skills_avg']) && $user_acad['record_soft_skills_avg'] !== null ? (float) $user_acad['record_soft_skills_avg'] : null;
+$hard_rec_on_file = isset($user_acad['record_hard_skills_avg']) && $user_acad['record_hard_skills_avg'] !== null ? (float) $user_acad['record_hard_skills_avg'] : null;
+$has_extra_academic = ($avg_prof_on_file !== null || $avg_elec_on_file !== null || $soft_rec_on_file !== null || $hard_rec_on_file !== null);
+
+$prediction_form_error = '';
+if (!empty($_SESSION['prediction_form_error'])) {
+    $prediction_form_error = (string) $_SESSION['prediction_form_error'];
+    unset($_SESSION['prediction_form_error']);
+}
+
+$programs = $conn->query('SELECT * FROM programs ORDER BY name ASC');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -10,7 +47,7 @@ $programs = $conn->query("SELECT * FROM programs");
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PLP Alumni Employability Tracer</title>
     <link rel="stylesheet" href="../assets/css/dashboard-style.css">
-    <link rel="stylesheet" href="../assets/css/prediction-style.css?v=1.1">
+    <link rel="stylesheet" href="../assets/css/prediction-style.css?v=1.5">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-light">
@@ -28,6 +65,20 @@ $programs = $conn->query("SELECT * FROM programs");
             <h2>Find Your Perfect Career Match</h2>
             <p>Answer a few questions about yourself, and we'll show you the best career paths based on your program and interests.</p>
         </div>
+
+        <?php if ($prediction_form_error !== ''): ?>
+            <div class="form-error-banner" role="alert">
+                <i class="fas fa-exclamation-circle"></i>
+                <span><?= htmlspecialchars($prediction_form_error) ?></span>
+            </div>
+        <?php endif; ?>
+
+        <?php if (!$academic_ready): ?>
+            <div class="form-error-banner form-error-banner--warn" role="alert">
+                <i class="fas fa-info-circle"></i>
+                <span>Your <strong>official GPA</strong> and <strong>OJT grade</strong> are not on file yet. An administrator must enter them under <strong>Admin → Users → Academic Information</strong> (graduation cap) before you can complete this assessment.</span>
+            </div>
+        <?php endif; ?>
 
         <div class="form-container">
             
@@ -55,12 +106,18 @@ $programs = $conn->query("SELECT * FROM programs");
 
                     <div class="input-group">
                         <label>Your Program/Degree</label>
-                        <select name="program_id" id="progInput" required>
-                            <option value="">Select your program...</option>
-                            <?php while($row = $programs->fetch_assoc()): ?>
-                                <option value="<?= $row['id'] ?>"><?= $row['name'] ?></option>
-                            <?php endwhile; ?>
-                        </select>
+                        <?php if ($official_program_id): ?>
+                            <input type="hidden" name="program_id" id="progInput" value="<?= (int) $official_program_id ?>" data-program-name="<?= htmlspecialchars($official_program_name ?? '') ?>">
+                            <div class="readonly-field"><?= htmlspecialchars($official_program_name ?? '') ?></div>
+                            <small>From your official record (set by admin). Not editable here.</small>
+                        <?php else: ?>
+                            <select name="program_id" id="progInput" required>
+                                <option value="">Select your program...</option>
+                                <?php while($row = $programs->fetch_assoc()): ?>
+                                    <option value="<?= $row['id'] ?>"><?= $row['name'] ?></option>
+                                <?php endwhile; ?>
+                            </select>
+                        <?php endif; ?>
                     </div>
 
                     <div class="grid-2">
@@ -205,16 +262,41 @@ $programs = $conn->query("SELECT * FROM programs");
                         </div>
                     </div>
 
-                    <div class="grid-2 mt-4" style="border-top: 1px solid #e5e7eb; padding-top: 20px;">
+                    <div class="grid-2 mt-4 academic-readonly" style="border-top: 1px solid #e5e7eb; padding-top: 20px;">
                         <div class="input-group">
-                            <label>Final GPA (1.00 - 5.00) <span class="error-icon" id="gpaError"><i class="fas fa-exclamation-circle"></i></span></label>
-                            <input type="number" step="0.01" min="1.00" max="5.00" name="gpa" id="req_gpa" placeholder="e.g. 1.50">
+                            <label>Final GPA (1.00 – 5.00, lower is better)</label>
+                            <div class="readonly-field" id="gpaDisplay"><?= $academic_ready ? htmlspecialchars(number_format($gpa_on_file, 2, '.', '')) : '—' ?></div>
+                            <small>From your official record (set by admin). Not editable here.</small>
                         </div>
                         <div class="input-group">
-                            <label>OJT Final Grade (Percentage) <span class="error-icon" id="ojtError"><i class="fas fa-exclamation-circle"></i></span></label>
-                            <input type="number" step="0.01" min="60.00" max="100.00" name="ojt_grade" id="req_ojt" placeholder="e.g. 92.50">
+                            <label>OJT final grade (%)</label>
+                            <div class="readonly-field" id="ojtDisplay"><?= $academic_ready ? htmlspecialchars(number_format($ojt_on_file, 2, '.', '')) . '%' : '—' ?></div>
+                            <small>From your official record (set by admin). Not editable here.</small>
                         </div>
                     </div>
+                    <?php if ($has_extra_academic): ?>
+                    <div class="academic-readonly-extras" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
+                        <p style="font-size: 0.8rem; font-weight: 600; color: #374151; margin-bottom: 10px;">Coursework &amp; skills on file (read-only)</p>
+                        <div class="grid-2">
+                            <div class="input-group">
+                                <label>Avg Professional Grade</label>
+                                <div class="readonly-field"><?= $fmt_pct_ro($avg_prof_on_file) ?></div>
+                            </div>
+                            <div class="input-group">
+                                <label>Avg Elective Grade</label>
+                                <div class="readonly-field"><?= $fmt_pct_ro($avg_elec_on_file) ?></div>
+                            </div>
+                            <div class="input-group">
+                                <label>Soft Skills Average</label>
+                                <div class="readonly-field"><?= $fmt_pct_ro($soft_rec_on_file) ?></div>
+                            </div>
+                            <div class="input-group">
+                                <label>Hard Skills Average</label>
+                                <div class="readonly-field"><?= $fmt_pct_ro($hard_rec_on_file) ?></div>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endif; ?>
 
                     <div class="wizard-footer" style="display: flex; justify-content: space-between;">
                         <button type="button" class="btn-secondary" onclick="goBackFrom(2)">Back</button>
@@ -357,6 +439,8 @@ $programs = $conn->query("SELECT * FROM programs");
     </div>
 
     <script>
+        const academicReady = <?= $academic_ready ? 'true' : 'false' ?>;
+
         document.addEventListener("DOMContentLoaded", function() {
             initValidation();
         });
@@ -364,7 +448,6 @@ $programs = $conn->query("SELECT * FROM programs");
         // --- GLOBAL VARIABLES ---
         let yearInput, yearError;
         let posInput, posError, compInput, compError, expInput, expError;
-        let gpaInput, gpaError, ojtInput, ojtError;
 
         function toTitleCase(str) {
             return str.replace(/\w\S*/g, function(txt) { return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(); });
@@ -375,12 +458,10 @@ $programs = $conn->query("SELECT * FROM programs");
             posInput = document.getElementById("req_pos"); posError = document.getElementById("posError");
             compInput = document.getElementById("req_comp"); compError = document.getElementById("compError");
             expInput = document.getElementById("req_exp"); expError = document.getElementById("expError");
-            gpaInput = document.getElementById("req_gpa"); gpaError = document.getElementById("gpaError");
-            ojtInput = document.getElementById("req_ojt"); ojtError = document.getElementById("ojtError");
-
             const currentYear = new Date().getFullYear();
             yearInput.max = currentYear;
 
+            const nameInput = document.getElementById("nameInput");
             const formatFields = [nameInput, posInput, compInput];
             formatFields.forEach(input => {
                 if(!input) return;
@@ -399,25 +480,6 @@ $programs = $conn->query("SELECT * FROM programs");
                 });
             });
 
-            if(gpaInput) {
-                gpaInput.addEventListener("input", function() {
-                    const val = parseFloat(this.value);
-                    if (this.value !== "" && !isNaN(val)) {
-                        if (val < 1.00 || val > 5.00) showError(this, gpaError);
-                        else clearError(this, gpaError);
-                    } else { clearError(this, gpaError); }
-                });
-            }
-
-            if(ojtInput) {
-                ojtInput.addEventListener("input", function() {
-                    const val = parseFloat(this.value);
-                    if (this.value !== "" && !isNaN(val)) {
-                        if (val < 60.00 || val > 100.00) showError(this, ojtError);
-                        else clearError(this, ojtError);
-                    } else { clearError(this, ojtError); }
-                });
-            }
         }
 
         function showError(input, icon) {
@@ -498,13 +560,20 @@ $programs = $conn->query("SELECT * FROM programs");
                 const progInput = document.getElementById('progInput');
                 const empStatus = document.getElementById('empStatus');
 
-                if (!progInput.value) { progInput.classList.add("input-error"); isValid = false; if(!firstInvalidInput) firstInvalidInput = progInput; } else { progInput.classList.remove("input-error"); }
+                if (progInput.tagName === 'SELECT') {
+                    if (!progInput.value) { progInput.classList.add("input-error"); isValid = false; if(!firstInvalidInput) firstInvalidInput = progInput; } else { progInput.classList.remove("input-error"); }
+                }
                 if (!yearInput.value || yearInput.value > new Date().getFullYear()) markInvalid(yearInput, yearError);
                 if (!empStatus.value) { empStatus.classList.add("input-error"); isValid = false; if(!firstInvalidInput) firstInvalidInput = empStatus; } else { empStatus.classList.remove("input-error"); }
 
-                if (!isValid) { firstInvalidInput.focus(); return; }
-                
-                const progNameText = progInput.options[progInput.selectedIndex].text;
+                if (!isValid) { if (firstInvalidInput && firstInvalidInput.focus) firstInvalidInput.focus(); return; }
+
+                let progNameText = '';
+                if (progInput.tagName === 'SELECT') {
+                    progNameText = progInput.options[progInput.selectedIndex].text;
+                } else {
+                    progNameText = progInput.getAttribute('data-program-name') || '';
+                }
                 renderDynamicSkills(progNameText);
                 configureStep2(empStatus.value);
                 updateWizardUI(2);
@@ -513,11 +582,11 @@ $programs = $conn->query("SELECT * FROM programs");
             else if (currentStep === 2) {
                 const empStatus = document.getElementById('empStatus').value;
 
-                const gpaVal = parseFloat(gpaInput.value);
-                if (gpaInput.value === "" || isNaN(gpaVal) || gpaVal < 1.00 || gpaVal > 5.00) markInvalid(gpaInput, gpaError); else clearError(gpaInput, gpaError);
-
-                const ojtVal = parseFloat(ojtInput.value);
-                if (ojtInput.value === "" || isNaN(ojtVal) || ojtVal < 60.00 || ojtVal > 100.00) markInvalid(ojtInput, ojtError); else clearError(ojtInput, ojtError);
+                if (!academicReady) {
+                    isValid = false;
+                    alert('Your official GPA and OJT grade must be on file before you can continue. Ask your administrator to enter them in Admin → Users → Academic Information.');
+                    return;
+                }
 
                 if (empStatus === 'Employed') {
                     if (!posInput.value.trim()) markInvalid(posInput, posError);
@@ -640,8 +709,12 @@ $programs = $conn->query("SELECT * FROM programs");
         // Intercept form submission to show the loading blur
         const wizardForm = document.getElementById('wizardForm');
         if (wizardForm) {
-            wizardForm.addEventListener('submit', function() {
-                // Show the loading screen overlay
+            wizardForm.addEventListener('submit', function(e) {
+                if (!academicReady) {
+                    e.preventDefault();
+                    alert('Your official GPA and OJT grade must be on file before you can submit. Ask your administrator to enter them in Admin → Users → Academic Information.');
+                    return;
+                }
                 document.getElementById('loadingOverlay').classList.add('active');
             });
         }

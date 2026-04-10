@@ -4,6 +4,37 @@
 
 .bg-light { background-color: #f8fafc; color: #334155; }
 
+.form-error-banner {
+    max-width: 780px;
+    margin: 0 auto 16px;
+    padding: 14px 18px;
+    border-radius: 10px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+.form-error-banner i { margin-top: 2px; flex-shrink: 0; }
+.form-error-banner--warn {
+    background: #fffbeb;
+    border-color: #fde68a;
+    color: #92400e;
+}
+
+.readonly-field {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    background: #f8fafc;
+    color: #0f172a;
+    font-weight: 600;
+}
+
 /* --- 1. BASE FORM STYLES --- */
 .input-group { margin-bottom: 20px; text-align: left; }
 
@@ -590,3 +621,144 @@
     color: #64748b; 
     font-size: 1rem; 
 }
+
+/* --- 6. RESULTS: Career insights (Overpass + Careerjet) --- */
+.insights-section {
+    margin-top: 32px;
+    padding: 28px;
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+}
+
+.insights-title {
+    font-size: 1.25rem;
+    color: #0f172a;
+    margin: 0 0 8px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.insights-title i { color: #0d5c34; }
+
+.insights-lead {
+    font-size: 0.9rem;
+    color: #64748b;
+    margin: 0 0 22px 0;
+    line-height: 1.55;
+}
+
+.insights-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+@media (max-width: 900px) {
+    .insights-grid { grid-template-columns: 1fr; }
+}
+
+.insights-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 18px;
+    background: #fafafa;
+}
+
+.insights-card-head h3 {
+    margin: 6px 0 0 0;
+    font-size: 1.05rem;
+    color: #1f2937;
+}
+
+.insights-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 4px 10px;
+    border-radius: 999px;
+}
+
+.insights-badge.osm { background: #e0f2fe; color: #0369a1; }
+.insights-badge.cj { background: #ecfdf5; color: #047857; }
+
+.insights-mount { min-height: 120px; }
+
+.insights-loading {
+    color: #64748b;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.insights-empty {
+    color: #64748b;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.insights-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.insights-list li {
+    padding: 10px 0;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 0.88rem;
+    color: #374151;
+}
+
+.insights-list li:last-child { border-bottom: none; }
+
+.insights-list .meta {
+    display: block;
+    font-size: 0.75rem;
+    color: #9ca3af;
+    margin-top: 4px;
+    text-transform: capitalize;
+}
+
+.insights-jobs { display: flex; flex-direction: column; gap: 14px; }
+
+.insights-job {
+    padding: 12px;
+    border-radius: 8px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+}
+
+.insights-job .job-title {
+    font-weight: 600;
+    color: #111827;
+    font-size: 0.92rem;
+    margin-bottom: 4px;
+}
+
+.insights-job .job-co {
+    font-size: 0.85rem;
+    color: #0d5c34;
+    font-weight: 500;
+}
+
+.insights-job .job-meta {
+    font-size: 0.78rem;
+    color: #6b7280;
+    margin: 6px 0 8px 0;
+}
+
+.insights-job .job-link {
+    font-size: 0.8rem;
+    color: #0d9488;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.insights-job .job-link:hover { text-decoration: underline; }
