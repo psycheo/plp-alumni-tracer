@@ -52,7 +52,7 @@
         </li>
     </ul>
 
-    <div class="sidebar-footer">
+    <div class="sidebar-footer" style="padding-left: 0; padding-right: 0;">
         <ul class="sidebar-menu" style="padding: 0;">
             <li>
                 <a href="../index.php"><i class="fas fa-sign-out-alt"></i> Logout</a>
