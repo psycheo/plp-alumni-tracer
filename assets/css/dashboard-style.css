@@ -926,6 +926,204 @@ body {
 .resource-item strong { display: block; font-size: 0.95rem; color: #1f2937; margin-bottom: 3px;}
 .resource-item span { font-size: 0.8rem; color: #6b7280; }
 
+/* =========================================
+   NEW DASHBOARD PANEL LAYOUT
+   ========================================= */
+
+/* Overriding the old grid for the new panel */
+#recommendations-container {
+    display: block; 
+    margin-top: 0;
+}
+
+/* 1. Overview KPIs */
+.panel-overview {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    border: 1px solid #e5e7eb;
+}
+
+.panel-overview-header {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #111827;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.panel-overview-header i {
+    color: #10b981;
+}
+
+.kpi-banner {
+    display: flex;
+    gap: 20px;
+}
+
+.kpi-box {
+    flex: 1;
+    background: #f9fafb;
+    padding: 15px 20px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+}
+
+.kpi-box.box-green {
+    background: #ecfdf5;
+}
+
+.kpi-box.box-light-green {
+    background: #f0fdf4;
+}
+
+.kpi-box .kpi-label {
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin-bottom: 5px;
+}
+
+.kpi-box .kpi-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #111827;
+}
+
+.kpi-box.box-green .kpi-label,
+.kpi-box.box-green .kpi-value {
+    color: #065f46;
+}
+
+/* 2. Two Column Layout */
+.panel-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 25px;
+}
+
+/* Charts Column */
+.chart-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    border: 1px solid #e5e7eb;
+}
+
+.chart-card h3 {
+    font-size: 1rem;
+    color: #111827;
+    margin-bottom: 20px;
+}
+
+/* Outcomes Column */
+.outcomes-title {
+    font-size: 1.1rem;
+    color: #111827;
+    margin-bottom: 15px;
+}
+
+.outcomes-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.outcome-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    border: 1px solid #e5e7eb;
+}
+
+.outcome-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+.outcome-header h4 {
+    color: #111827;
+    font-size: 1.05rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.outcome-header h4 i {
+    color: #10b981;
+}
+
+.skills-container {
+    text-align: right;
+}
+
+.skills-label {
+    display: block;
+    font-size: 0.75rem;
+    color: #9ca3af;
+    margin-bottom: 4px;
+}
+
+.skill-pill {
+    display: inline-block;
+    background: #f3f4f6;
+    color: #4b5563;
+    font-size: 0.75rem;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-left: 5px;
+}
+
+.outcome-desc {
+    font-size: 0.85rem;
+    color: #6b7280;
+    line-height: 1.5;
+    margin-bottom: 15px;
+}
+
+.outcome-footer {
+    display: flex;
+    gap: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.outcome-salary {
+    color: #059669;
+}
+
+.outcome-stat {
+    color: #4b5563;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+    .panel-columns {
+        grid-template-columns: 1fr;
+    }
+    .kpi-banner {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+#analytics-section {
+    transition: opacity 0.4s ease-in-out;
+}
+
 @media (max-width: 1024px) {
     .kpi-grid { grid-template-columns: repeat(2, 1fr); }
     .dashboard-grid-2col { grid-template-columns: 1fr; }

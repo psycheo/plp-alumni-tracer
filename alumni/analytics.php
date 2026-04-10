@@ -19,8 +19,10 @@ $result = $conn->query($sql);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>View Analytics - PLP Alumni Tracer</title>
-    <link rel="stylesheet" href="../assets/css/dashboard-style.css">
+    <link rel="stylesheet" href="../assets/css/dashboard-style.css?v=<?php echo time(); ?>">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -58,14 +60,7 @@ $result = $conn->query($sql);
         </div>
 
         <div id="analytics-section" class="analytics-section hidden">
-            <div class="analytics-header">
-                <i class="fas fa-chart-pie"></i>
-                <h2 id="selected-program-title">Program Analytics</h2>
-            </div>
-            <p>Based on current alumni data, here are the top career paths for this program.</p>
-            
-            <div id="recommendations-container" class="recommendations-grid">
-                </div>
+            <div id="recommendations-container" class="recommendations-grid"></div>
         </div>
     </main>
 
@@ -86,7 +81,6 @@ $result = $conn->query($sql);
         </div>
     </div>
 
-    <script src="../assets/js/dashboard.js"></script>
+    <script src="../assets/js/dashboard.js?v=<?php echo time(); ?>"></script>
 </body>
 </html>
-

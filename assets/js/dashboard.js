@@ -118,40 +118,175 @@ document.addEventListener("DOMContentLoaded", () => {
 // ==========================================
 // 3. ANALYTICS PROFESSION MODAL LOGIC
 // ==========================================
+
+// Global chart variables so we can destroy them before drawing new ones
+let pieChartInstance = null;
+let barChartInstance = null;
+
 function loadAnalytics(programId, programName) {
     const analyticsSection = document.getElementById('analytics-section');
-    const titleElement = document.getElementById('selected-program-title');
     const container = document.getElementById('recommendations-container');
     
-    titleElement.innerText = programName + " - Analytics & Careers";
-    container.innerHTML = "<p>Loading career data from database...</p>";
+    // Clear old data and show loading state
+    container.innerHTML = "<p style='padding: 20px;'>Loading analytics data...</p>";
     analyticsSection.classList.remove('hidden');
     analyticsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-    fetch(`../includes/get_data.php?program_id=${programId}`)
-        .then(response => response.json())
-        .then(data => {
-            container.innerHTML = ''; 
-            if(data.length > 0) {
-                data.forEach(prof => {
-                    const card = document.createElement('div');
-                    card.className = 'rec-card';
-                    card.onclick = () => openModal(prof.title, prof.avg_salary, prof.description);
-                    
-                    card.innerHTML = `
-                        <h4><i class="fas fa-star" style="color:#f59e0b;"></i> ${prof.title}</h4>
-                        <p style="color:#666; font-size:0.85rem;">Click to view details</p>
-                    `;
-                    container.appendChild(card);
-                });
-            } else {
-                container.innerHTML = "<p>No specific career recommendations found for this program yet.</p>";
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching data:', error);
-            container.innerHTML = "<p style='color:red;'>Error loading data. Check your database connection.</p>";
+    fetch(`../includes/get_data.php?program_id=${programId}`, {
+        method: 'GET',
+        headers: { 'Cache-Control': 'no-cache' }
+    })
+    .then(response => response.json())
+    .then(data => {
+        // 1. Build the HTML Structure
+        container.innerHTML = `
+            <div class="panel-overview">
+                <div class="panel-overview-header">
+                    <i class="fas fa-chart-line"></i> Program Overview: ${programName}
+                </div>
+                <div class="kpi-banner">
+                    <div class="kpi-box">
+                        <span class="kpi-label">Total Graduates</span>
+                        <span class="kpi-value">${data.overview.total_graduates}</span>
+                    </div>
+                    <div class="kpi-box box-green">
+                        <span class="kpi-label">Employment Rate</span>
+                        <span class="kpi-value">${data.overview.employment_rate}%</span>
+                    </div>
+                    <div class="kpi-box box-light-green">
+                        <span class="kpi-label">Career Paths</span>
+                        <span class="kpi-value">${data.overview.career_paths}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-columns">
+                <div class="panel-left">
+                    <div class="chart-card">
+                        <h3>Career Distribution</h3>
+                        <div style="position: relative; height: 280px; width: 100%;">
+                            <canvas id="careerPieChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Average Salary by Career</h3>
+                        <canvas id="salaryBarChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="panel-right">
+                    <h3 class="outcomes-title">Career Outcomes</h3>
+                    <div class="outcomes-list" id="outcomes-list">
+                        </div>
+                </div>
+            </div>
+        `;
+
+        // 2. Populate Career Outcomes Cards
+        const outcomesList = document.getElementById('outcomes-list');
+        let labels = [];
+        let percentages = [];
+        let salaries = [];
+
+        data.careers.forEach(career => {
+            // Collect data for charts
+            labels.push(career.title);
+            percentages.push(career.percentage);
+            salaries.push(career.salary_val);
+
+            // Build Skills HTML
+            let skillsHtml = career.skills.map(skill => `<span class="skill-pill">${skill}</span>`).join('');
+
+            // Build Card HTML
+            const card = document.createElement('div');
+            card.className = 'outcome-card';
+            card.innerHTML = `
+                <div class="outcome-header">
+                    <h4><i class="fas fa-suitcase"></i> ${career.title}</h4>
+                    <div class="skills-container">
+                        <span class="skills-label">Top Skills</span>
+                        ${skillsHtml}
+                    </div>
+                </div>
+                <p class="outcome-desc">${career.description}</p>
+                <div class="outcome-footer">
+                    <span class="outcome-salary"><i class="fas fa-dollar-sign"></i> ${career.salary_label}</span>
+                    <span class="outcome-stat"><i class="fas fa-arrow-trend-up"></i> ${career.percentage}% of graduates</span>
+                </div>
+            `;
+            outcomesList.appendChild(card);
         });
+
+        // 3. Render Charts
+        renderCharts(labels, percentages, salaries);
+
+        // 4. Force the smooth scroll AFTER rendering
+        setTimeout(() => {
+            const section = document.getElementById('analytics-section');
+            if (section) {
+                // The offset ensures it doesn't hide behind your top navigation bar
+                const yOffset = -80; 
+                const y = section.getBoundingClientRect().top + window.pageYOffset + yOffset;
+                window.scrollTo({ top: y, behavior: 'smooth' });
+            }
+        }, 150); // Give the charts 150ms to paint onto the screen first
+
+    }) // End of the .then(data => {...}) block
+    .catch(error => {
+        console.error('Error fetching data:', error);
+        container.innerHTML = "<p style='color:red; padding: 20px;'>Error loading analytics data.</p>";
+    });
+}
+
+function renderCharts(labels, percentages, salaries) {
+    // Destroy existing charts if they exist (prevents hovering glitches)
+    if (pieChartInstance) pieChartInstance.destroy();
+    if (barChartInstance) barChartInstance.destroy();
+
+    const pieCtx = document.getElementById('careerPieChart').getContext('2d');
+    const barCtx = document.getElementById('salaryBarChart').getContext('2d');
+
+    // Brand Colors based on your mockup
+    const colors = ['#10b981', '#34d399', '#6ee7b7', '#a7f3d0', '#d1fae5'];
+
+    pieChartInstance = new Chart(pieCtx, {
+        type: 'pie',
+        data: {
+            labels: labels,
+            datasets: [{
+                data: percentages,
+                backgroundColor: colors,
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { 
+                legend: { position: 'bottom' }
+            } 
+        }
+    });
+
+    barChartInstance = new Chart(barCtx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Average Salary (PHP)',
+                data: salaries,
+                backgroundColor: '#10b981',
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: { beginAtZero: true }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
 }
 
 function openModal(title, salary, desc) {
