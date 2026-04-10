@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 09, 2026 at 04:42 PM
+-- Generation Time: Apr 10, 2026 at 08:50 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -97,7 +97,8 @@ INSERT INTO `alumni_assessments` (`id`, `name`, `program_id`, `grad_year`, `empl
 (42, 'Juan Dela Cruz', 1, 2023, 'Unemployed', '', '', '', 0, 1.00, 90.00, 100.00, 81.43, '', 'Good Match', 'Software Engineer', '2026-04-09 13:51:42', NULL),
 (43, 'Sample Alumni', 1, 2023, 'Unemployed', '', '', '', 0, 1.00, 90.00, 100.00, 79.57, '', 'Good Match', 'Network Administrator', '2026-04-09 14:02:34', 1),
 (44, 'Sample Alumni', 1, 2024, 'Unemployed', '', '', '', 0, 1.00, 90.00, 100.00, 83.29, '', 'Good Match', 'Network Administrator', '2026-04-09 14:10:40', 1),
-(45, 'Sample Alumni', 1, 2022, 'Unemployed', '', '', '', 0, 1.00, 90.00, 100.00, 54.86, '', 'Good Match', 'Cybersecurity Analyst', '2026-04-09 14:21:20', 1);
+(45, 'Sample Alumni', 1, 2022, 'Unemployed', '', '', '', 0, 1.00, 90.00, 100.00, 54.86, '', 'Good Match', 'Cybersecurity Analyst', '2026-04-09 14:21:20', 1),
+(46, 'Sample Alumni', 4, 2017, 'Unemployed', '', '', '', 0, 1.00, 90.00, 100.00, 84.83, '', 'Good Match', 'Sales Executive', '2026-04-10 05:00:18', 1);
 
 -- --------------------------------------------------------
 
@@ -163,10 +164,66 @@ CREATE TABLE `professions` (
 --
 
 INSERT INTO `professions` (`id`, `program_id`, `title`, `avg_salary`, `description`) VALUES
-(1, 1, 'Software Engineer', '₱45,000 - ₱90,000/mo', 'Develops and maintains software applications, systems, and network networks.'),
-(2, 1, 'Network Administrator', '₱35,000 - ₱70,000/mo', 'Manages and maintains an organization\'s computer networks.'),
-(3, 2, 'Data Analyst', '₱40,000 - ₱85,000/mo', 'Interprets data and turns it into information which can offer ways to improve a business.'),
-(4, 7, 'Registered Nurse', '₱30,000 - ₱60,000/mo', 'Provides and coordinates patient care, educates patients about various health conditions.');
+(4, 7, 'Registered Nurse', '₱30,000 - ₱60,000/mo', 'Provides and coordinates patient care, educates patients about various health conditions.'),
+(12, 3, 'Junior Accountant', '₱25,000 - ₱45,000/mo', 'Assists in preparing financial records, maintaining general ledgers, and processing payments.'),
+(13, 3, 'Audit Associate', '₱28,000 - ₱50,000/mo', 'Supports senior auditors in examining financial statements for accuracy and regulatory compliance.'),
+(14, 3, 'Tax Associate', '₱25,000 - ₱45,000/mo', 'Prepares tax returns and ensures compliance with local and national tax regulations.'),
+(15, 3, 'Financial Analyst', '₱35,000 - ₱75,000/mo', 'Evaluates financial data, studies economic trends, and provides insights for business decisions.'),
+(16, 3, 'Bookkeeper', '₱20,000 - ₱40,000/mo', 'Records daily financial transactions and maintains accurate ledgers.'),
+(22, 5, 'Business Development Associate', '₱25,000 - ₱50,000/mo', 'Identifies new business opportunities, partnerships, and avenues for growth.'),
+(23, 5, 'Operations Coordinator', '₱25,000 - ₱45,000/mo', 'Assists in overseeing the daily operations of a business to ensure efficiency.'),
+(24, 5, 'Project Coordinator', '₱30,000 - ₱60,000/mo', 'Organizes project schedules, tracks progress, and ensures team alignment.'),
+(25, 5, 'Product Associate', '₱30,000 - ₱55,000/mo', 'Assists in the development and lifecycle management of new products.'),
+(26, 5, 'Small Business Owner', 'Variable Income', 'Founds, manages, and assumes the risks of operating an independent enterprise.'),
+(27, 6, 'Front Office Associate', '₱20,000 - ₱35,000/mo', 'Manages guest check-ins, reservations, and general inquiries at the reception desk.'),
+(28, 6, 'Hotel Operations Supervisor', '₱30,000 - ₱55,000/mo', 'Oversees daily hotel operations, ensuring high standards of housekeeping and maintenance.'),
+(29, 6, 'Events Coordinator', '₱25,000 - ₱50,000/mo', 'Plans and executes corporate and private events, conferences, and banquets.'),
+(30, 6, 'Food & Beverage Supervisor', '₱25,000 - ₱45,000/mo', 'Manages dining operations, staff scheduling, and inventory control.'),
+(31, 6, 'Guest Relations Officer', '₱22,000 - ₱40,000/mo', 'Ensures guest satisfaction and handles VIP requests and complaints.'),
+(32, 7, 'Company Nurse', '₱25,000 - ₱45,000/mo', 'Provides occupational health services and emergency care in a corporate setting.'),
+(33, 7, 'Clinical Nurse (Ward)', '₱28,000 - ₱55,000/mo', 'Provides direct patient care in hospital wards and assists medical staff.'),
+(34, 7, 'Public Health Nurse', '₱30,000 - ₱60,000/mo', 'Focuses on community health, education, and disease prevention programs.'),
+(35, 7, 'Nursing Assistant', '₱18,000 - ₱30,000/mo', 'Assists nurses with daily patient care tasks and basic medical procedures.'),
+(36, 8, 'Junior Electronics Engineer', '₱25,000 - ₱45,000/mo', 'Assists in designing and testing electronic circuits and embedded systems.'),
+(37, 8, 'Telecommunications Engineer', '₱35,000 - ₱70,000/mo', 'Designs and maintains voice, video, and data communication networks.'),
+(38, 8, 'Network Field Engineer', '₱30,000 - ₱60,000/mo', 'Installs, troubleshoots, and maintains network hardware at client sites.'),
+(39, 8, 'RF Engineer (Entry Level)', '₱35,000 - ₱65,000/mo', 'Assists in planning and optimizing radio frequency networks for wireless communications.'),
+(40, 8, 'Electronics Technician', '₱20,000 - ₱35,000/mo', 'Repairs, maintains, and troubleshoots electronic equipment and systems.'),
+(41, 9, 'Secondary School Teacher (English)', '₱27,000 - ₱50,000/mo', 'Educates high school students in literature, grammar, writing, and communication.'),
+(42, 9, 'ESL Teacher', '₱25,000 - ₱60,000/mo', 'Teaches English as a second language to non-native speakers, often online.'),
+(43, 9, 'Academic Tutor', '₱20,000 - ₱40,000/mo', 'Provides one-on-one or small group instruction to supplement classroom learning.'),
+(44, 9, 'Curriculum Assistant', '₱25,000 - ₱45,000/mo', 'Aids in the development and alignment of educational materials and syllabi.'),
+(45, 9, 'Content Writer (Education)', '₱25,000 - ₱50,000/mo', 'Creates educational articles, textbook content, and learning module texts.'),
+(46, 10, 'Secondary School Teacher (Mathematics)', '₱27,000 - ₱50,000/mo', 'Instructs high school students in algebra, geometry, calculus, and mathematical reasoning.'),
+(47, 10, 'Math Tutor', '₱20,000 - ₱45,000/mo', 'Provides specialized instruction to students struggling with mathematical concepts.'),
+(48, 10, 'Academic Tutor', '₱20,000 - ₱40,000/mo', 'Provides generalized tutoring services across multiple subjects.'),
+(49, 10, 'Curriculum Assistant', '₱25,000 - ₱45,000/mo', 'Aids in the development and alignment of math educational materials and syllabi.'),
+(50, 10, 'Education Data Assistant', '₱25,000 - ₱45,000/mo', 'Helps schools analyze grading metrics and student performance data.'),
+(51, 11, 'Secondary School Teacher (Filipino)', '₱27,000 - ₱50,000/mo', 'Teaches Filipino language, literature, and culture in secondary schools.'),
+(52, 11, 'Academic Tutor', '₱20,000 - ₱40,000/mo', 'Provides supplemental instruction in Filipino subjects.'),
+(53, 11, 'Curriculum Assistant', '₱25,000 - ₱45,000/mo', 'Aids in the development of Filipino language modules and lesson plans.'),
+(54, 11, 'Content Writer (Education)', '₱25,000 - ₱50,000/mo', 'Drafts textbook materials and learning content in the Filipino language.'),
+(55, 11, 'Training Facilitator', '₱25,000 - ₱50,000/mo', 'Leads workshops and seminars, often leveraging strong public speaking skills.'),
+(56, 12, 'Elementary School Teacher', '₱27,000 - ₱50,000/mo', 'Provides foundational education across multiple subjects to children in early grade levels.'),
+(57, 12, 'Teaching Assistant', '₱18,000 - ₱30,000/mo', 'Supports lead teachers in classroom management and lesson preparation.'),
+(58, 12, 'Child Development Assistant', '₱20,000 - ₱35,000/mo', 'Works in early childhood centers aiding in the developmental growth of young students.'),
+(59, 12, 'Curriculum Assistant', '₱25,000 - ₱45,000/mo', 'Aids in designing age-appropriate learning modules for primary education.'),
+(60, 12, 'Education Program Coordinator (Entry Level)', '₱25,000 - ₱45,000/mo', 'Helps organize school-wide educational initiatives and extracurricular programs.'),
+(61, 1, 'Software Engineer', '₱45,000 - ₱90,000/mo', 'Develops and maintains software applications, systems, and networks.'),
+(62, 1, 'Network Administrator', '₱35,000 - ₱70,000/mo', 'Manages and maintains an organization\'s computer networks.'),
+(63, 1, 'IT Support Specialist', '₱25,000 - ₱50,000/mo', 'Provides technical assistance and troubleshooting for computer systems, hardware, and software.'),
+(64, 1, 'Web Developer', '₱35,000 - ₱75,000/mo', 'Designs, codes, and modifies websites, from layout to function and according to client specifications.'),
+(65, 1, 'Cybersecurity Analyst', '₱50,000 - ₱100,000/mo', 'Protects IT infrastructure, edge devices, networks, and data from cyber threats.'),
+(66, 2, 'Data Analyst', '₱40,000 - ₱85,000/mo', 'Interprets data and turns it into information which can offer ways to improve a business.'),
+(67, 2, 'Software Engineer', '₱45,000 - ₱90,000/mo', 'Applies software engineering principles to the design, development, maintenance, and testing of software.'),
+(68, 2, 'QA / Test Engineer', '₱35,000 - ₱70,000/mo', 'Ensures software quality through manual and automated testing of applications.'),
+(69, 2, 'Machine Learning Engineer', '₱70,000 - ₱150,000/mo', 'Builds AI models and machine learning algorithms for predictive systems.'),
+(70, 2, 'Backend Developer', '₱50,000 - ₱100,000/mo', 'Builds and maintains the technology needed to power the components which enable the user-facing side of a website to exist.'),
+(71, 4, 'Marketing Associate', '₱22,000 - ₱40,000/mo', 'Assists in planning and executing marketing campaigns and promotional events.'),
+(72, 4, 'Digital Marketing Specialist', '₱30,000 - ₱70,000/mo', 'Develops online marketing campaigns, SEO/SEM, and social media strategies.'),
+(73, 4, 'Sales Executive', '₱25,000 - ₱60,000/mo (plus commissions)', 'Identifies potential clients, pitches products/services, and closes sales deals.'),
+(74, 4, 'Brand Coordinator', '₱28,000 - ₱55,000/mo', 'Assists in maintaining brand consistency across all marketing channels and materials.'),
+(75, 4, 'Market Research Analyst', '₱30,000 - ₱65,000/mo', 'Studies market conditions to examine potential sales of a product or service.');
 
 -- --------------------------------------------------------
 
@@ -279,7 +336,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `alumni_assessments`
 --
 ALTER TABLE `alumni_assessments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=47;
 
 --
 -- AUTO_INCREMENT for table `feedbacks`
@@ -297,7 +354,7 @@ ALTER TABLE `feedback_replies`
 -- AUTO_INCREMENT for table `professions`
 --
 ALTER TABLE `professions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=76;
 
 --
 -- AUTO_INCREMENT for table `programs`
