@@ -298,23 +298,34 @@ $dash_fmt_pct = function ($v) {
 
     <script>
         // Security check for temporary password
-        const isTemporary = <?php echo $is_temporary ? 'true' : 'false'; ?>;
+const isTemporary = <?php echo $is_temporary ? 'true' : 'false'; ?>;
 
-        if (isTemporary) {
-            Swal.fire({
-                title: 'Security Notice',
-                text: 'You are still using a temporary password. Please update it to secure your account.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Go to Settings',
-                confirmButtonColor: '#0d5c34',
-                cancelButtonText: 'Later'   
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    window.location.href = 'settings.php';
-                }
-            });
+if (isTemporary) {
+    Swal.fire({
+        title: 'Action Required',
+        html: 'You are currently logged in with a temporary password. Please update it to secure your official alumni record.',
+        icon: 'warning',
+        iconColor: '#f59e0b', // Matches the system's amber/warning tone
+        showCancelButton: true,
+        confirmButtonText: '<i class="fas fa-lock" style="margin-right: 6px;"></i> Update Password',
+        confirmButtonColor: '#0d5c34', // PLP Green
+        cancelButtonText: 'Remind Me Later',
+        buttonsStyling: false, 
+        backdrop: 'rgba(17, 24, 39, 0.7)', 
+        customClass: {
+            popup: 'swal-plp-popup',
+            title: 'swal-plp-title',
+            htmlContainer: 'swal-plp-html',
+            actions: 'swal-plp-actions', // <-- ADD THIS LINE
+            confirmButton: 'swal-plp-confirm',
+            cancelButton: 'swal-plp-cancel'
         }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = 'settings.php';
+        }
+    });
+}
     </script>
     
 </body>

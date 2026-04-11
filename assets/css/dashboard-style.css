@@ -119,6 +119,7 @@ body {
 .nav-slider.animated {
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
 }
+
 .btn-logout {
     background-color: #dc2626;
     color: white !important;
@@ -135,6 +136,65 @@ body {
     background-color: #b91c1c;
 }
 
+/* SweetAlert2 PLP Custom Integration */
+.swal-plp-popup {
+    border-radius: 12px !important;
+    font-family: 'Inter', sans-serif !important;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+    border: 1px solid #e5e7eb !important;
+    padding: 2em 1.5em !important;
+}
+
+.swal-plp-title {
+    color: #111827 !important;
+    font-size: 1.4rem !important;
+    font-weight: 700 !important;
+}
+
+.swal-plp-html {
+    color: #4b5563 !important;
+    font-size: 0.95rem !important;
+    line-height: 1.5 !important;
+}
+
+/* NEW: Adds spacing between the buttons */
+.swal-plp-actions {
+    gap: 12px !important;
+    margin-top: 25px !important;
+}
+
+.swal-plp-confirm {
+    background-color: #0d5c34 !important; /* Fixed missing green background */
+    color: white !important;             /* Fixed missing text color */
+    border: none !important;             /* Removes the ugly black outline */
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    padding: 12px 24px !important;
+    box-shadow: 0 4px 6px rgba(13, 92, 52, 0.2) !important;
+    transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s !important;
+    cursor: pointer !important;
+}
+
+.swal-plp-confirm:hover {
+    background-color: #059669 !important; /* Lighter green on hover */
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 12px rgba(13, 92, 52, 0.3) !important;
+}
+
+.swal-plp-cancel {
+    background-color: #f3f4f6 !important;
+    color: #4b5563 !important;
+    border: none !important;             /* Removes the ugly black outline */
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    padding: 12px 24px !important;
+    transition: background-color 0.2s !important;
+    cursor: pointer !important;
+}
+
+.swal-plp-cancel:hover {
+    background-color: #e5e7eb !important;
+}
 
 /* =========================================
    2. MAIN DASHBOARD CONTAINER & PROGRAM GRID
