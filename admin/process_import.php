@@ -2,7 +2,7 @@
 session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
-require '../includes/db.php'; // Siguraduhin na nandito ang database connection mo
+require '../includes/db.php'; 
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['json_data'])) {
     $data = json_decode($_POST['json_data'], true);
@@ -14,14 +14,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['json_data'])) {
     }
 
     $success_count = 0;
-    // Default Password Logic (Same as Add New User)
-    $default_pass = password_hash('alumni123', PASSWORD_DEFAULT); 
+    $plain_password = 'alumni123';
+    // Hashed password para sa security
+    $hashed_pass = password_hash($plain_password, PASSWORD_DEFAULT); 
 
     foreach ($data as $row) {
-        // Gawing case-insensitive ang headers (Gagana kahit STUDENT ID o Student ID)
+        // Gawing Case-insensitive ang headers para safe (STUDENT ID, Student ID, etc.)
         $row = array_change_key_case($row, CASE_UPPER);
 
-        $student_id = trim($row['STUDENT ID'] ?? $row['ID NUMBER'] ?? $row['ID'] ?? '');
+        // Kunin ang data base sa CSV header
+        $student_id = trim($row['STUDENT ID'] ?? $row['ID NUMBER'] ?? $row['ID'] ?? ''); 
         $full_name = trim($row['NAME'] ?? $row['FULL NAME'] ?? '');
         $email = trim($row['EMAIL'] ?? $row['EMAIL ADDRESS'] ?? '');
         $role = 'alumni';
@@ -31,10 +33,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['json_data'])) {
             $full_name = $conn->real_escape_string($full_name);
             $email = $conn->real_escape_string($email);
 
-            // Mag-iinsert sa 'users' table. Kung existing ang ID, ia-update ang info.
+            // SQL Query gamit ang student_id
             $sql = "INSERT INTO users (student_id, full_name, email, password, role) 
-                    VALUES ('$student_id', '$full_name', '$email', '$default_pass', '$role')
-                    ON DUPLICATE KEY UPDATE full_name = '$full_name', email = '$email'";
+                    VALUES ('$student_id', '$full_name', '$email', '$hashed_pass', '$role')
+                    ON DUPLICATE KEY UPDATE 
+                        full_name = '$full_name', 
+                        email = '$email'";
             
             if ($conn->query($sql)) {
                 $success_count++;
@@ -42,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['json_data'])) {
         }
     }
 
-    $_SESSION['success_msg'] = "Successfully registered $success_count users from file.";
+    $_SESSION['success_msg'] = "Successfully registered $success_count users. Default password: $plain_password";
     header("Location: admin_users.php");
     exit();
 } else {
