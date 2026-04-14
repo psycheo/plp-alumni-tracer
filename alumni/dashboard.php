@@ -15,10 +15,10 @@
 
     // 1. Get user's assessment count
     $assessment_count = 0;
-    // BINAGO: Siniguradong student_id ang query at "s" (string) ang bind_param dahil may dash ang ID
+    // Matches 'student_id' column, binds integer '$user_id'
     $stmt = $conn->prepare("SELECT COUNT(*) as count FROM alumni_assessments WHERE student_id = ?");
     if ($stmt) {
-        $stmt->bind_param("s", $student_id); 
+        $stmt->bind_param("i", $user_id); 
         $stmt->execute();
         if ($result = $stmt->get_result()->fetch_assoc()) { 
             $assessment_count = $result['count']; 
@@ -28,7 +28,8 @@
 
     // 2. Get user's feedback count
     $feedback_count = 0;
-    $fb_stmt = $conn->prepare("SELECT COUNT(*) as count FROM feedbacks WHERE user_id = ?");
+    // FIXED: Changed 'user_id' to 'student_id'
+    $fb_stmt = $conn->prepare("SELECT COUNT(*) as count FROM feedbacks WHERE student_id = ?");
     if ($fb_stmt) {
         $fb_stmt->bind_param("i", $user_id);
         $fb_stmt->execute();
@@ -38,29 +39,30 @@
 
     // 3. Count AND Fetch unread replies for the notification bell
     $unread_count = 0;
-    $notif_stmt = $conn->query("SELECT COUNT(*) as count FROM feedback_replies WHERE alumni_id = $user_id AND is_seen = 0");
+    // FIXED: Changed 'alumni_id' to 'student_id'
+    $notif_stmt = $conn->query("SELECT COUNT(*) as count FROM feedback_replies WHERE student_id = $user_id AND is_seen = 0");
     if ($notif_stmt && $row = $notif_stmt->fetch_assoc()) {
         $unread_count = $row['count'];
     }
-    $notif_list_stmt = $conn->query("SELECT reply_text, created_at FROM feedback_replies WHERE alumni_id = $user_id AND is_seen = 0 ORDER BY created_at DESC LIMIT 5");
+    $notif_list_stmt = $conn->query("SELECT reply_text, created_at FROM feedback_replies WHERE student_id = $user_id AND is_seen = 0 ORDER BY created_at DESC LIMIT 5");
 
 
     // 4. The Unified Audit Log
-    // BINAGO: student_id na ang gagamitin para sa alumni_assessments table
+    // FIXED: All tables use 'student_id', and all are bound to the integer '$user_id'
     $audit_sql = "
         SELECT 'assessment' AS type, created_at AS log_date, 'Career Assessment Taken' AS title, CONCAT('Result: ', recommended_profession) AS description 
         FROM alumni_assessments WHERE student_id = ? 
         UNION ALL
         SELECT 'feedback' AS type, created_at AS log_date, 'Feedback Submitted' AS title, CONCAT('You rated the portal ', rating, '/5 stars.') AS description 
-        FROM feedbacks WHERE user_id = ?
+        FROM feedbacks WHERE student_id = ?
         UNION ALL
         SELECT 'reply' AS type, created_at AS log_date, 'Admin Response Received' AS title, 'An admin has replied to your feedback.' AS description 
-        FROM feedback_replies WHERE alumni_id = ?
+        FROM feedback_replies WHERE student_id = ?
         ORDER BY log_date DESC LIMIT 50
     ";
     $stmt_audit = $conn->prepare($audit_sql);
     if ($stmt_audit) { 
-        $stmt_audit->bind_param("sii", $student_id, $user_id, $user_id); 
+        $stmt_audit->bind_param("iii", $user_id, $user_id, $user_id); 
         $stmt_audit->execute();
         $audit_logs = $stmt_audit->get_result();
     }
