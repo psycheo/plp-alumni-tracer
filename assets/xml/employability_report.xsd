@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="employabilityReport">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="filters">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="range" type="xs:string"/>
+              <xs:element name="programId" type="xs:integer"/>
+              <xs:element name="startDate" type="xs:string"/>
+              <xs:element name="endDate" type="xs:string"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="summary">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="totalAssessments" type="xs:integer"/>
+              <xs:element name="totalEmployed" type="xs:integer"/>
+              <xs:element name="totalUnemployed" type="xs:integer"/>
+              <xs:element name="employmentRatePercent" type="xs:decimal"/>
+              <xs:element name="goodMatchCount" type="xs:integer"/>
+              <xs:element name="jobMismatchCount" type="xs:integer"/>
+              <xs:element name="goodMatchRatePercent" type="xs:decimal"/>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="programBreakdown">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="program" minOccurs="0" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="name" type="xs:string"/>
+                    <xs:element name="totalAssessments" type="xs:integer"/>
+                    <xs:element name="employedCount" type="xs:integer"/>
+                    <xs:element name="employmentRatePercent" type="xs:decimal"/>
+                    <xs:element name="goodMatchCount" type="xs:integer"/>
+                    <xs:element name="goodMatchRatePercent" type="xs:decimal"/>
+                    <xs:element name="averageGpa" type="xs:decimal"/>
+                    <xs:element name="averageOjtGrade" type="xs:decimal"/>
+                    <xs:element name="averageSoftSkills" type="xs:decimal"/>
+                    <xs:element name="averageHardSkills" type="xs:decimal"/>
+                  </xs:sequence>
+                  <xs:attribute name="id" type="xs:string" use="required"/>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="recentPredictions">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="prediction" minOccurs="0" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="name" type="xs:string"/>
+                    <xs:element name="program" type="xs:string"/>
+                    <xs:element name="graduationYear" type="xs:string"/>
+                    <xs:element name="employmentStatus" type="xs:string"/>
+                    <xs:element name="employabilityStatus" type="xs:string"/>
+                    <xs:element name="recommendedProfession" type="xs:string"/>
+                    <xs:element name="gpa" type="xs:decimal"/>
+                    <xs:element name="ojtGrade" type="xs:decimal"/>
+                    <xs:element name="softSkillsAverage" type="xs:decimal"/>
+                    <xs:element name="hardSkillsAverage" type="xs:decimal"/>
+                    <xs:element name="createdAt" type="xs:string"/>
+                  </xs:sequence>
+                  <xs:attribute name="assessmentId" type="xs:string" use="required"/>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+      <xs:attribute name="system" type="xs:string" use="required"/>
+      <xs:attribute name="version" type="xs:string" use="required"/>
+      <xs:attribute name="generatedAtUtc" type="xs:string" use="required"/>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

@@ -4,6 +4,104 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') {
     header("Location: login.php"); 
     exit; 
 }
+require '../includes/db.php';
+$range = isset($_GET['range']) ? (string) $_GET['range'] : 'all';
+$programId = isset($_GET['program_id']) ? (int) $_GET['program_id'] : 0;
+$startDate = isset($_GET['start_date']) ? (string) $_GET['start_date'] : '';
+$endDate = isset($_GET['end_date']) ? (string) $_GET['end_date'] : '';
+$programOptions = [];
+$progRes = $conn->query('SELECT id, name FROM programs ORDER BY name ASC');
+if ($progRes) {
+    while ($p = $progRes->fetch_assoc()) {
+        $programOptions[] = $p;
+    }
+}
+$validProgramIds = array_map(static function ($p) {
+    return (int) $p['id'];
+}, $programOptions);
+if ($programId > 0 && !in_array($programId, $validProgramIds, true)) {
+    $programId = 0;
+}
+$filterQuery = http_build_query([
+    'range' => $range,
+    'program_id' => $programId,
+    'start_date' => $startDate,
+    'end_date' => $endDate,
+]);
+
+$whereParts = [];
+$bindTypes = '';
+$bindParams = [];
+if ($range === 'last30') {
+    $whereParts[] = "a.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
+} elseif ($range === 'last6months') {
+    $whereParts[] = "a.created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)";
+} elseif ($range === 'custom' && $startDate !== '' && $endDate !== '') {
+    $whereParts[] = "DATE(a.created_at) BETWEEN ? AND ?";
+    $bindTypes .= 'ss';
+    $bindParams[] = $startDate;
+    $bindParams[] = $endDate;
+}
+if ($programId > 0) {
+    $whereParts[] = "a.program_id = ?";
+    $bindTypes .= 'i';
+    $bindParams[] = $programId;
+}
+$whereSql = empty($whereParts) ? '' : ('WHERE ' . implode(' AND ', $whereParts));
+
+$latestRows = [];
+$stmt = $conn->prepare("
+    SELECT
+        a.id,
+        a.user_id,
+        a.name,
+        a.grad_year,
+        a.gpa,
+        a.ojt_grade,
+        a.soft_skills_avg,
+        a.hard_skills_avg,
+        a.employability_status,
+        a.employment_status,
+        a.recommended_profession,
+        a.created_at,
+        p.name AS program_name,
+        u.student_id,
+        u.avg_professional_grade,
+        u.avg_elective_grade
+    FROM alumni_assessments a
+    LEFT JOIN programs p ON p.id = a.program_id
+    LEFT JOIN users u ON u.id = a.user_id
+    $whereSql
+    ORDER BY a.id DESC
+    LIMIT 100
+");
+if ($stmt) {
+    if ($bindTypes !== '' && !empty($bindParams)) {
+        $stmt->bind_param($bindTypes, ...$bindParams);
+    }
+    $stmt->execute();
+    $res = $stmt->get_result();
+    if ($res) {
+        while ($r = $res->fetch_assoc()) {
+            $latestRows[] = $r;
+        }
+    }
+    $stmt->close();
+}
+
+$highCount = 0;
+$midCount = 0;
+$lowCount = 0;
+foreach ($latestRows as $r) {
+    $fit = ((float) $r['soft_skills_avg'] + (float) $r['hard_skills_avg']) / 2;
+    if ($fit >= 75) {
+        $highCount++;
+    } elseif ($fit >= 50) {
+        $midCount++;
+    } else {
+        $lowCount++;
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -71,6 +169,17 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') {
         <div class="page-title">
             <h1>Student Employment Prediction</h1>
             <p>Analyze and predict individual student employment probability</p>
+            <div style="margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
+                <a href="export_predict_report_xml.php?<?= htmlspecialchars($filterQuery) ?>" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 8px; background: #0d5c34; color: #fff; border: none; padding: 10px 14px; border-radius: 6px; text-decoration: none; font-weight: 600;">
+                    <i class="fas fa-file-code"></i> View XML Report
+                </a>
+                <a href="export_predict_report_xml.php?<?= htmlspecialchars($filterQuery) ?>&download=1&format=styled" style="display: inline-flex; align-items: center; gap: 8px; background: #1d4ed8; color: #fff; border: none; padding: 10px 14px; border-radius: 6px; text-decoration: none; font-weight: 600;">
+                    <i class="fas fa-download"></i> Download Styled Report
+                </a>
+                <a href="export_predict_report_xml.php?<?= htmlspecialchars($filterQuery) ?>&download=1" style="display: inline-flex; align-items: center; gap: 8px; background: #374151; color: #fff; border: none; padding: 10px 14px; border-radius: 6px; text-decoration: none; font-weight: 600;">
+                    <i class="fas fa-file-export"></i> Download Raw XML
+                </a>
+            </div>
         </div>
 
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 25px;">
@@ -78,7 +187,7 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') {
                 <div style="background: #d1fae5; color: #10b981; padding: 10px; border-radius: 50%;"><i class="fas fa-user-check"></i></div>
                 <div>
                     <p style="color: #6b7280; font-size: 0.8rem;">High Probability</p>
-                    <h3 style="font-size: 1.2rem; color: #1f2937;">75%+ <span style="font-size: 0.85rem; color: #10b981; font-weight: normal;">(0 Students)</span></h3>
+                    <h3 style="font-size: 1.2rem; color: #1f2937;">75%+ <span style="font-size: 0.85rem; color: #10b981; font-weight: normal;">(<?= (int) $highCount ?> Students)</span></h3>
                 </div>
             </div>
             
@@ -86,7 +195,7 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') {
                 <div style="background: #fef3c7; color: #f59e0b; padding: 10px; border-radius: 50%;"><i class="fas fa-user-clock"></i></div>
                 <div>
                     <p style="color: #6b7280; font-size: 0.8rem;">Medium Probability</p>
-                    <h3 style="font-size: 1.2rem; color: #1f2937;">50-74% <span style="font-size: 0.85rem; color: #f59e0b; font-weight: normal;">(1 Students)</span></h3>
+                    <h3 style="font-size: 1.2rem; color: #1f2937;">50-74% <span style="font-size: 0.85rem; color: #f59e0b; font-weight: normal;">(<?= (int) $midCount ?> Students)</span></h3>
                 </div>
             </div>
 
@@ -94,7 +203,7 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') {
                 <div style="background: #fee2e2; color: #ef4444; padding: 10px; border-radius: 50%;"><i class="fas fa-user-times"></i></div>
                 <div>
                     <p style="color: #6b7280; font-size: 0.8rem;">Low Probability</p>
-                    <h3 style="font-size: 1.2rem; color: #1f2937;"><50% <span style="font-size: 0.85rem; color: #ef4444; font-weight: normal;">(1 Students)</span></h3>
+                    <h3 style="font-size: 1.2rem; color: #1f2937;"><50% <span style="font-size: 0.85rem; color: #ef4444; font-weight: normal;">(<?= (int) $lowCount ?> Students)</span></h3>
                 </div>
             </div>
         </div>
@@ -107,16 +216,44 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') {
                 </button>
             </div>
 
-            <div class="filter-section" style="display: flex; gap: 20px; margin-bottom: 20px;">
-                <div style="flex: 1;">
-                    <label style="display: block; font-size: 0.8rem; color: #6b7280; margin-bottom: 5px;">Filter by Year Graduated</label>
-                    <select style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;"><option>All Years</option></select>
+            <form method="GET" class="filter-section" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 20px;">
+                <div>
+                    <label style="display: block; font-size: 0.8rem; color: #6b7280; margin-bottom: 5px;">Date Range</label>
+                    <select name="range" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                        <option value="all" <?= $range === 'all' ? 'selected' : '' ?>>All Time</option>
+                        <option value="last30" <?= $range === 'last30' ? 'selected' : '' ?>>Last 30 Days</option>
+                        <option value="last6months" <?= $range === 'last6months' ? 'selected' : '' ?>>Last 6 Months</option>
+                        <option value="custom" <?= $range === 'custom' ? 'selected' : '' ?>>Custom</option>
+                    </select>
                 </div>
-                <div style="flex: 1;">
-                    <label style="display: block; font-size: 0.8rem; color: #6b7280; margin-bottom: 5px;">Filter by Degree</label>
-                    <select style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;"><option>All Degrees</option></select>
+                <div>
+                    <label style="display: block; font-size: 0.8rem; color: #6b7280; margin-bottom: 5px;">Program</label>
+                    <select name="program_id" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                        <option value="0">All Programs</option>
+                        <?php foreach ($programOptions as $opt): ?>
+                            <option value="<?= (int) $opt['id'] ?>" <?= $programId === (int) $opt['id'] ? 'selected' : '' ?>><?= htmlspecialchars($opt['name']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
-            </div>
+                <div>
+                    <label style="display: block; font-size: 0.8rem; color: #6b7280; margin-bottom: 5px;">Start Date</label>
+                    <input type="date" name="start_date" value="<?= htmlspecialchars($startDate) ?>" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.8rem; color: #6b7280; margin-bottom: 5px;">End Date</label>
+                    <input type="date" name="end_date" value="<?= htmlspecialchars($endDate) ?>" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                </div>
+                <div style="display:flex;align-items:flex-end;gap:8px;">
+                    <button type="submit" style="background:#0d5c34;color:#fff;border:none;padding:9px 12px;border-radius:4px;cursor:pointer;">Apply</button>
+                    <a href="admin_predict_report.php" style="background:#e5e7eb;color:#111827;padding:9px 12px;border-radius:4px;text-decoration:none;">Reset</a>
+                </div>
+            </form>
+            <p style="font-size:0.78rem;color:#6b7280;margin:-8px 0 12px 0;">
+                Active filters: Range <strong><?= htmlspecialchars($range) ?></strong>,
+                Program ID <strong><?= (int) $programId ?></strong>,
+                Start <strong><?= htmlspecialchars($startDate !== '' ? $startDate : 'none') ?></strong>,
+                End <strong><?= htmlspecialchars($endDate !== '' ? $endDate : 'none') ?></strong>
+            </p>
             
             <div style="overflow-x: auto;">
                 <table class="admin-table" style="font-size: 0.8rem; width: 100%;">
@@ -138,42 +275,44 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') {
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>26-00001</td>
-                            <td>25</td>
-                            <td>BSIT</td>
-                            <td>88.00</td>
-                            <td>78.00</td>
-                            <td>87.00</td>
-                            <td>80.00</td>
-                            <td>63.08</td>
-                            <td>2026</td>
-                            <td><span class="badge bg-green">Employable</span></td>
-                            <td>
-                                54%
-                                <div class="progress-bar-container"><div class="progress-bar bg-green" style="width: 54%;"></div></div>
-                            </td>
-                            <td>43%</td>
-                            <td class="actions-column" style="text-align: center;"><i class="fas fa-eye" style="color: #0ea5e9; cursor: pointer;"></i></td>
-                        </tr>
-                        <tr>
-                            <td>26-00004</td>
-                            <td>23</td>
-                            <td>BSHM</td>
-                            <td>75.40</td>
-                            <td>65.00</td>
-                            <td>67.00</td>
-                            <td>45.00</td>
-                            <td>40.00</td>
-                            <td>2026</td>
-                            <td><span class="badge bg-red">Less Employable</span></td>
-                            <td>
-                                38%
-                                <div class="progress-bar-container"><div class="progress-bar bg-red" style="width: 38%;"></div></div>
-                            </td>
-                            <td>30%</td>
-                            <td class="actions-column" style="text-align: center;"><i class="fas fa-eye" style="color: #0ea5e9; cursor: pointer;"></i></td>
-                        </tr>
+                        <?php if (!empty($latestRows)): ?>
+                            <?php foreach ($latestRows as $row): ?>
+                                <?php
+                                    $fit = round((((float) $row['soft_skills_avg'] + (float) $row['hard_skills_avg']) / 2), 0);
+                                    $fit = max(0, min(100, (int) $fit));
+                                    $isGood = strcasecmp((string) ($row['employability_status'] ?? ''), 'Good Match') === 0;
+                                    $badgeClass = $isGood ? 'bg-green' : 'bg-red';
+                                    $barClass = $fit >= 50 ? 'bg-green' : 'bg-red';
+                                    $predRate = $fit >= 70 ? 'High' : ($fit >= 50 ? 'Medium' : 'Low');
+                                    $age = '';
+                                    if (!empty($row['grad_year']) && is_numeric($row['grad_year'])) {
+                                        $age = max(21, (int) date('Y') - (int) $row['grad_year'] + 22);
+                                    }
+                                ?>
+                                <tr>
+                                    <td><?= htmlspecialchars((string) ($row['student_id'] ?: ('A-' . $row['id']))) ?></td>
+                                    <td><?= htmlspecialchars((string) $age) ?></td>
+                                    <td><?= htmlspecialchars((string) ($row['program_name'] ?? 'N/A')) ?></td>
+                                    <td><?= htmlspecialchars(number_format((float) ($row['avg_professional_grade'] ?? 0), 2)) ?></td>
+                                    <td><?= htmlspecialchars(number_format((float) ($row['avg_elective_grade'] ?? 0), 2)) ?></td>
+                                    <td><?= htmlspecialchars(number_format((float) ($row['ojt_grade'] ?? 0), 2)) ?></td>
+                                    <td><?= htmlspecialchars(number_format((float) ($row['soft_skills_avg'] ?? 0), 2)) ?></td>
+                                    <td><?= htmlspecialchars(number_format((float) ($row['hard_skills_avg'] ?? 0), 2)) ?></td>
+                                    <td><?= htmlspecialchars((string) ($row['grad_year'] ?? '')) ?></td>
+                                    <td><span class="badge <?= $badgeClass ?>"><?= htmlspecialchars((string) ($row['employability_status'] ?? 'Unknown')) ?></span></td>
+                                    <td>
+                                        <?= (int) $fit ?>%
+                                        <div class="progress-bar-container"><div class="progress-bar <?= $barClass ?>" style="width: <?= (int) $fit ?>%;"></div></div>
+                                    </td>
+                                    <td><?= htmlspecialchars($predRate) ?></td>
+                                    <td class="actions-column" style="text-align: center;"><?= htmlspecialchars((string) ($row['recommended_profession'] ?? '')) ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="13" style="text-align:center; color:#6b7280;">No prediction records match the selected filters.</td>
+                            </tr>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
