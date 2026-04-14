@@ -9,7 +9,7 @@
 function overpass_fetch_metro_manila_places(int $limit = 15): array
 {
     $query = '
-[out:json][timeout:28];
+[out:json][timeout:80];
 (
   node["office"="it"](14.33, 120.89, 14.79, 121.14);
   node["office"="telecommunication"](14.33, 120.89, 14.79, 121.14);

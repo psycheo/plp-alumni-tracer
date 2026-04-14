@@ -169,7 +169,7 @@ session_start();
             // Tighter bounding box specifically for Metro Manila to prevent 504 Timeouts
             // Format is: (south, west, north, east)
             const query = `
-            [out:json][timeout:30];
+            [out:json][timeout:80];
             (
             // IT, CS, & ECE (Tech & Telecom)
             node["office"="it"](14.33, 120.89, 14.79, 121.14);
