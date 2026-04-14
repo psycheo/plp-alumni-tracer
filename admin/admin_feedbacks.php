@@ -5,9 +5,9 @@ session_start();
 require '../includes/db.php';
 
 // 1. Fetch only "Unresolved" feedbacks
-$sql = "SELECT f.*, u.full_name, u.student_id 
+$sql = "SELECT f.*, u.full_name, f.student_id AS user_id
         FROM feedbacks f 
-        JOIN users u ON f.user_id = u.id 
+        JOIN users u ON f.student_id = u.id 
         WHERE f.status = 'Unresolved' 
         ORDER BY f.created_at DESC";
 $feedbacks = $conn->query($sql);
@@ -124,7 +124,7 @@ $unresolved_count = $conn->query("SELECT COUNT(*) as total FROM feedbacks WHERE 
 
             <form id="replyForm">
                 <input type="hidden" name="feedback_id" id="modal_feedback_id">
-                <input type="hidden" name="alumni_id" id="modal_alumni_id">
+                <input type="hidden" name="student_id" id="modal_alumni_id">
                 <textarea name="reply_text" id="modal_reply_text" required placeholder="Write your response here..." 
                           style="width: 100%; height: 120px; padding: 10px; border: 1px solid #d1d5db; border-radius: 4px; resize: none;"></textarea>
                 <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px;">
@@ -172,18 +172,20 @@ $unresolved_count = $conn->query("SELECT COUNT(*) as total FROM feedbacks WHERE 
             })
             .then(response => response.text())
             .then(data => {
-                // Show Success Message
-                statusDiv.style.display = 'block';
-                statusDiv.className = 'status-success';
-                statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Reply sent! Closing...';
-                
-                // Hide Form immediately
-                document.getElementById('replyForm').style.display = 'none';
-
-                // AUTO-CLOSE and REFRESH after 2 seconds
-                setTimeout(() => {
-                    location.reload();
-                }, 2000);
+                if (data.trim() === "SUCCESS") {
+                    statusDiv.style.display = 'block';
+                    statusDiv.className = 'status-success';
+                    statusDiv.innerHTML = '<i class="fas fa-check-circle"></i> Reply sent! Closing...';
+                    document.getElementById('replyForm').style.display = 'none';
+                    setTimeout(() => { location.reload(); }, 2000);
+                } else {
+                    // SHOW THE ACTUAL PHP/SQL ERROR
+                    statusDiv.style.display = 'block';
+                    statusDiv.className = 'status-error';
+                    statusDiv.innerText = data; 
+                    btn.disabled = false;
+                    btn.innerText = "Send Reply";
+                }
             })
             .catch(error => {
                 statusDiv.style.display = 'block';

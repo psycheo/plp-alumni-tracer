@@ -19,7 +19,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit;
     }
 
-    $stmt = $conn->prepare("INSERT INTO feedbacks (user_id, rating, message) VALUES (?, ?, ?)");
+    $stmt = $conn->prepare("INSERT INTO feedbacks (student_id, rating, message) VALUES (?, ?, ?)");
     if ($stmt) {
         $stmt->bind_param("iis", $user_id, $rating, $message);
         if ($stmt->execute()) {

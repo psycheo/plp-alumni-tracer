@@ -14,20 +14,19 @@ if (isset($_GET['read_id'])) {
 // 2. SEND REPLY (Saves to replies table and resolves feedback)
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['send_reply'])) {
     $feedback_id = $_POST['feedback_id'];
-    $alumni_id = $_POST['alumni_id'];
+    $alumni_id = $_POST['student_id'];
     $reply_text = $_POST['reply_text'];
     $admin_id = $_SESSION['user_id']; // Assuming admin is logged in
 
     // Insert reply
-    $stmt = $conn->prepare("INSERT INTO feedback_replies (feedback_id, alumni_id, reply_text) VALUES (?, ?, ?)");
+    $stmt = $conn->prepare("INSERT INTO feedback_replies (feedback_id, student_id, reply_text) VALUES (?, ?, ?)");
     $stmt->bind_param("iis", $feedback_id, $alumni_id, $reply_text);
     
     if ($stmt->execute()) {
-        // Automatically resolve the feedback once replied
         $conn->query("UPDATE feedbacks SET status = 'Resolved' WHERE id = $feedback_id");
-        header("Location: admin_feedbacks.php?msg=reply_sent");
+        echo "SUCCESS";
     } else {
-        echo "Error: " . $conn->error;
+        echo "ERROR: " . $conn->error;
     }
     exit;
 }
