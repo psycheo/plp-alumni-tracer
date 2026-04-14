@@ -53,7 +53,7 @@ $latestRows = [];
 $stmt = $conn->prepare("
     SELECT
         a.id,
-        a.user_id,
+        a.student_id,
         a.name,
         a.grad_year,
         a.gpa,
@@ -70,7 +70,7 @@ $stmt = $conn->prepare("
         u.avg_elective_grade
     FROM alumni_assessments a
     LEFT JOIN programs p ON p.id = a.program_id
-    LEFT JOIN users u ON u.id = a.user_id
+    LEFT JOIN users u ON u.id = a.student_id
     $whereSql
     ORDER BY a.id DESC
     LIMIT 100
