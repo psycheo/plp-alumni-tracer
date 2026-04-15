@@ -30,7 +30,7 @@ if ($result->num_rows > 0) {
         <td><?php echo htmlspecialchars($row['email']); ?></td>
         <td><span class='role-badge <?php echo $badge_class; ?>'><?php echo ucfirst($row['role']); ?></span></td>
         <td><?php echo date("M d, Y", strtotime($row['created_at'])); ?></td>
-        <td style='text-align: right;'>
+        <td style='text-align: center;'>
             <button class='action-btn action-edit' 
                 data-id='<?php echo $row['student_id']; ?>' 
                 data-name='<?php echo $row['full_name']; ?>' 

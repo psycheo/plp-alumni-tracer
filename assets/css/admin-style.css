@@ -149,7 +149,7 @@ body {
 
 /* Center the headers and keep the uppercase styling */
 .admin-table th {
-    text-align: center; /* Changed from left to center */
+    text-align: left; /* Changed back to left */
     background-color: #f9fafb;
     color: #4b5563;
     font-weight: 600;
@@ -229,3 +229,25 @@ body {
 .progress-bar-container { background: #e5e7eb; border-radius: 4px; height: 6px; /* Slimmer bar */ }
 .progress-bar { height: 100%; border-radius: 4px; }
 .prob-card { display: flex; align-items: center; gap: 15px; border-left: 4px solid; }
+
+/* Seamless Edge-to-Edge Table Layout */
+.admin-card.table-card {
+    padding: 0; /* Removes the box-inside-a-box effect */
+    overflow: hidden; /* Clips the table corners to match the card's border-radius */
+}
+
+/* Add breathing room to the left and right edges of the table instead of the card */
+.admin-card.table-card .admin-table th:first-child,
+.admin-card.table-card .admin-table td:first-child {
+    padding-left: 25px;
+}
+
+.admin-card.table-card .admin-table th:last-child,
+.admin-card.table-card .admin-table td:last-child {
+    padding-right: 25px;
+}
+
+/* Remove the border from the very last row so it doesn't double-up with the card's bottom border */
+.admin-table tbody tr:last-child td {
+    border-bottom: none;
+}

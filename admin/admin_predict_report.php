@@ -251,13 +251,15 @@ foreach ($latestRows as $r) {
                     <a href="admin_predict_report.php" class="btn btn-secondary" style="height: 35px; padding: 0 15px;"><i class="fas fa-undo"></i> Reset</a>
                 </div>
             </form>
-            <p style="font-size:0.78rem;color:#6b7280;margin:-8px 0 12px 0;">
+            <p style="font-size:0.78rem;color:#6b7280;margin:-8px 0 0 0;">
                 Active filters: Range <strong><?= htmlspecialchars($range) ?></strong>,
                 Program ID <strong><?= (int) $programId ?></strong>,
                 Start <strong><?= htmlspecialchars($startDate !== '' ? $startDate : 'none') ?></strong>,
                 End <strong><?= htmlspecialchars($endDate !== '' ? $endDate : 'none') ?></strong>
             </p>
-            
+        </div>
+        
+        <div class="admin-card table-card">
             <div style="overflow-x: auto;">
                 <table class="admin-table" style="font-size: 0.8rem; width: 100%;">
                     <thead>
