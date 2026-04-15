@@ -132,22 +132,40 @@ body {
 .admin-table {
     width: 100%;
     border-collapse: collapse;
+    white-space: nowrap; /* Keeps data on one line, preventing tall rows */
 }
 
+/* Apply general padding and borders to both */
 .admin-table th, .admin-table td {
-    padding: 15px;
-    text-align: left;
+    padding: 10px 12px; 
     border-bottom: 1px solid #e5e7eb;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
 }
 
+/* Keep data cells left-aligned (easier to read long text like names/professions) */
+.admin-table td {
+    text-align: left;
+}
+
+/* Center the headers and keep the uppercase styling */
 .admin-table th {
+    text-align: center; /* Changed from left to center */
     background-color: #f9fafb;
     color: #4b5563;
     font-weight: 600;
+    text-transform: uppercase; 
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
 }
 
-/* Buttons */
+/* Row hover effect helps users read across wide tables */
+.admin-table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.admin-table tbody tr:hover {
+    background-color: #f3f4f6; 
+}
 .btn-upload {
     background-color: #0d5c34;
     color: white;
@@ -161,6 +179,35 @@ body {
 
 .btn-upload:hover { background-color: #059669; }
 
+/* Action Button Utilities */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.btn-primary { background: #0d5c34; color: white; }
+.btn-primary:hover { background: #0a4628; }
+
+.btn-secondary { background: #f3f4f6; color: #374151; border-color: #d1d5db; }
+.btn-secondary:hover { background: #e5e7eb; }
+
+.btn-outline { background: transparent; color: #6b7280; border-color: #d1d5db; }
+.btn-outline:hover { background: #f9fafb; color: #111827; border-color: #9ca3af; }
+
+/* Ensure buttons don't show on print */
+@media print {
+    .action-toolbar { display: none !important; }
+}
+
 /* Drag & Drop Zone */
 .drop-zone {
     border: 2px dashed #10b981;
@@ -172,4 +219,13 @@ body {
     margin: 20px 0;
     cursor: pointer;
 }
+
 .drop-zone i { font-size: 3rem; margin-bottom: 15px; }
+
+/* General Styles */
+.badge { padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; color: white; display: inline-block; text-align: center; letter-spacing: 0.3px; }
+.bg-green { background: #10b981; }
+.bg-red { background: #ef4444; }
+.progress-bar-container { background: #e5e7eb; border-radius: 4px; height: 6px; /* Slimmer bar */ }
+.progress-bar { height: 100%; border-radius: 4px; }
+.prob-card { display: flex; align-items: center; gap: 15px; border-left: 4px solid; }

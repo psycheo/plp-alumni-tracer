@@ -110,7 +110,7 @@ foreach ($latestRows as $r) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Predict & Report - PLP Admin</title>
-    <link rel="stylesheet" href="../assets/css/admin-style.css?v=2">
+    <link rel="stylesheet" href="../assets/css/admin-style.css?v=3">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* General Styles */
@@ -169,17 +169,6 @@ foreach ($latestRows as $r) {
         <div class="page-title">
             <h1>Student Employment Prediction</h1>
             <p>Analyze and predict individual student employment probability</p>
-            <div style="margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
-                <a href="export_predict_report_xml.php?<?= htmlspecialchars($filterQuery) ?>" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 8px; background: #0d5c34; color: #fff; border: none; padding: 10px 14px; border-radius: 6px; text-decoration: none; font-weight: 600;">
-                    <i class="fas fa-file-code"></i> View XML Report
-                </a>
-                <a href="export_predict_report_xml.php?<?= htmlspecialchars($filterQuery) ?>&download=1&format=styled" style="display: inline-flex; align-items: center; gap: 8px; background: #1d4ed8; color: #fff; border: none; padding: 10px 14px; border-radius: 6px; text-decoration: none; font-weight: 600;">
-                    <i class="fas fa-download"></i> Download Styled Report
-                </a>
-                <a href="export_predict_report_xml.php?<?= htmlspecialchars($filterQuery) ?>&download=1" style="display: inline-flex; align-items: center; gap: 8px; background: #374151; color: #fff; border: none; padding: 10px 14px; border-radius: 6px; text-decoration: none; font-weight: 600;">
-                    <i class="fas fa-file-export"></i> Download Raw XML
-                </a>
-            </div>
         </div>
 
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 25px;">
@@ -209,26 +198,40 @@ foreach ($latestRows as $r) {
         </div>
 
         <div class="admin-card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3 style="font-size: 1.1rem; color: #1f2937;">Latest Prediction Results</h3>
-                <button onclick="window.print()" style="background: #3b82f6; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-weight: 500;">
-                    <i class="fas fa-print"></i> Print Report
-                </button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                <h3 style="font-size: 1.1rem; color: #1f2937; margin: 0;">Latest Prediction Results</h3>
+                
+                <div class="action-toolbar" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <a href="export_predict_report_xml.php?<?= htmlspecialchars($filterQuery) ?>&download=1&format=styled" class="btn btn-primary">
+                        <i class="fas fa-download"></i> Styled Report
+                    </a>
+                    
+                    <button onclick="window.print()" class="btn btn-secondary">
+                        <i class="fas fa-print"></i> Print
+                    </button>
+                    
+                    <a href="export_predict_report_xml.php?<?= htmlspecialchars($filterQuery) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-outline">
+                        <i class="fas fa-file-code"></i> View XML
+                    </a>
+                    <a href="export_predict_report_xml.php?<?= htmlspecialchars($filterQuery) ?>&download=1" class="btn btn-outline">
+                        <i class="fas fa-file-export"></i> Raw XML
+                    </a>
+                </div>
             </div>
 
-            <form method="GET" class="filter-section" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 20px;">
+            <form method="GET" id="filterForm" class="filter-section" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 20px;">
                 <div>
-                    <label style="display: block; font-size: 0.8rem; color: #6b7280; margin-bottom: 5px;">Date Range</label>
-                    <select name="range" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                    <label style="display: block; font-size: 0.8rem; color: #6b7280; margin-bottom: 5px; font-weight: 500;">Date Range</label>
+                    <select name="range" id="rangeSelect" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; outline: none; color: #374151;">
                         <option value="all" <?= $range === 'all' ? 'selected' : '' ?>>All Time</option>
                         <option value="last30" <?= $range === 'last30' ? 'selected' : '' ?>>Last 30 Days</option>
                         <option value="last6months" <?= $range === 'last6months' ? 'selected' : '' ?>>Last 6 Months</option>
-                        <option value="custom" <?= $range === 'custom' ? 'selected' : '' ?>>Custom</option>
+                        <option value="custom" <?= $range === 'custom' ? 'selected' : '' ?>>Custom Dates</option>
                     </select>
                 </div>
                 <div>
-                    <label style="display: block; font-size: 0.8rem; color: #6b7280; margin-bottom: 5px;">Program</label>
-                    <select name="program_id" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                    <label style="display: block; font-size: 0.8rem; color: #6b7280; margin-bottom: 5px; font-weight: 500;">Program</label>
+                    <select name="program_id" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; outline: none; color: #374151;">
                         <option value="0">All Programs</option>
                         <?php foreach ($programOptions as $opt): ?>
                             <option value="<?= (int) $opt['id'] ?>" <?= $programId === (int) $opt['id'] ? 'selected' : '' ?>><?= htmlspecialchars($opt['name']) ?></option>
@@ -236,16 +239,16 @@ foreach ($latestRows as $r) {
                     </select>
                 </div>
                 <div>
-                    <label style="display: block; font-size: 0.8rem; color: #6b7280; margin-bottom: 5px;">Start Date</label>
-                    <input type="date" name="start_date" value="<?= htmlspecialchars($startDate) ?>" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                    <label style="display: block; font-size: 0.8rem; color: #6b7280; margin-bottom: 5px; font-weight: 500;">Start Date</label>
+                    <input type="date" name="start_date" id="startDate" value="<?= htmlspecialchars($startDate) ?>" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; outline: none; color: #374151;">
                 </div>
                 <div>
-                    <label style="display: block; font-size: 0.8rem; color: #6b7280; margin-bottom: 5px;">End Date</label>
-                    <input type="date" name="end_date" value="<?= htmlspecialchars($endDate) ?>" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                    <label style="display: block; font-size: 0.8rem; color: #6b7280; margin-bottom: 5px; font-weight: 500;">End Date</label>
+                    <input type="date" name="end_date" id="endDate" value="<?= htmlspecialchars($endDate) ?>" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; outline: none; color: #374151;">
                 </div>
-                <div style="display:flex;align-items:flex-end;gap:8px;">
-                    <button type="submit" style="background:#0d5c34;color:#fff;border:none;padding:9px 12px;border-radius:4px;cursor:pointer;">Apply</button>
-                    <a href="admin_predict_report.php" style="background:#e5e7eb;color:#111827;padding:9px 12px;border-radius:4px;text-decoration:none;">Reset</a>
+                <div style="display:flex; align-items:flex-end; gap:8px;">
+                    <button type="submit" class="btn btn-primary" style="height: 35px; padding: 0 15px;"><i class="fas fa-filter"></i> Apply</button>
+                    <a href="admin_predict_report.php" class="btn btn-secondary" style="height: 35px; padding: 0 15px;"><i class="fas fa-undo"></i> Reset</a>
                 </div>
             </form>
             <p style="font-size:0.78rem;color:#6b7280;margin:-8px 0 12px 0;">
@@ -259,19 +262,19 @@ foreach ($latestRows as $r) {
                 <table class="admin-table" style="font-size: 0.8rem; width: 100%;">
                     <thead>
                         <tr>
-                            <th>Student Number</th>
+                            <th>Student No.</th>
                             <th>Age</th>
-                            <th>Degree</th>
-                            <th>Avg Prof Grade</th>
-                            <th>Avg Elec Grade</th>
+                            <th>Program</th>
+                            <th>Prof. Grade</th>
+                            <th>Elec. Grade</th>
                             <th>OJT Grade</th>
-                            <th>Soft Skills Ave</th>
-                            <th>Hard Skills Ave</th>
-                            <th>Year Graduated</th>
-                            <th>Predicted Employability</th>
-                            <th>Employability Probability</th>
-                            <th>Predicted Employment Rate</th>
-                            <th class="actions-column">Actions</th>
+                            <th>Soft Skills</th>
+                            <th>Hard Skills</th>
+                            <th>Grad Year</th>
+                            <th>Status</th>
+                            <th>Match %</th>
+                            <th>Pred. Rate</th>
+                            <th>Profession</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -300,12 +303,14 @@ foreach ($latestRows as $r) {
                                     <td><?= htmlspecialchars(number_format((float) ($row['hard_skills_avg'] ?? 0), 2)) ?></td>
                                     <td><?= htmlspecialchars((string) ($row['grad_year'] ?? '')) ?></td>
                                     <td><span class="badge <?= $badgeClass ?>"><?= htmlspecialchars((string) ($row['employability_status'] ?? 'Unknown')) ?></span></td>
-                                    <td>
-                                        <?= (int) $fit ?>%
-                                        <div class="progress-bar-container"><div class="progress-bar <?= $barClass ?>" style="width: <?= (int) $fit ?>%;"></div></div>
+                                    <td style="min-width: 130px;">
+                                        <div style="display: flex; align-items: center; gap: 8px;">
+                                            <span style="font-weight: 600; width: 30px;"><?= (int) $fit ?>%</span>
+                                            <div class="progress-bar-container" style="flex: 1;"><div class="progress-bar <?= $barClass ?>" style="width: <?= (int) $fit ?>%;"></div></div>
+                                        </div>
                                     </td>
                                     <td><?= htmlspecialchars($predRate) ?></td>
-                                    <td class="actions-column" style="text-align: center;"><?= htmlspecialchars((string) ($row['recommended_profession'] ?? '')) ?></td>
+                                    <td style="text-align: center; font-weight: 500;"><?= htmlspecialchars((string) ($row['recommended_profession'] ?? '')) ?></td>
                                 </tr>
                             <?php endforeach; ?>
                         <?php else: ?>
@@ -318,6 +323,52 @@ foreach ($latestRows as $r) {
             </div>
         </div>
     </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const rangeSelect = document.getElementById('rangeSelect');
+            const startDate = document.getElementById('startDate');
+            const endDate = document.getElementById('endDate');
+
+            function toggleDateInputs() {
+                if (rangeSelect.value === 'custom') {
+                    // Enable inputs and make them required
+                    startDate.disabled = false;
+                    endDate.disabled = false;
+                    startDate.required = true;
+                    endDate.required = true;
+                    
+                    // Visual cue that they are active
+                    startDate.style.backgroundColor = '#ffffff';
+                    endDate.style.backgroundColor = '#ffffff';
+                    startDate.style.cursor = 'text';
+                    endDate.style.cursor = 'text';
+                } else {
+                    // Disable inputs and remove requirements
+                    startDate.disabled = true;
+                    endDate.disabled = true;
+                    startDate.required = false;
+                    endDate.required = false;
+                    
+                    // Clear values so old dates don't linger
+                    startDate.value = ''; 
+                    endDate.value = '';
+                    
+                    // Visual cue that they are locked
+                    startDate.style.backgroundColor = '#f3f4f6';
+                    endDate.style.backgroundColor = '#f3f4f6';
+                    startDate.style.cursor = 'not-allowed';
+                    endDate.style.cursor = 'not-allowed';
+                }
+            }
+
+            // Run immediately on page load to set the correct initial state
+            toggleDateInputs();
+
+            // Listen for changes on the dropdown menu
+            rangeSelect.addEventListener('change', toggleDateInputs);
+        });
+    </script>
 
 </body>
 </html>
