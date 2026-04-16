@@ -8,7 +8,21 @@ if (!isset($_SESSION['loggedin']) || empty($_SESSION['user_id'])) {
 }
 
 $uid = (int) $_SESSION['user_id'];
-$stmt_u = $conn->prepare('SELECT u.gpa, u.ojt_grade_percent, u.program_id, u.avg_professional_grade, u.avg_elective_grade, u.record_soft_skills_avg, u.record_hard_skills_avg, p.name AS program_name FROM users u LEFT JOIN programs p ON p.id = u.program_id WHERE u.id = ? LIMIT 1');
+$stmt_u = $conn->prepare('
+    SELECT 
+        a.avg_grade AS gpa, 
+        a.ojt_grade AS ojt_grade_percent, 
+        a.program_id, 
+        a.avg_prof_grade AS avg_professional_grade, 
+        a.avg_elec_grade AS avg_elective_grade, 
+        a.soft_skills_avg AS record_soft_skills_avg, 
+        a.hard_skills_avg AS record_hard_skills_avg, 
+        p.name AS program_name 
+    FROM users u 
+    LEFT JOIN alumni_academic_info a ON u.student_id = a.student_id 
+    LEFT JOIN programs p ON p.id = a.program_id 
+    WHERE u.id = ? LIMIT 1
+');
 $stmt_u->bind_param('i', $uid);
 $stmt_u->execute();
 $user_acad = $stmt_u->get_result()->fetch_assoc();

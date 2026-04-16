@@ -12,7 +12,12 @@ $name = $conn->real_escape_string($_SESSION['full_name']);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $stmt_acad = $conn->prepare('SELECT gpa, ojt_grade_percent FROM users WHERE id = ? LIMIT 1');
+    $stmt_acad = $conn->prepare('
+        SELECT a.avg_grade AS gpa, a.ojt_grade AS ojt_grade_percent 
+        FROM users u 
+        LEFT JOIN alumni_academic_info a ON u.student_id = a.student_id 
+        WHERE u.id = ? LIMIT 1
+    ');
     $stmt_acad->bind_param('i', $user_id);
     $stmt_acad->execute();
     $acad_row = $stmt_acad->get_result()->fetch_assoc();
@@ -154,7 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $recommended_profession_esc = $conn->real_escape_string($recommended_profession);
 
     $sql = "INSERT INTO alumni_assessments 
-            (user_id, name, program_id, grad_year, employment_status, current_company, current_position, current_salary, years_experience, gpa, ojt_grade, soft_skills_avg, hard_skills_avg, cv_filename, employability_status, recommended_profession) 
+            (student_id, name, program_id, grad_year, employment_status, current_company, current_position, current_salary, years_experience, gpa, ojt_grade, soft_skills_avg, hard_skills_avg, cv_filename, employability_status, recommended_profession) 
             VALUES 
             ($user_id, '$name', $program_id, $grad_year, '$emp_status', '$current_company', '$current_pos', '$current_salary', $years_exp, $gpa, $ojt_grade_100, $ss_avg, $hs_avg, '$cv_filename', '$employability_status_esc', '$recommended_profession_esc')";
     

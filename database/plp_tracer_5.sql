@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 12, 2026 at 01:54 PM
+-- Generation Time: Apr 16, 2026 at 10:20 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -20,6 +20,33 @@ SET time_zone = "+00:00";
 --
 -- Database: `plp_tracer`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `alumni_academic_info`
+--
+
+CREATE TABLE `alumni_academic_info` (
+  `id` int(11) NOT NULL,
+  `student_id` varchar(50) NOT NULL,
+  `program_id` int(11) DEFAULT NULL,
+  `avg_grade` decimal(5,2) DEFAULT NULL,
+  `ojt_grade` decimal(5,2) DEFAULT NULL,
+  `avg_prof_grade` decimal(5,2) DEFAULT NULL,
+  `avg_elec_grade` decimal(5,2) DEFAULT NULL,
+  `soft_skills_avg` decimal(5,2) DEFAULT NULL,
+  `hard_skills_avg` decimal(5,2) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `alumni_academic_info`
+--
+
+INSERT INTO `alumni_academic_info` (`id`, `student_id`, `program_id`, `avg_grade`, `ojt_grade`, `avg_prof_grade`, `avg_elec_grade`, `soft_skills_avg`, `hard_skills_avg`, `created_at`, `updated_at`) VALUES
+(1, '23-00186', NULL, 90.00, 1.25, NULL, NULL, NULL, NULL, '2026-04-16 07:33:03', '2026-04-16 07:33:03');
 
 -- --------------------------------------------------------
 
@@ -108,7 +135,8 @@ INSERT INTO `alumni_assessments` (`id`, `name`, `program_id`, `grad_year`, `empl
 (53, 'Rex Navarro', 1, 2025, 'Unemployed', '', '', '', 0, 1.50, 92.50, 93.33, 84.19, '', 'Good Match', 'Network Administrator', '2026-03-31 03:34:22', NULL),
 (54, 'Rex Navarro', 1, 2025, 'Unemployed', '', '', '', 0, 1.50, 92.00, 80.00, 77.45, '', 'Good Match', 'Web Developer', '2026-03-31 06:17:42', NULL),
 (55, 'Rex Navarro', 1, 2025, 'Unemployed', '', '', '', 0, 1.50, 92.50, 80.00, 75.81, '', 'Good Match', 'Network Administrator', '2026-04-01 02:00:54', NULL),
-(56, 'Rex Navarro', 1, 2019, 'Unemployed', '', '', '', 0, 1.50, 92.50, 93.33, 76.50, '', 'Good Match', 'IT Support Specialist', '2026-04-08 01:33:44', NULL);
+(56, 'Rex Navarro', 1, 2019, 'Unemployed', '', '', '', 0, 1.50, 92.50, 93.33, 76.50, '', 'Good Match', 'IT Support Specialist', '2026-04-08 01:33:44', NULL),
+(57, 'Sample Alumni', 1, 2023, 'Unemployed', '', '', '', 0, 5.00, 60.00, 100.00, 55.43, '', 'Job Mismatch', 'Cybersecurity Analyst', '2026-04-16 08:19:24', 1);
 
 -- --------------------------------------------------------
 
@@ -131,14 +159,15 @@ CREATE TABLE `feedbacks` (
 
 INSERT INTO `feedbacks` (`id`, `student_id`, `rating`, `message`, `status`, `created_at`) VALUES
 (1, 1, 5, 'Testing Feedback, March 08, 2026', 'Resolved', '2026-03-08 09:08:40'),
-(2, 1, 4, 'Feedback ko Lans', 'Unresolved', '2026-03-16 06:55:21'),
+(2, 1, 4, 'Feedback ko Lans', 'Resolved', '2026-03-16 06:55:21'),
 (3, 1, 5, 'Lans Gumagana Feedback ko', 'Unresolved', '2026-03-18 03:55:11'),
 (4, 4, 5, 'Lans 26 ka na', 'Unresolved', '2026-03-18 03:56:00'),
 (5, 5, 3, 'panget ng ui! palitan niyo yan', 'Resolved', '2026-03-18 05:38:06'),
 (6, 1, 5, 'feedback test', 'Unresolved', '2026-04-09 13:15:42'),
 (7, 1, 5, 'Feedback Test 2', 'Unresolved', '2026-04-09 13:24:12'),
 (8, 1, 5, 'Fill', 'Unresolved', '2026-04-09 13:24:37'),
-(9, 1, 5, '1', 'Unresolved', '2026-04-09 13:36:46');
+(9, 1, 5, '1', 'Unresolved', '2026-04-09 13:36:46'),
+(10, 1, 5, 'Test 2', 'Unresolved', '2026-04-16 06:55:19');
 
 -- --------------------------------------------------------
 
@@ -182,7 +211,7 @@ CREATE TABLE `professions` (
 
 INSERT INTO `professions` (`id`, `program_id`, `title`, `avg_salary`, `description`) VALUES
 (1, 1, 'Software Engineer', '₱45,000 - ₱90,000/mo', 'Develops and maintains software applications, systems, and network networks.'),
-(2, 1, 'Network Administrator', '₱35,000 - ₱70,000/mo', 'Manages and maintains an organization''s computer networks.'),
+(2, 1, 'Network Administrator', '₱35,000 - ₱70,000/mo', 'Manages and maintains an organization\'s computer networks.'),
 (3, 2, 'Data Analyst', '₱40,000 - ₱85,000/mo', 'Interprets data and turns it into information which can offer ways to improve a business.'),
 (4, 7, 'Registered Nurse', '₱30,000 - ₱60,000/mo', 'Provides and coordinates patient care, educates patients about various health conditions.'),
 (5, 1, 'IT Support Specialist', '₱25,000 - ₱45,000/mo', 'Provides technical support, troubleshooting, and user assistance.'),
@@ -313,6 +342,13 @@ INSERT INTO `users` (`id`, `student_id`, `full_name`, `email`, `password`, `role
 --
 
 --
+-- Indexes for table `alumni_academic_info`
+--
+ALTER TABLE `alumni_academic_info`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `student_id` (`student_id`);
+
+--
 -- Indexes for table `alumni_assessments`
 --
 ALTER TABLE `alumni_assessments`
@@ -361,16 +397,22 @@ ALTER TABLE `users`
 --
 
 --
+-- AUTO_INCREMENT for table `alumni_academic_info`
+--
+ALTER TABLE `alumni_academic_info`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
 -- AUTO_INCREMENT for table `alumni_assessments`
 --
 ALTER TABLE `alumni_assessments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=57;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=58;
 
 --
 -- AUTO_INCREMENT for table `feedbacks`
 --
 ALTER TABLE `feedbacks`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `feedback_replies`
