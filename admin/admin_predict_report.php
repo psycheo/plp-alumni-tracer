@@ -247,8 +247,8 @@ foreach ($latestRows as $r) {
                     <input type="date" name="end_date" id="endDate" value="<?= htmlspecialchars($endDate) ?>" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; outline: none; color: #374151;">
                 </div>
                 <div style="display:flex; align-items:flex-end; gap:8px;">
-                    <button type="submit" class="btn btn-primary" style="height: 35px; padding: 0 15px;"><i class="fas fa-filter"></i> Apply</button>
-                    <a href="admin_predict_report.php" class="btn btn-secondary" style="height: 35px; padding: 0 15px;"><i class="fas fa-undo"></i> Reset</a>
+                    <button type="submit" class="btn btn-primary" style="height: 35px; padding: 0 15px;"><i class="fas fa-filter"></i></button>
+                    <a href="admin_predict_report.php" class="btn btn-secondary" style="height: 35px; padding: 0 15px;"><i class="fas fa-undo"></i></a>
                 </div>
             </form>
             <p style="font-size:0.78rem;color:#6b7280;margin:-8px 0 0 0;">

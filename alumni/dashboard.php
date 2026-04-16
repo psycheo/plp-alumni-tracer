@@ -81,15 +81,15 @@
     $record_program_name = null;
     $record_avg_prof = $record_avg_elec = $record_soft = $record_hard = null;
     
-    // UPDATED QUERY: We now JOIN the new alumni_academic_info table using the student_id!
+    // UPDATED QUERY: Column names now match the alumni_academic_info table schema
     $stmt = $conn->prepare('
         SELECT 
-            a.gpa, 
-            a.ojt_grade_percent, 
-            a.avg_professional_grade, 
-            a.avg_elective_grade, 
-            a.record_soft_skills_avg, 
-            a.record_hard_skills_avg, 
+            a.avg_grade, 
+            a.ojt_grade, 
+            a.avg_prof_grade, 
+            a.avg_elec_grade, 
+            a.soft_skills_avg, 
+            a.hard_skills_avg, 
             p.name AS program_name 
         FROM users u 
         LEFT JOIN alumni_academic_info a ON u.student_id = a.student_id 
@@ -102,13 +102,13 @@
         $stmt->bind_param('i', $user_id);
         $stmt->execute();
         if ($row = $stmt->get_result()->fetch_assoc()) {
-            $record_gpa = isset($row['gpa']) && $row['gpa'] !== null ? (float) $row['gpa'] : null;
-            $record_ojt = isset($row['ojt_grade_percent']) && $row['ojt_grade_percent'] !== null ? (float) $row['ojt_grade_percent'] : null;
+            $record_gpa = isset($row['avg_grade']) && $row['avg_grade'] !== null ? (float) $row['avg_grade'] : null;
+            $record_ojt = isset($row['ojt_grade']) && $row['ojt_grade'] !== null ? (float) $row['ojt_grade'] : null;
             $record_program_name = !empty($row['program_name']) ? (string) $row['program_name'] : null;
-            $record_avg_prof = isset($row['avg_professional_grade']) && $row['avg_professional_grade'] !== null ? (float) $row['avg_professional_grade'] : null;
-            $record_avg_elec = isset($row['avg_elective_grade']) && $row['avg_elective_grade'] !== null ? (float) $row['avg_elective_grade'] : null;
-            $record_soft = isset($row['record_soft_skills_avg']) && $row['record_soft_skills_avg'] !== null ? (float) $row['record_soft_skills_avg'] : null;
-            $record_hard = isset($row['record_hard_skills_avg']) && $row['record_hard_skills_avg'] !== null ? (float) $row['record_hard_skills_avg'] : null;
+            $record_avg_prof = isset($row['avg_prof_grade']) && $row['avg_prof_grade'] !== null ? (float) $row['avg_prof_grade'] : null;
+            $record_avg_elec = isset($row['avg_elec_grade']) && $row['avg_elec_grade'] !== null ? (float) $row['avg_elec_grade'] : null;
+            $record_soft = isset($row['soft_skills_avg']) && $row['soft_skills_avg'] !== null ? (float) $row['soft_skills_avg'] : null;
+            $record_hard = isset($row['hard_skills_avg']) && $row['hard_skills_avg'] !== null ? (float) $row['hard_skills_avg'] : null;
         }
         $stmt->close();
     }

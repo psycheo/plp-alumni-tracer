@@ -116,12 +116,36 @@ if ($prog_result = $conn->query("SELECT id, name FROM programs ORDER BY name ASC
     while ($p = $prog_result->fetch_assoc()) { $programOptions[] = $p; }
 }
 
-// --- PAGINATION ---
+// --- FILTERING & PAGINATION ---
 $results_per_page = 10;
 $page       = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
 $start_from = ($page - 1) * $results_per_page;
 
-$total_row   = $conn->query("SELECT COUNT(student_id) AS total FROM users")->fetch_assoc();
+// 1. Capture Filter Inputs
+$search         = isset($_GET['search']) ? $conn->real_escape_string($_GET['search']) : '';
+$role_filter    = isset($_GET['role_filter']) ? $conn->real_escape_string($_GET['role_filter']) : '';
+$program_filter = isset($_GET['program_filter']) ? $conn->real_escape_string($_GET['program_filter']) : '';
+
+// 2. Build the WHERE clause dynamically
+$where_clauses = [];
+if ($search !== '') {
+    $where_clauses[] = "(u.full_name LIKE '%$search%' OR u.student_id LIKE '%$search%')";
+}
+if ($role_filter !== '') {
+    $where_clauses[] = "u.role = '$role_filter'";
+}
+if ($program_filter !== '') {
+    $where_clauses[] = "a.program_id = '$program_filter'";
+}
+
+$where_sql = count($where_clauses) > 0 ? "WHERE " . implode(" AND ", $where_clauses) : "";
+
+// 3. Count total for pagination (using LEFT JOIN so we can filter by program)
+$total_query = "SELECT COUNT(DISTINCT u.student_id) AS total 
+                FROM users u 
+                LEFT JOIN alumni_academic_info a ON u.student_id = a.student_id 
+                $where_sql";
+$total_row   = $conn->query($total_query)->fetch_assoc();
 $total_pages = ceil($total_row['total'] / $results_per_page);
 ?>
 <!DOCTYPE html>
@@ -196,53 +220,105 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
         </div>
     </div>
 
-    <div class="admin-card">
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>ID Number</th>
-                    <th>Full Name</th>
-                    <th>Email Address</th>
-                    <th>Role</th>
-                    <th>Date Registered</th>
-                    <th style="text-align:right;">Actions</th>
-                </tr>
-            </thead>
-            <tbody id="userTableBody">
-                <?php
-                $result = $conn->query("SELECT * FROM users ORDER BY created_at DESC LIMIT $start_from, $results_per_page");
-                while ($row = $result->fetch_assoc()):
-                    $badge_class = ($row['role'] == 'admin') ? 'role-admin' : 'role-alumni';
-                ?>
-                <tr>
-                    <td><strong><?php echo htmlspecialchars($row['student_id']); ?></strong></td>
-                    <td style="text-transform:uppercase;"><?php echo htmlspecialchars($row['full_name']); ?></td>
-                    <td><?php echo htmlspecialchars($row['email']); ?></td>
-                    <td><span class="role-badge <?php echo $badge_class; ?>"><?php echo ucfirst($row['role']); ?></span></td>
-                    <td><?php echo date("M d, Y", strtotime($row['created_at'])); ?></td>
-                    <td style="text-align:right;">
-                        <button class="action-btn action-edit"
-                            data-id="<?php echo $row['student_id']; ?>"
-                            data-name="<?php echo htmlspecialchars($row['full_name']); ?>"
-                            data-email="<?php echo htmlspecialchars($row['email']); ?>"
-                            data-role="<?php echo $row['role']; ?>">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="action-btn action-academic"
-                            data-id="<?php echo $row['student_id']; ?>"
-                            data-name="<?php echo strtoupper(htmlspecialchars($row['full_name'])); ?>">
-                            <i class="fas fa-graduation-cap"></i>
-                        </button>
-                        <a href="?delete_id=<?php echo urlencode($row['student_id']); ?>"
-                           class="action-btn action-delete"
-                           onclick="return confirm('Delete this user?');">
-                            <i class="fas fa-trash-alt"></i>
-                        </a>
-                    </td>
-                </tr>
-                <?php endwhile; ?>
-            </tbody>
-        </table>
+    <div class="admin-card" style="padding: 15px 20px; margin-bottom: 20px;">
+        <form method="GET" style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 12px; align-items: center;">
+            
+            <div style="position: relative;">
+                <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #9ca3af;"></i>
+                <input type="text" name="search" placeholder="Search by name or student ID..." value="<?php echo htmlspecialchars($search); ?>" style="width: 100%; padding: 8px 12px 8px 35px; border: 1px solid #d1d5db; border-radius: 6px; outline: none; font-size: 0.85rem; color: #374151;">
+            </div>
+
+            <div>
+                <select name="role_filter" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; outline: none; font-size: 0.85rem; color: #374151; background: #fff;">
+                    <option value="">All Roles</option>
+                    <option value="alumni" <?php if($role_filter === 'alumni') echo 'selected'; ?>>Alumni</option>
+                    <option value="admin" <?php if($role_filter === 'admin') echo 'selected'; ?>>Administrator</option>
+                </select>
+            </div>
+
+            <div>
+                <select name="program_filter" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; outline: none; font-size: 0.85rem; color: #374151; background: #fff;">
+                    <option value="">All Colleges/Programs</option>
+                    <?php foreach ($programOptions as $p): ?>
+                        <option value="<?php echo htmlspecialchars($p['id']); ?>" <?php if($program_filter == $p['id']) echo 'selected'; ?>>
+                            <?php echo htmlspecialchars($p['name']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 8px;">
+                <button type="submit" class="btn btn-primary" style="height: 35px; padding: 0 15px;"><i class="fas fa-filter"></i></button>
+                <a href="admin_users.php" class="btn btn-secondary" style="height: 35px; padding: 0 15px; display: inline-flex; align-items: center; justify-content: center;"><i class="fas fa-undo"></i></a>
+            </div>
+        </form>
+    </div>
+
+    <div class="admin-card table-card">
+        <div style="overflow-x: auto;">
+            <table class="admin-table" style="font-size: 0.8rem; width: 100%;">
+                <thead>
+                    <tr>
+                        <th>ID Number</th>
+                        <th>Full Name</th>
+                        <th>Email Address</th>
+                        <th style="text-align: center;">Role</th>
+                        <th style="text-align: center;">Date Registered</th>
+                        <th style="text-align: center;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="userTableBody">
+                    <?php
+                    // Fetch filtered users with JOIN to match the program ID
+                    $fetch_query = "SELECT u.* FROM users u 
+                                    LEFT JOIN alumni_academic_info a ON u.student_id = a.student_id 
+                                    $where_sql 
+                                    GROUP BY u.student_id 
+                                    ORDER BY u.created_at DESC 
+                                    LIMIT $start_from, $results_per_page";
+                    $result = $conn->query($fetch_query);
+                    
+                    if ($result->num_rows > 0):
+                        while ($row = $result->fetch_assoc()):
+                            $badge_class = ($row['role'] == 'admin') ? 'role-admin' : 'role-alumni';
+                    ?>
+                    <tr>
+                        <td><strong><?php echo htmlspecialchars($row['student_id']); ?></strong></td>
+                        <td style="text-transform:uppercase;"><?php echo htmlspecialchars($row['full_name']); ?></td>
+                        <td><?php echo htmlspecialchars($row['email']); ?></td>
+                        <td style="text-align: center;"><span class="role-badge <?php echo $badge_class; ?>"><?php echo ucfirst($row['role']); ?></span></td>
+                        <td style="text-align: center;"><?php echo date("M d, Y", strtotime($row['created_at'])); ?></td>
+                        <td style="text-align: center;">
+                            <button class="action-btn action-edit"
+                                data-id="<?php echo $row['student_id']; ?>"
+                                data-name="<?php echo htmlspecialchars($row['full_name']); ?>"
+                                data-email="<?php echo htmlspecialchars($row['email']); ?>"
+                                data-role="<?php echo $row['role']; ?>">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="action-btn action-academic"
+                                data-id="<?php echo $row['student_id']; ?>"
+                                data-name="<?php echo strtoupper(htmlspecialchars($row['full_name'])); ?>">
+                                <i class="fas fa-graduation-cap"></i>
+                            </button>
+                            <a href="?delete_id=<?php echo urlencode($row['student_id']); ?>"
+                               class="action-btn action-delete"
+                               onclick="return confirm('Delete this user?');">
+                                <i class="fas fa-trash-alt"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    <?php 
+                        endwhile; 
+                    else: 
+                    ?>
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 20px; color: #6b7280;">No users found matching your filters.</td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
 </main>
 

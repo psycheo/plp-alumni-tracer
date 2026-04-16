@@ -23,43 +23,43 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') { header("Lo
 
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 25px;">
             
-            <div class="admin-card" style="margin-bottom: 0; display: flex; align-items: center; justify-content: space-between;">
-                <div>
-                    <p style="color: #6b7280; font-size: 0.85rem; margin-bottom: 5px;">Total Alumni</p>
-                    <h3 style="font-size: 1.5rem; color: #1f2937;">5,002</h3>
-                </div>
-                <div style="background: #e6f4ea; padding: 15px; border-radius: 50%; color: #0d5c34; display: flex; align-items: center; justify-content: center;">
+            <div class="admin-card prob-card" style="border-left-color: #10b981; padding: 15px 20px; margin-bottom: 0;">
+                <div style="background: #d1fae5; color: #10b981; padding: 12px; border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
                     <i class="fas fa-user-graduate fa-lg"></i>
                 </div>
+                <div>
+                    <p style="color: #6b7280; font-size: 0.85rem; margin-bottom: 2px;">Total Alumni</p>
+                    <h3 style="font-size: 1.5rem; color: #1f2937;">5,002</h3>
+                </div>
             </div>
 
-            <div class="admin-card" style="margin-bottom: 0; display: flex; align-items: center; justify-content: space-between;">
-                <div>
-                    <p style="color: #6b7280; font-size: 0.85rem; margin-bottom: 5px;">Employment Rate</p>
-                    <h3 style="font-size: 1.5rem; color: #1f2937;">69.6%</h3>
-                </div>
-                <div style="background: #e6f4ea; padding: 15px; border-radius: 50%; color: #0d5c34; display: flex; align-items: center; justify-content: center;">
+            <div class="admin-card prob-card" style="border-left-color: #3b82f6; padding: 15px 20px; margin-bottom: 0;">
+                <div style="background: #dbeafe; color: #3b82f6; padding: 12px; border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
                     <i class="fas fa-briefcase fa-lg"></i>
                 </div>
+                <div>
+                    <p style="color: #6b7280; font-size: 0.85rem; margin-bottom: 2px;">Employment Rate</p>
+                    <h3 style="font-size: 1.5rem; color: #1f2937;">69.6%</h3>
+                </div>
             </div>
 
-            <div class="admin-card" style="margin-bottom: 0; display: flex; align-items: center; justify-content: space-between;">
-                <div>
-                    <p style="color: #6b7280; font-size: 0.85rem; margin-bottom: 5px;">Prediction Accuracy</p>
-                    <h3 style="font-size: 1.5rem; color: #1f2937;">97.5%</h3>
-                </div>
-                <div style="background: #e6f4ea; padding: 15px; border-radius: 50%; color: #0d5c34; display: flex; align-items: center; justify-content: center;">
+            <div class="admin-card prob-card" style="border-left-color: #8b5cf6; padding: 15px 20px; margin-bottom: 0;">
+                <div style="background: #ede9fe; color: #8b5cf6; padding: 12px; border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
                     <i class="fas fa-bullseye fa-lg"></i>
                 </div>
+                <div>
+                    <p style="color: #6b7280; font-size: 0.85rem; margin-bottom: 2px;">Prediction Accuracy</p>
+                    <h3 style="font-size: 1.5rem; color: #1f2937;">97.5%</h3>
+                </div>
             </div>
 
-            <div class="admin-card" style="margin-bottom: 0; display: flex; align-items: center; justify-content: space-between;">
-                <div>
-                    <p style="color: #6b7280; font-size: 0.85rem; margin-bottom: 5px;">Margin of Error</p>
-                    <h3 style="font-size: 1.5rem; color: #1f2937;">±1.1%</h3>
-                </div>
-                <div style="background: #fee2e2; padding: 15px; border-radius: 50%; color: #ef4444; display: flex; align-items: center; justify-content: center;">
+            <div class="admin-card prob-card" style="border-left-color: #ef4444; padding: 15px 20px; margin-bottom: 0;">
+                <div style="background: #fee2e2; color: #ef4444; padding: 12px; border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
                     <i class="fas fa-chart-area fa-lg"></i>
+                </div>
+                <div>
+                    <p style="color: #6b7280; font-size: 0.85rem; margin-bottom: 2px;">Margin of Error</p>
+                    <h3 style="font-size: 1.5rem; color: #1f2937;">±1.1%</h3>
                 </div>
             </div>
 
