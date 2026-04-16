@@ -80,19 +80,38 @@
     $record_ojt = null;
     $record_program_name = null;
     $record_avg_prof = $record_avg_elec = $record_soft = $record_hard = null;
-    $stmt = $conn->prepare('SELECT u.gpa, u.ojt_grade_percent, u.avg_professional_grade, u.avg_elective_grade, u.record_soft_skills_avg, u.record_hard_skills_avg, p.name AS program_name FROM users u LEFT JOIN programs p ON p.id = u.program_id WHERE u.id = ? LIMIT 1');
-    $stmt->bind_param('i', $user_id);
-    $stmt->execute();
-    if ($row = $stmt->get_result()->fetch_assoc()) {
-        $record_gpa = isset($row['gpa']) && $row['gpa'] !== null ? (float) $row['gpa'] : null;
-        $record_ojt = isset($row['ojt_grade_percent']) && $row['ojt_grade_percent'] !== null ? (float) $row['ojt_grade_percent'] : null;
-        $record_program_name = !empty($row['program_name']) ? (string) $row['program_name'] : null;
-        $record_avg_prof = isset($row['avg_professional_grade']) && $row['avg_professional_grade'] !== null ? (float) $row['avg_professional_grade'] : null;
-        $record_avg_elec = isset($row['avg_elective_grade']) && $row['avg_elective_grade'] !== null ? (float) $row['avg_elective_grade'] : null;
-        $record_soft = isset($row['record_soft_skills_avg']) && $row['record_soft_skills_avg'] !== null ? (float) $row['record_soft_skills_avg'] : null;
-        $record_hard = isset($row['record_hard_skills_avg']) && $row['record_hard_skills_avg'] !== null ? (float) $row['record_hard_skills_avg'] : null;
+    
+    // UPDATED QUERY: We now JOIN the new alumni_academic_info table using the student_id!
+    $stmt = $conn->prepare('
+        SELECT 
+            a.gpa, 
+            a.ojt_grade_percent, 
+            a.avg_professional_grade, 
+            a.avg_elective_grade, 
+            a.record_soft_skills_avg, 
+            a.record_hard_skills_avg, 
+            p.name AS program_name 
+        FROM users u 
+        LEFT JOIN alumni_academic_info a ON u.student_id = a.student_id 
+        LEFT JOIN programs p ON p.id = a.program_id 
+        WHERE u.id = ? LIMIT 1
+    ');
+    
+    // Adding a quick safety check so the site never crashes even if a table is missing
+    if ($stmt) {
+        $stmt->bind_param('i', $user_id);
+        $stmt->execute();
+        if ($row = $stmt->get_result()->fetch_assoc()) {
+            $record_gpa = isset($row['gpa']) && $row['gpa'] !== null ? (float) $row['gpa'] : null;
+            $record_ojt = isset($row['ojt_grade_percent']) && $row['ojt_grade_percent'] !== null ? (float) $row['ojt_grade_percent'] : null;
+            $record_program_name = !empty($row['program_name']) ? (string) $row['program_name'] : null;
+            $record_avg_prof = isset($row['avg_professional_grade']) && $row['avg_professional_grade'] !== null ? (float) $row['avg_professional_grade'] : null;
+            $record_avg_elec = isset($row['avg_elective_grade']) && $row['avg_elective_grade'] !== null ? (float) $row['avg_elective_grade'] : null;
+            $record_soft = isset($row['record_soft_skills_avg']) && $row['record_soft_skills_avg'] !== null ? (float) $row['record_soft_skills_avg'] : null;
+            $record_hard = isset($row['record_hard_skills_avg']) && $row['record_hard_skills_avg'] !== null ? (float) $row['record_hard_skills_avg'] : null;
+        }
+        $stmt->close();
     }
-    $stmt->close();
     $dash_fmt_pct = function ($v) {
         if ($v === null) {
             return '—';
