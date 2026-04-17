@@ -55,6 +55,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $current_pos = ""; $current_company = ""; $current_salary = ""; $years_exp = 0;
     $employability_status = "Job Mismatch"; 
     $recommended_profession = "General Corporate Roles";
+
+    $industry = 'NULL';
+    $months_to_hire = 'NULL';
     
     $specific_skills_array = [];
     $ss_dims = []; // 0-100 each, keys ss1..ss6
@@ -97,6 +100,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $current_company = $conn->real_escape_string($_POST['current_company']);
         $current_salary = $conn->real_escape_string($_POST['current_salary']);
         $years_exp = intval($_POST['years_experience']);
+        $industry = isset($_POST['industry']) ? $conn->real_escape_string($_POST['industry']) : NULL;
+        $months_to_hire = (isset($_POST['months_to_hire']) && $_POST['months_to_hire'] !== '') ? intval($_POST['months_to_hire']) : 'NULL';
 
         // Soft skills not collected on employed path — proxy from OJT performance
         $ss_avg = $ojt_grade_100 - 3;
@@ -159,9 +164,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $recommended_profession_esc = $conn->real_escape_string($recommended_profession);
 
     $sql = "INSERT INTO alumni_assessments 
-            (student_id, name, program_id, grad_year, employment_status, current_company, current_position, current_salary, years_experience, gpa, ojt_grade, soft_skills_avg, hard_skills_avg, cv_filename, employability_status, recommended_profession) 
+            (student_id, name, program_id, grad_year, employment_status, industry, current_company, current_position, current_salary, years_experience, months_to_hire, gpa, ojt_grade, soft_skills_avg, hard_skills_avg, cv_filename, employability_status, recommended_profession) 
             VALUES 
-            ($user_id, '$name', $program_id, $grad_year, '$emp_status', '$current_company', '$current_pos', '$current_salary', $years_exp, $gpa, $ojt_grade_100, $ss_avg, $hs_avg, '$cv_filename', '$employability_status_esc', '$recommended_profession_esc')";
+            ($user_id, '$name', $program_id, $grad_year, '$emp_status', " . ($industry ? "'$industry'" : "NULL") . ", '$current_company', '$current_pos', '$current_salary', $years_exp, $months_to_hire, $gpa, $ojt_grade_100, $ss_avg, $hs_avg, '$cv_filename', '$employability_status_esc', '$recommended_profession_esc')";
     
     $conn->query($sql);
     $assessment_id = (int) $conn->insert_id;

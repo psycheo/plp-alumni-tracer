@@ -7,6 +7,12 @@ if (!isset($_SESSION['loggedin']) || empty($_SESSION['user_id'])) {
     exit;
 }
 
+$check_hired = $conn->prepare("SELECT id FROM alumni_assessments WHERE student_id = ? AND months_to_hire IS NOT NULL LIMIT 1");
+$check_hired->bind_param('i', $uid);
+$check_hired->execute();
+$already_reported_hire = $check_hired->get_result()->num_rows > 0;
+$check_hired->close();  //check if alumni alumni has already answered time to hire
+
 $uid = (int) $_SESSION['user_id'];
 $stmt_u = $conn->prepare('
     SELECT 
@@ -192,6 +198,18 @@ $programs = $conn->query('SELECT * FROM programs ORDER BY name ASC');
                                 <label>Years of Experience <span class="error-icon" id="expError"><i class="fas fa-exclamation-circle"></i></span></label>
                                 <input type="number" name="years_experience" id="req_exp" placeholder="e.g. 2" min="0" max="50">
                             </div>
+
+                            <div class="input-group">   <!--NEW FROM HERE--><!--SHOULD NOT INTERFERE WITH ML-->
+                                <label>Industry</label> <!--TO TEST-->
+                                <input type="text" name="industry" placeholder="e.g. Software Development" maxlength="255">
+                            </div>
+
+                            <?php if (!$already_reported_hire): ?>
+                            <div class="input-group" id="monthsToHireGroup">
+                                <label>Months to First Job (0 if hired before graduation)</label>
+                                <input type="number" name="months_to_hire" min="0" max="120">
+                            </div>
+                            <?php endif; ?>     <!--NEW TO HERE-->
                         </div>
                     </div>
 
