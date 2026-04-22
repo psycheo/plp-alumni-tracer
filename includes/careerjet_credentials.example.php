@@ -4,5 +4,5 @@
  * https://www.careerjet.ph/partners/register/as-publisher
  */
 return [
-    'api_key' => 'YOUR_CAREERJET_API_KEY',
+    'api_key' => '4f9212dcab92eed74be6f534f0565dc7',
 ];

@@ -92,7 +92,7 @@ CREATE TABLE `alumni_assessments` (
   `employability_status` varchar(50) NOT NULL,
   `recommended_profession` varchar(255) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `student_id` int(11) DEFAULT NULL
+  `student_id` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -10397,7 +10397,7 @@ ALTER TABLE `users`
 --
 ALTER TABLE `alumni_assessments`
   ADD CONSTRAINT `alumni_assessments_ibfk_program` FOREIGN KEY (`program_id`) REFERENCES `programs` (`id`),
-  ADD CONSTRAINT `alumni_assessments_ibfk_user` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+  ADD CONSTRAINT `alumni_assessments_ibfk_user` FOREIGN KEY (`student_id`) REFERENCES `users` (`student_id`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `feedbacks`

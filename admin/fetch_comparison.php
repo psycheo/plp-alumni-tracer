@@ -1,5 +1,9 @@
 <?php
+// 1. Start output buffering to catch rogue whitespace or echoes from db.php
+ob_start(); 
 require '../includes/db.php';
+ob_end_clean(); // Wipe any accidental HTML output before starting JSON
+
 header('Content-Type: application/json');
 
 $prog_a = $_POST['program_a'] ?? 'none';
@@ -17,10 +21,14 @@ if ($start_year > $end_year) {
 $years_range = range($start_year, $end_year);
 
 function getTrendStats($conn, $program_id, $years) {
+    // Check for DB preparation errors to prevent silent crashes
     $nameStmt = $conn->prepare("SELECT name FROM programs WHERE id = ?");
+    if (!$nameStmt) die(json_encode(['error' => 'Programs Query Error: ' . $conn->error]));
+    
     $nameStmt->bind_param("i", $program_id);
     $nameStmt->execute();
-    $progName = $nameStmt->get_result()->fetch_assoc()['name'] ?? 'Unknown Program';
+    $progResult = $nameStmt->get_result()->fetch_assoc();
+    $progName = $progResult['name'] ?? 'Unknown Program';
 
     $data = [
         'is_none' => false,
@@ -32,7 +40,7 @@ function getTrendStats($conn, $program_id, $years) {
     ];
 
     foreach ($years as $year) {
-        // LATEST ASSESSMENT (Employment Rate, Total Unique Grads, Top Industry)
+        // LATEST ASSESSMENT
         $latestStmt = $conn->prepare("
             SELECT t1.employment_status, t1.industry
             FROM alumni_assessments t1
@@ -43,6 +51,8 @@ function getTrendStats($conn, $program_id, $years) {
                 GROUP BY student_id
             ) t2 ON t1.student_id = t2.student_id AND t1.created_at = t2.latest_date
         ");
+        if (!$latestStmt) die(json_encode(['error' => 'Latest Assessment Query Error: ' . $conn->error]));
+
         $latestStmt->bind_param("ii", $program_id, $year);
         $latestStmt->execute();
         $latestResult = $latestStmt->get_result();
@@ -65,10 +75,12 @@ function getTrendStats($conn, $program_id, $years) {
         $top_industry = 'N/A';
         if (!empty($industry_counts)) {
             arsort($industry_counts);
-            $top_industry = array_key_first($industry_counts);
+            // 2. Fixed for older PHP versions (Replaces array_key_first)
+            reset($industry_counts); 
+            $top_industry = key($industry_counts);
         }
 
-        // FIRST ASSESSMENT (Average Time to Hire)
+        // FIRST ASSESSMENT
         $timeStmt = $conn->prepare("
             SELECT AVG(t1.months_to_hire) as avg_months
             FROM alumni_assessments t1
@@ -79,6 +91,8 @@ function getTrendStats($conn, $program_id, $years) {
                 GROUP BY student_id
             ) t2 ON t1.student_id = t2.student_id AND t1.created_at = t2.earliest_date
         ");
+        if (!$timeStmt) die(json_encode(['error' => 'Time to Hire Query Error: ' . $conn->error]));
+
         $timeStmt->bind_param("ii", $program_id, $year);
         $timeStmt->execute();
         $timeResult = $timeStmt->get_result()->fetch_assoc();
@@ -94,7 +108,6 @@ function getTrendStats($conn, $program_id, $years) {
     return $data;
 }
 
-// Check for 'none' before fetching
 $groupA = ($prog_a !== 'none') ? getTrendStats($conn, $prog_a, $years_range) : ['is_none' => true];
 $groupB = ($prog_b !== 'none') ? getTrendStats($conn, $prog_b, $years_range) : ['is_none' => true];
 
