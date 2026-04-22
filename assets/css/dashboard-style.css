@@ -827,7 +827,7 @@ body {
         rgba(255, 255, 255, 0) 100%
     );
     transform: skewX(-25deg);
-    animation: glint 2s infinite;
+    animation: glint 5s infinite;
 }
 
 /* Update container to restore top/bottom breathing room */

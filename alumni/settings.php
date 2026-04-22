@@ -162,7 +162,7 @@ $result = $conn->query($sql);
                     // Optional: Remove the effect after 5 seconds so it's not annoying
                     setTimeout(() => {
                         btn.classList.remove('glint-effect');
-                    }, 5000);
+                    }, 10000);
                 }
             }
         });
