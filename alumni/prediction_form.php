@@ -7,32 +7,131 @@ if (!isset($_SESSION['loggedin']) || empty($_SESSION['user_id'])) {
     exit;
 }
 
-$check_hired = $conn->prepare("SELECT id FROM alumni_assessments WHERE student_id = ? AND months_to_hire IS NOT NULL LIMIT 1");
-$check_hired->bind_param('i', $uid);
-$check_hired->execute();
-$already_reported_hire = $check_hired->get_result()->num_rows > 0;
-$check_hired->close();  //check if alumni alumni has already answered time to hire
-
 $uid = (int) $_SESSION['user_id'];
-$stmt_u = $conn->prepare('
-    SELECT 
-        a.avg_grade AS gpa, 
-        a.ojt_grade AS ojt_grade_percent, 
-        a.program_id, 
-        a.avg_prof_grade AS avg_professional_grade, 
-        a.avg_elec_grade AS avg_elective_grade, 
-        a.soft_skills_avg AS record_soft_skills_avg, 
-        a.hard_skills_avg AS record_hard_skills_avg, 
-        p.name AS program_name 
-    FROM users u 
-    LEFT JOIN alumni_academic_info a ON u.student_id = a.student_id 
-    LEFT JOIN programs p ON p.id = a.program_id 
-    WHERE u.id = ? LIMIT 1
-');
-$stmt_u->bind_param('i', $uid);
-$stmt_u->execute();
-$user_acad = $stmt_u->get_result()->fetch_assoc();
-$stmt_u->close();
+$already_reported_hire = false;
+$official_grad_year = null;
+
+$col_exists = function ($table, $column) use ($conn) {
+    $stmt = $conn->prepare("SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1");
+    if (!$stmt) {
+        return false;
+    }
+    $stmt->bind_param('ss', $table, $column);
+    $stmt->execute();
+    $ok = $stmt->get_result()->fetch_row() ? true : false;
+    $stmt->close();
+    return $ok;
+};
+$table_exists = function ($table) use ($conn) {
+    static $cache = [];
+    if (isset($cache[$table])) {
+        return $cache[$table];
+    }
+    $stmt = $conn->prepare("SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? LIMIT 1");
+    if (!$stmt) {
+        $cache[$table] = false;
+        return false;
+    }
+    $stmt->bind_param('s', $table);
+    $stmt->execute();
+    $cache[$table] = $stmt->get_result()->fetch_row() ? true : false;
+    $stmt->close();
+    return $cache[$table];
+};
+
+$assessment_user_col = null;
+foreach (['user_id', 'student_id', 'alumni_id'] as $candidate) {
+    if ($col_exists('alumni_assessments', $candidate)) {
+        $assessment_user_col = $candidate;
+        break;
+    }
+}
+$has_months_to_hire = $col_exists('alumni_assessments', 'months_to_hire');
+
+if ($assessment_user_col !== null && $has_months_to_hire) {
+    $check_hired = $conn->prepare("SELECT id FROM alumni_assessments WHERE {$assessment_user_col} = ? AND months_to_hire IS NOT NULL LIMIT 1");
+    if ($check_hired) {
+        $check_hired->bind_param('i', $uid);
+        $check_hired->execute();
+        $already_reported_hire = $check_hired->get_result()->num_rows > 0;
+        $check_hired->close();  //check if alumni alumni has already answered time to hire
+    }
+}
+
+$user_acad = [];
+if ($table_exists('alumni_academic_info')) {
+    $stmt_u = $conn->prepare('
+        SELECT 
+            a.avg_grade AS gpa, 
+            a.ojt_grade AS ojt_grade_percent, 
+            a.program_id, 
+            a.avg_prof_grade AS avg_professional_grade, 
+            a.avg_elec_grade AS avg_elective_grade, 
+            a.soft_skills_avg AS record_soft_skills_avg, 
+            a.hard_skills_avg AS record_hard_skills_avg, 
+            p.name AS program_name 
+        FROM users u 
+        LEFT JOIN alumni_academic_info a ON u.student_id = a.student_id 
+        LEFT JOIN programs p ON p.id = a.program_id 
+        WHERE u.id = ? LIMIT 1
+    ');
+    if ($stmt_u) {
+        $stmt_u->bind_param('i', $uid);
+        $stmt_u->execute();
+        $user_acad = $stmt_u->get_result()->fetch_assoc() ?: [];
+        $stmt_u->close();
+    }
+} else {
+    $stmt_u = $conn->prepare('SELECT gpa, ojt_grade_percent, program_id, avg_professional_grade, avg_elective_grade, record_soft_skills_avg, record_hard_skills_avg FROM users WHERE id = ? LIMIT 1');
+    if ($stmt_u) {
+        $stmt_u->bind_param('i', $uid);
+        $stmt_u->execute();
+        $user_acad = $stmt_u->get_result()->fetch_assoc() ?: [];
+        $stmt_u->close();
+    }
+    if (!empty($user_acad['program_id'])) {
+        $pstmt = $conn->prepare('SELECT name FROM programs WHERE id = ? LIMIT 1');
+        if ($pstmt) {
+            $pid = (int) $user_acad['program_id'];
+            $pstmt->bind_param('i', $pid);
+            $pstmt->execute();
+            if ($prow = $pstmt->get_result()->fetch_assoc()) {
+                $user_acad['program_name'] = $prow['name'];
+            }
+            $pstmt->close();
+        }
+    }
+}
+
+if (isset($user_acad['grad_year']) && $user_acad['grad_year'] !== null && $user_acad['grad_year'] !== '') {
+    $official_grad_year = (int) $user_acad['grad_year'];
+}
+if ($official_grad_year === null && $col_exists('users', 'grad_year')) {
+    $gy_stmt = $conn->prepare('SELECT grad_year FROM users WHERE id = ? LIMIT 1');
+    if ($gy_stmt) {
+        $gy_stmt->bind_param('i', $uid);
+        $gy_stmt->execute();
+        if ($gy_row = $gy_stmt->get_result()->fetch_assoc()) {
+            if (isset($gy_row['grad_year']) && $gy_row['grad_year'] !== null && $gy_row['grad_year'] !== '') {
+                $official_grad_year = (int) $gy_row['grad_year'];
+            }
+        }
+        $gy_stmt->close();
+    }
+}
+if ($official_grad_year === null && $assessment_user_col !== null) {
+    $gy_stmt = $conn->prepare("SELECT grad_year FROM alumni_assessments WHERE {$assessment_user_col} = ? AND grad_year IS NOT NULL ORDER BY id DESC LIMIT 1");
+    if ($gy_stmt) {
+        $gy_stmt->bind_param('i', $uid);
+        $gy_stmt->execute();
+        if ($gy_row = $gy_stmt->get_result()->fetch_assoc()) {
+            if (isset($gy_row['grad_year']) && $gy_row['grad_year'] !== null && $gy_row['grad_year'] !== '') {
+                $official_grad_year = (int) $gy_row['grad_year'];
+            }
+        }
+        $gy_stmt->close();
+    }
+}
 
 $gpa_on_file = isset($user_acad['gpa']) && $user_acad['gpa'] !== null ? (float) $user_acad['gpa'] : null;
 $ojt_on_file = isset($user_acad['ojt_grade_percent']) && $user_acad['ojt_grade_percent'] !== null ? (float) $user_acad['ojt_grade_percent'] : null;
@@ -143,15 +242,21 @@ $programs = $conn->query('SELECT * FROM programs ORDER BY name ASC');
                     <div class="grid-2">
                         <div class="input-group">
                             <label>Graduation Year <span class="error-icon" id="yearError"><i class="fas fa-exclamation-circle"></i></span></label>
-                            <select name="grad_year" id="gradYearInput" required>
-                                <option value="">Select Year...</option>
-                                <?php 
-                                    $current_year = date('Y');
-                                    for($y = $current_year; $y >= 2004; $y--): 
-                                ?>
-                                    <option value="<?= $y ?>"><?= $y ?></option>
-                                <?php endfor; ?>
-                            </select>
+                            <?php if ($official_grad_year !== null): ?>
+                                <input type="hidden" name="grad_year" id="gradYearInput" value="<?= (int) $official_grad_year ?>">
+                                <div class="readonly-field"><?= (int) $official_grad_year ?></div>
+                                <small>From your official imported/admin record. Not editable here.</small>
+                            <?php else: ?>
+                                <select name="grad_year" id="gradYearInput" required>
+                                    <option value="">Select Year...</option>
+                                    <?php 
+                                        $current_year = date('Y');
+                                        for($y = $current_year; $y >= 2004; $y--): 
+                                    ?>
+                                        <option value="<?= $y ?>"><?= $y ?></option>
+                                    <?php endfor; ?>
+                                </select>
+                            <?php endif; ?>
                         </div>
 
                         <div class="input-group">
@@ -294,18 +399,7 @@ $programs = $conn->query('SELECT * FROM programs ORDER BY name ASC');
                         </div>
                     </div>
 
-                    <div class="grid-2 mt-4 academic-readonly" style="border-top: 1px solid #e5e7eb; padding-top: 20px;">
-                        <div class="input-group">
-                            <label>Final GPA (1.00 – 5.00, lower is better)</label>
-                            <div class="readonly-field" id="gpaDisplay"><?= $academic_ready ? htmlspecialchars(number_format($gpa_on_file, 2, '.', '')) : '—' ?></div>
-                            <small>From your official record (set by admin). Not editable here.</small>
-                        </div>
-                        <div class="input-group">
-                            <label>OJT final grade (%)</label>
-                            <div class="readonly-field" id="ojtDisplay"><?= $academic_ready ? htmlspecialchars(number_format($ojt_on_file, 2, '.', '')) . '%' : '—' ?></div>
-                            <small>From your official record (set by admin). Not editable here.</small>
-                        </div>
-                    </div>
+                    
                     <?php if ($has_extra_academic): ?>
                     <div class="academic-readonly-extras" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
                         <p style="font-size: 0.8rem; font-weight: 600; color: #374151; margin-bottom: 10px;">Coursework &amp; skills on file (read-only)</p>

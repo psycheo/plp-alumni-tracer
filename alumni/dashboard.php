@@ -12,59 +12,127 @@
     $user_name = isset($_SESSION['full_name']) ? $_SESSION['full_name'] : 'Alumni';
     $student_id = isset($_SESSION['student_id']) ? $_SESSION['student_id'] : '';
     $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 0;
+    $audit_logs_rows = [];
+
+    $dashboard_col_exists = function ($table, $column) use ($conn) {
+        static $cache = [];
+        $key = $table . '.' . $column;
+        if (isset($cache[$key])) {
+            return $cache[$key];
+        }
+        $sql = "SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1";
+        $stmt = $conn->prepare($sql);
+        if (!$stmt) {
+            $cache[$key] = false;
+            return false;
+        }
+        $stmt->bind_param('ss', $table, $column);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_row();
+        $stmt->close();
+        $cache[$key] = $row ? true : false;
+        return $cache[$key];
+    };
+
+    $dashboard_pick_col = function ($table, $candidates) use ($dashboard_col_exists) {
+        foreach ($candidates as $col) {
+            if ($dashboard_col_exists($table, $col)) {
+                return $col;
+            }
+        }
+        return null;
+    };
+
+    $assess_user_col = $dashboard_pick_col('alumni_assessments', ['user_id', 'student_id', 'alumni_id']);
+    $feedback_user_col = $dashboard_pick_col('feedbacks', ['user_id', 'student_id', 'alumni_id']);
+    $reply_user_col = $dashboard_pick_col('feedback_replies', ['user_id', 'student_id', 'alumni_id']);
 
     // 1. Get user's assessment count
     $assessment_count = 0;
-    // Matches 'student_id' column, binds integer '$user_id'
-    $stmt = $conn->prepare("SELECT COUNT(*) as count FROM alumni_assessments WHERE student_id = ?");
-    if ($stmt) {
-        $stmt->bind_param("i", $user_id); 
-        $stmt->execute();
-        if ($result = $stmt->get_result()->fetch_assoc()) { 
-            $assessment_count = $result['count']; 
+    if ($assess_user_col !== null) {
+        $stmt = $conn->prepare("SELECT COUNT(*) as count FROM alumni_assessments WHERE {$assess_user_col} = ?");
+        if ($stmt) {
+            $stmt->bind_param("i", $user_id);
+            $stmt->execute();
+            if ($result = $stmt->get_result()->fetch_assoc()) {
+                $assessment_count = (int) $result['count'];
+            }
+            $stmt->close();
         }
-        $stmt->close();
     }
 
     // 2. Get user's feedback count
     $feedback_count = 0;
-    // FIXED: Changed 'user_id' to 'student_id'
-    $fb_stmt = $conn->prepare("SELECT COUNT(*) as count FROM feedbacks WHERE student_id = ?");
-    if ($fb_stmt) {
-        $fb_stmt->bind_param("i", $user_id);
-        $fb_stmt->execute();
-        if ($row = $fb_stmt->get_result()->fetch_assoc()) { $feedback_count = $row['count']; }
-        $fb_stmt->close();
+    if ($feedback_user_col !== null) {
+        $fb_stmt = $conn->prepare("SELECT COUNT(*) as count FROM feedbacks WHERE {$feedback_user_col} = ?");
+        if ($fb_stmt) {
+            $fb_stmt->bind_param("i", $user_id);
+            $fb_stmt->execute();
+            if ($row = $fb_stmt->get_result()->fetch_assoc()) { $feedback_count = (int) $row['count']; }
+            $fb_stmt->close();
+        }
     }
 
     // 3. Count AND Fetch unread replies for the notification bell
     $unread_count = 0;
-    // FIXED: Changed 'alumni_id' to 'student_id'
-    $notif_stmt = $conn->query("SELECT COUNT(*) as count FROM feedback_replies WHERE student_id = $user_id AND is_seen = 0");
-    if ($notif_stmt && $row = $notif_stmt->fetch_assoc()) {
-        $unread_count = $row['count'];
+    $notif_list_stmt = null;
+    if ($reply_user_col !== null) {
+        $notif_stmt = $conn->prepare("SELECT COUNT(*) as count FROM feedback_replies WHERE {$reply_user_col} = ? AND is_seen = 0");
+        if ($notif_stmt) {
+            $notif_stmt->bind_param('i', $user_id);
+            $notif_stmt->execute();
+            if ($row = $notif_stmt->get_result()->fetch_assoc()) {
+                $unread_count = (int) $row['count'];
+            }
+            $notif_stmt->close();
+        }
+
+        $notif_list_stmt = $conn->prepare("SELECT reply_text, created_at FROM feedback_replies WHERE {$reply_user_col} = ? AND is_seen = 0 ORDER BY created_at DESC LIMIT 5");
+        if ($notif_list_stmt) {
+            $notif_list_stmt->bind_param('i', $user_id);
+            $notif_list_stmt->execute();
+            $notif_list_stmt = $notif_list_stmt->get_result();
+        }
     }
-    $notif_list_stmt = $conn->query("SELECT reply_text, created_at FROM feedback_replies WHERE student_id = $user_id AND is_seen = 0 ORDER BY created_at DESC LIMIT 5");
 
 
     // 4. The Unified Audit Log
-    // FIXED: All tables use 'student_id', and all are bound to the integer '$user_id'
-    $audit_sql = "
-        SELECT 'assessment' AS type, created_at AS log_date, 'Career Assessment Taken' AS title, CONCAT('Result: ', recommended_profession) AS description 
-        FROM alumni_assessments WHERE student_id = ? 
-        UNION ALL
-        SELECT 'feedback' AS type, created_at AS log_date, 'Feedback Submitted' AS title, CONCAT('You rated the portal ', rating, '/5 stars.') AS description 
-        FROM feedbacks WHERE student_id = ?
-        UNION ALL
-        SELECT 'reply' AS type, created_at AS log_date, 'Admin Response Received' AS title, 'An admin has replied to your feedback.' AS description 
-        FROM feedback_replies WHERE student_id = ?
-        ORDER BY log_date DESC LIMIT 50
-    ";
-    $stmt_audit = $conn->prepare($audit_sql);
-    if ($stmt_audit) { 
-        $stmt_audit->bind_param("iii", $user_id, $user_id, $user_id); 
-        $stmt_audit->execute();
-        $audit_logs = $stmt_audit->get_result();
+    $audit_parts = [];
+    $audit_types = '';
+    $audit_params = [];
+    if ($assess_user_col !== null) {
+        $audit_parts[] = "SELECT 'assessment' AS type, created_at AS log_date, 'Career Assessment Taken' AS title, CONCAT('Result: ', recommended_profession) AS description FROM alumni_assessments WHERE {$assess_user_col} = ?";
+        $audit_types .= 'i';
+        $audit_params[] = $user_id;
+    }
+    if ($feedback_user_col !== null) {
+        $audit_parts[] = "SELECT 'feedback' AS type, created_at AS log_date, 'Feedback Submitted' AS title, CONCAT('You rated the portal ', rating, '/5 stars.') AS description FROM feedbacks WHERE {$feedback_user_col} = ?";
+        $audit_types .= 'i';
+        $audit_params[] = $user_id;
+    }
+    if ($reply_user_col !== null) {
+        $audit_parts[] = "SELECT 'reply' AS type, created_at AS log_date, 'Admin Response Received' AS title, 'An admin has replied to your feedback.' AS description FROM feedback_replies WHERE {$reply_user_col} = ?";
+        $audit_types .= 'i';
+        $audit_params[] = $user_id;
+    }
+    if (!empty($audit_parts)) {
+        $audit_sql = implode(' UNION ALL ', $audit_parts) . ' ORDER BY log_date DESC LIMIT 50';
+        $stmt_audit = $conn->prepare($audit_sql);
+        if ($stmt_audit) {
+            $stmt_audit->bind_param($audit_types, ...$audit_params);
+            $stmt_audit->execute();
+            $audit_logs = $stmt_audit->get_result();
+            if ($audit_logs) {
+                while ($log_row = $audit_logs->fetch_assoc()) {
+                    $audit_logs_rows[] = $log_row;
+                }
+            }
+            $stmt_audit->close();
+        }
+    }
+
+    if (!$notif_list_stmt) {
+        $notif_list_stmt = false;
     }
 
     // 5. Fetch the user's temporary password status
@@ -80,37 +148,81 @@
     $record_ojt = null;
     $record_program_name = null;
     $record_avg_prof = $record_avg_elec = $record_soft = $record_hard = null;
-    
-    // UPDATED QUERY: Column names now match the alumni_academic_info table schema
-    $stmt = $conn->prepare('
-        SELECT 
-            a.avg_grade, 
-            a.ojt_grade, 
-            a.avg_prof_grade, 
-            a.avg_elec_grade, 
-            a.soft_skills_avg, 
-            a.hard_skills_avg, 
-            p.name AS program_name 
-        FROM users u 
-        LEFT JOIN alumni_academic_info a ON u.student_id = a.student_id 
-        LEFT JOIN programs p ON p.id = a.program_id 
-        WHERE u.id = ? LIMIT 1
-    ');
-    
-    // Adding a quick safety check so the site never crashes even if a table is missing
-    if ($stmt) {
-        $stmt->bind_param('i', $user_id);
-        $stmt->execute();
-        if ($row = $stmt->get_result()->fetch_assoc()) {
-            $record_gpa = isset($row['avg_grade']) && $row['avg_grade'] !== null ? (float) $row['avg_grade'] : null;
-            $record_ojt = isset($row['ojt_grade']) && $row['ojt_grade'] !== null ? (float) $row['ojt_grade'] : null;
-            $record_program_name = !empty($row['program_name']) ? (string) $row['program_name'] : null;
-            $record_avg_prof = isset($row['avg_prof_grade']) && $row['avg_prof_grade'] !== null ? (float) $row['avg_prof_grade'] : null;
-            $record_avg_elec = isset($row['avg_elec_grade']) && $row['avg_elec_grade'] !== null ? (float) $row['avg_elec_grade'] : null;
-            $record_soft = isset($row['soft_skills_avg']) && $row['soft_skills_avg'] !== null ? (float) $row['soft_skills_avg'] : null;
-            $record_hard = isset($row['hard_skills_avg']) && $row['hard_skills_avg'] !== null ? (float) $row['hard_skills_avg'] : null;
+
+    $table_exists = function ($table) use ($conn) {
+        static $cache = [];
+        if (isset($cache[$table])) {
+            return $cache[$table];
         }
+        $stmt = $conn->prepare("SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? LIMIT 1");
+        if (!$stmt) {
+            $cache[$table] = false;
+            return false;
+        }
+        $stmt->bind_param('s', $table);
+        $stmt->execute();
+        $cache[$table] = $stmt->get_result()->fetch_row() ? true : false;
         $stmt->close();
+        return $cache[$table];
+    };
+
+    if ($table_exists('alumni_academic_info')) {
+        $stmt = $conn->prepare('
+            SELECT 
+                a.avg_grade, 
+                a.ojt_grade, 
+                a.avg_prof_grade, 
+                a.avg_elec_grade, 
+                a.soft_skills_avg, 
+                a.hard_skills_avg, 
+                p.name AS program_name 
+            FROM users u 
+            LEFT JOIN alumni_academic_info a ON u.student_id = a.student_id 
+            LEFT JOIN programs p ON p.id = a.program_id 
+            WHERE u.id = ? LIMIT 1
+        ');
+
+        if ($stmt) {
+            $stmt->bind_param('i', $user_id);
+            $stmt->execute();
+            if ($row = $stmt->get_result()->fetch_assoc()) {
+                $record_gpa = isset($row['avg_grade']) && $row['avg_grade'] !== null ? (float) $row['avg_grade'] : null;
+                $record_ojt = isset($row['ojt_grade']) && $row['ojt_grade'] !== null ? (float) $row['ojt_grade'] : null;
+                $record_program_name = !empty($row['program_name']) ? (string) $row['program_name'] : null;
+                $record_avg_prof = isset($row['avg_prof_grade']) && $row['avg_prof_grade'] !== null ? (float) $row['avg_prof_grade'] : null;
+                $record_avg_elec = isset($row['avg_elec_grade']) && $row['avg_elec_grade'] !== null ? (float) $row['avg_elec_grade'] : null;
+                $record_soft = isset($row['soft_skills_avg']) && $row['soft_skills_avg'] !== null ? (float) $row['soft_skills_avg'] : null;
+                $record_hard = isset($row['hard_skills_avg']) && $row['hard_skills_avg'] !== null ? (float) $row['hard_skills_avg'] : null;
+            }
+            $stmt->close();
+        }
+    } else {
+        $stmt = $conn->prepare('SELECT gpa, ojt_grade_percent, avg_professional_grade, avg_elective_grade, record_soft_skills_avg, record_hard_skills_avg, program_id FROM users WHERE id = ? LIMIT 1');
+        if ($stmt) {
+            $stmt->bind_param('i', $user_id);
+            $stmt->execute();
+            if ($row = $stmt->get_result()->fetch_assoc()) {
+                $record_gpa = isset($row['gpa']) && $row['gpa'] !== null ? (float) $row['gpa'] : null;
+                $record_ojt = isset($row['ojt_grade_percent']) && $row['ojt_grade_percent'] !== null ? (float) $row['ojt_grade_percent'] : null;
+                $record_avg_prof = isset($row['avg_professional_grade']) && $row['avg_professional_grade'] !== null ? (float) $row['avg_professional_grade'] : null;
+                $record_avg_elec = isset($row['avg_elective_grade']) && $row['avg_elective_grade'] !== null ? (float) $row['avg_elective_grade'] : null;
+                $record_soft = isset($row['record_soft_skills_avg']) && $row['record_soft_skills_avg'] !== null ? (float) $row['record_soft_skills_avg'] : null;
+                $record_hard = isset($row['record_hard_skills_avg']) && $row['record_hard_skills_avg'] !== null ? (float) $row['record_hard_skills_avg'] : null;
+                $program_id_tmp = isset($row['program_id']) ? (int) $row['program_id'] : 0;
+                if ($program_id_tmp > 0) {
+                    $pstmt = $conn->prepare('SELECT name FROM programs WHERE id = ? LIMIT 1');
+                    if ($pstmt) {
+                        $pstmt->bind_param('i', $program_id_tmp);
+                        $pstmt->execute();
+                        if ($prow = $pstmt->get_result()->fetch_assoc()) {
+                            $record_program_name = (string) $prow['name'];
+                        }
+                        $pstmt->close();
+                    }
+                }
+            }
+            $stmt->close();
+        }
     }
     $dash_fmt_pct = function ($v) {
         if ($v === null) {
@@ -155,7 +267,7 @@
                 <div id="notificationDropdown" class="notification-dropdown">
                     <div class="dropdown-header">Notifications</div>
                     <div class="dropdown-body">
-                        <?php if($unread_count > 0 && $notif_list_stmt->num_rows > 0): ?>
+                        <?php if($unread_count > 0 && $notif_list_stmt && $notif_list_stmt->num_rows > 0): ?>
                             <?php while($n = $notif_list_stmt->fetch_assoc()): ?>
                                 <div class="notif-item unread">
                                     <strong style="color: #1f2937; font-size: 0.85rem;">Admin Reply</strong>
@@ -277,9 +389,9 @@
                     <h3><i class="fas fa-list-ul"></i> Recent Activity</h3>
                     <div class="activity-feed-container">
                         <div class="activity-feed" id="activityFeed">
-                            <?php if ($audit_logs->num_rows > 0): ?>
+                            <?php if (!empty($audit_logs_rows)): ?>
                                 <?php 
-                                while($log = $audit_logs->fetch_assoc()): 
+                                foreach($audit_logs_rows as $log): 
                                     $icon_class = 'icon-assess';
                                     $fa_icon = 'fa-bolt';
                                     if ($log['type'] == 'reply') { $icon_class = 'icon-reply'; $fa_icon = 'fa-comment-dots'; } 
@@ -297,7 +409,7 @@
                                             <?php echo date('M j, Y', strtotime($log['log_date'])); ?>
                                         </div>
                                     </div>
-                                <?php endwhile; ?>
+                                <?php endforeach; ?>
                             <?php else: ?>
                                 <div class="empty-state">
                                     <i class="fas fa-inbox"></i>
@@ -331,10 +443,12 @@
             html: 'You are currently logged in with a temporary password. Please update it to secure your official alumni record.',
             icon: 'warning',
             iconColor: '#f59e0b', 
-            showCancelButton: true,
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            allowEnterKey: true,
+            showCancelButton: false,
             confirmButtonText: '<i class="fas fa-lock" style="margin-right: 6px;"></i> Update Password',
             confirmButtonColor: '#0d5c34', 
-            cancelButtonText: 'Remind Me Later',
             buttonsStyling: false, 
             backdrop: 'rgba(17, 24, 39, 0.7)', 
             customClass: {
@@ -343,7 +457,6 @@
                 htmlContainer: 'swal-plp-html',
                 actions: 'swal-plp-actions',
                 confirmButton: 'swal-plp-confirm',
-                cancelButton: 'swal-plp-cancel'
             }
         }).then((result) => {
             if (result.isConfirmed) {

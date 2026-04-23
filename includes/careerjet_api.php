@@ -78,7 +78,10 @@ if (!function_exists('careerjet_load_credentials')) {
         }
 
         if ($httpCode >= 400) {
-            return ['ok' => false, 'error' => isset($data['message']) ? (string) $data['message'] : 'Careerjet error (' . $httpCode . ').'];
+            if ($httpCode === 403) {
+                return ['ok' => false, 'error' => 'Careerjet jobs are temporarily unavailable for this request. Please try again later.'];
+            }
+            return ['ok' => false, 'error' => isset($data['message']) ? (string) $data['message'] : 'Careerjet service is temporarily unavailable.'];
         }
 
         $type = $data['type'] ?? '';
