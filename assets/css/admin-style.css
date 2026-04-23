@@ -460,3 +460,73 @@ body {
 
 .status-success { background-color: #d1fae5; color: #065f46; border: 1px solid #34d399; }
 .status-error { background-color: #fee2e2; color: #b91c1c; border: 1px solid #f87171; }
+
+/* =========================================
+   TABBED COMMAND CENTER STYLES
+   ========================================= */
+.tab-header {
+    display: flex;
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.tab-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 16px 20px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-bottom: 3px solid transparent;
+}
+
+.tab-btn:hover {
+    color: #0d5c34;
+    background: #f3f4f6;
+}
+
+.tab-btn.active {
+    color: #0d5c34;
+    border-bottom: 3px solid #0d5c34;
+    background: white;
+}
+
+.tab-content {
+    display: none;
+    animation: fadeEffect 0.3s;
+}
+
+@keyframes fadeEffect {
+    from {opacity: 0;}
+    to {opacity: 1;}
+}
+
+/* Algorithm Toggle Pills */
+.algo-toggles {
+    display: inline-flex;
+    background: #f3f4f6;
+    padding: 4px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+}
+
+.algo-pill {
+    background: transparent;
+    border: none;
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #4b5563;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.algo-pill.active {
+    background: white;
+    color: #0d5c34;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}

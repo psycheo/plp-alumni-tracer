@@ -11,16 +11,6 @@
             </a>
         </li>
         <li>
-            <a href="../admin/admin_models.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'admin_models.php' ? 'active' : ''; ?>">
-                <i class="fas fa-cloud-upload-alt"></i> Model Configuration
-            </a>
-        </li>
-        <li>
-            <a href="../admin/admin_forecasting.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'admin_forecasting.php' ? 'active' : ''; ?>">
-                <i class="fas fa-chart-area"></i> Forecasting
-            </a>
-        </li>
-        <li>
             <a href="../admin/admin_employment_comp.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'admin_employment_comp.php' ? 'active' : ''; ?>">
                 <i class="fas fa-exchange-alt"></i> Job Comparison
             </a>
