@@ -294,42 +294,6 @@ $programs = $conn->query('SELECT * FROM programs ORDER BY name ASC');
                         </div>
                     </div>
 
-                    <div class="grid-2 mt-4 academic-readonly" style="border-top: 1px solid #e5e7eb; padding-top: 20px;">
-                        <div class="input-group">
-                            <label>Final GPA (1.00 – 5.00, lower is better)</label>
-                            <div class="readonly-field" id="gpaDisplay"><?= $academic_ready ? htmlspecialchars(number_format($gpa_on_file, 2, '.', '')) : '—' ?></div>
-                            <small>From your official record (set by admin). Not editable here.</small>
-                        </div>
-                        <div class="input-group">
-                            <label>OJT final grade (%)</label>
-                            <div class="readonly-field" id="ojtDisplay"><?= $academic_ready ? htmlspecialchars(number_format($ojt_on_file, 2, '.', '')) . '%' : '—' ?></div>
-                            <small>From your official record (set by admin). Not editable here.</small>
-                        </div>
-                    </div>
-                    <?php if ($has_extra_academic): ?>
-                    <div class="academic-readonly-extras" style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
-                        <p style="font-size: 0.8rem; font-weight: 600; color: #374151; margin-bottom: 10px;">Coursework &amp; skills on file (read-only)</p>
-                        <div class="grid-2">
-                            <div class="input-group">
-                                <label>Avg Professional Grade</label>
-                                <div class="readonly-field"><?= $fmt_pct_ro($avg_prof_on_file) ?></div>
-                            </div>
-                            <div class="input-group">
-                                <label>Avg Elective Grade</label>
-                                <div class="readonly-field"><?= $fmt_pct_ro($avg_elec_on_file) ?></div>
-                            </div>
-                            <div class="input-group">
-                                <label>Soft Skills Average</label>
-                                <div class="readonly-field"><?= $fmt_pct_ro($soft_rec_on_file) ?></div>
-                            </div>
-                            <div class="input-group">
-                                <label>Hard Skills Average</label>
-                                <div class="readonly-field"><?= $fmt_pct_ro($hard_rec_on_file) ?></div>
-                            </div>
-                        </div>
-                    </div>
-                    <?php endif; ?>
-
                     <div class="wizard-footer" style="display: flex; justify-content: space-between;">
                         <button type="button" class="btn-secondary" onclick="goBackFrom(2)">Back</button>
                         <button type="button" class="btn-primary" onclick="validateAndNext(2)">Continue <i class="fas fa-arrow-right"></i></button>

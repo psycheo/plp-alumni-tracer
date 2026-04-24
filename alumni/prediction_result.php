@@ -154,7 +154,7 @@ $second_title = ($second_match && isset($second_match['profession'])) ? htmlspec
     <title>Your Career Recommendations - PLP Alumni Tracer</title>
     
     <link rel="stylesheet" href="../assets/css/dashboard-style.css">
-    <link rel="stylesheet" href="../assets/css/prediction-style.css?v=1.2">
+    <link rel="stylesheet" href="../assets/css/prediction-style.css?v=2.0">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-light">
@@ -171,107 +171,95 @@ $second_title = ($second_match && isset($second_match['profession'])) ? htmlspec
             </div>
             <p><?= $header_subtext ?></p>
             <?php if ($model_degree_label !== ''): ?>
-                <p style="font-size:0.85rem;color:#6b7280;margin-top:0.5rem;">Model: <?= $model_degree_label ?> · Score reflects top predicted class probability.</p>
+                <p style="font-size:0.85rem;color:#a7f3d0;margin-top:0.5rem;opacity:0.8;">Model: <?= $model_degree_label ?> · Score reflects top predicted class probability.</p>
             <?php endif; ?>
         </div>
 
-        <div class="best-match-card">
-            <div class="card-header-label">
-                <div class="trophy-icon"><i class="fas fa-trophy"></i></div>
-                <div>
-                    <strong>Best Match for You</strong>
-                    <span>Random forest trained on program-specific skills, soft/hard dimensions, GPA &amp; OJT</span>
+        <div class="results-layout-grid">
+            
+            <div class="best-match-card">
+                <div class="card-header-label">
+                    <div class="trophy-icon"><i class="fas fa-trophy"></i></div>
+                    <div>
+                        <strong>Best Match for You</strong>
+                        <span>Random forest trained on program-specific skills, soft/hard dimensions, GPA &amp; OJT</span>
+                    </div>
                 </div>
+
+                <div class="match-main-content">
+                    <div class="match-info">
+                        <h2><?= $profession ?></h2>
+                        <p class="match-desc">This role is predicted from your full assessment (universal skills, industry skills, and academics). Results are indicative—use them alongside advising and experience.</p>
+                    </div>
+                    <div class="match-score-circle">
+                        <div class="circle" style="background-color: <?= $score_color ?>;">
+                            <span><?= htmlspecialchars((string) round($match_score)) ?>%</span>
+                        </div>
+                        <span class="score-label">Fit Score</span>
+                    </div>
+                </div>
+
+                <div class="match-details">
+                    <strong>Why this is a strong match:</strong>
+                    <ul>
+                        <li>Your program-specific skill ratings align with typical competencies for this role.</li>
+                        <li>Soft-skill, hard-skill, and OJT signals are combined in the same feature set used to train the model.</li>
+                    </ul>
+
+                    <strong class="mt-4" style="display:block; margin-top:15px;">Strongest rated skills from your form:</strong>
+                    <div class="skills-container">
+                        <?php foreach ($top_skills as $skill): ?>
+                            <span class="skill-pill"><?= htmlspecialchars($skill) ?></span>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+
+                <a href="prediction_form.php" class="btn-full-green">Take assessment again</a>
             </div>
 
-            <div class="match-main-content">
-                <div class="match-info">
-                    <h2><?= $profession ?></h2>
-                    <p class="match-desc">This role is predicted from your full assessment (universal skills, industry skills, and academics). Results are indicative—use them alongside advising and experience.</p>
-                </div>
-                <div class="match-score-circle">
-                    <div class="circle" style="background-color: <?= $score_color ?>;">
-                        <span><?= htmlspecialchars((string) round($match_score)) ?>%</span>
-                    </div>
-                    <span class="score-label">Fit Score</span>
-                </div>
-            </div>
-
-            <div class="stats-chips">
-                <div class="chip chip-green">
-                    <i class="fas fa-graduation-cap"></i>
-                    <div>
-                        <span>GPA (record)</span>
-                        <strong><?= htmlspecialchars((string) ($user_grades['gpa'] ?? $res['gpa'] ?? '—')) ?></strong>
-                    </div>
-                </div>
-                <div class="chip chip-blue">
-                    <i class="fas fa-briefcase"></i>
-                    <div>
-                        <span>OJT %</span>
-                        <strong><?= htmlspecialchars((string) round($display_ojt)) ?>%</strong>
-                    </div>
-                </div>
-                <div class="chip chip-purple" style="--band: <?= htmlspecialchars($band_color) ?>; background: <?= htmlspecialchars($band_bg) ?>; border-color: <?= htmlspecialchars($band_color) ?>20;">
+            <div class="results-sidebar" style="display: flex; flex-direction: column; gap: 20px;">
+                
+                <div class="sidebar-chip" style="background: <?= htmlspecialchars($band_bg) ?>; border-color: <?= htmlspecialchars($band_color) ?>40; box-shadow: 0 4px 10px rgba(0,0,0,0.03);">
                     <i class="fas fa-layer-group" style="color: <?= htmlspecialchars($band_color) ?>;"></i>
                     <div>
-                        <span>Employability band</span>
+                        <span style="color: #64748b; font-weight: 500;">Employability band</span>
                         <strong style="color: <?= htmlspecialchars($band_color) ?>;"><?= htmlspecialchars($status) ?></strong>
                     </div>
                 </div>
-            </div>
 
-            <div class="match-details">
-                <strong>Why this is a strong match:</strong>
-                <ul>
-                    <li>Your program-specific skill ratings align with typical competencies for this role.</li>
-                    <li>Soft-skill, hard-skill, and OJT signals are combined in the same feature set used to train the model.</li>
-                </ul>
+                <div class="other-options-section" style="flex: 1; margin: 0;">
+                    <h3>Other career options</h3>
+                    
+                    <div class="option-card" style="margin-bottom: 15px;">
+                        <div class="option-header">
+                            <div class="option-title">
+                                <span class="rank">#2</span>
+                                <h4><?= $second_title ?></h4>
+                            </div>
+                            <div class="small-score-pill">
+                                <i class="far fa-star"></i> ~<?= (int) $second_pct ?>%
+                            </div>
+                        </div>
+                        <p>Second-ranked label from the same random forest model.</p>
+                    </div>
 
-                <strong class="mt-4">Strongest rated skills from your form:</strong>
-                <div class="skills-container">
-                    <?php foreach ($top_skills as $skill): ?>
-                        <span class="skill-pill"><?= htmlspecialchars($skill) ?></span>
-                    <?php endforeach; ?>
+                    <?php if ($third_match && !empty($third_match['profession'])): ?>
+                    <div class="option-card" style="margin-bottom: 0;">
+                        <div class="option-header">
+                            <div class="option-title">
+                                <span class="rank">#3</span>
+                                <h4><?= htmlspecialchars($third_match['profession']) ?></h4>
+                            </div>
+                        </div>
+                        <p>Third-ranked alternative career path.</p>
+                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
-
-            <a href="prediction_form.php" class="btn-full-green" style="display:block;text-align:center;text-decoration:none;">Take assessment again</a>
-        </div>
-
-        <div class="other-options-section">
-            <h3>Other career options (model runners-up)</h3>
             
-            <div class="option-card">
-                <div class="option-header">
-                    <div class="option-title">
-                        <span class="rank">#2</span>
-                        <h4><?= $second_title ?></h4>
-                    </div>
-                    <div class="small-score-pill">
-                        <i class="far fa-star"></i> ~<?= (int) $second_pct ?>% relative fit
-                    </div>
-                </div>
-                <p>Second-ranked label from the same random forest (see estimated probability in your internal report).</p>
-            </div>
-
-            <?php if ($third_match && !empty($third_match['profession'])): ?>
-            <div class="option-card">
-                <div class="option-header">
-                    <div class="option-title">
-                        <span class="rank">#3</span>
-                        <h4><?= htmlspecialchars($third_match['profession']) ?></h4>
-                    </div>
-                </div>
-                <p>Third-ranked alternative when the model spreads probability across related titles.</p>
-            </div>
-            <?php endif; ?>
-            
-        </div>
-
-        <section class="insights-section" aria-labelledby="insights-heading">
+        </div> <section class="insights-section" aria-labelledby="insights-heading">
             <h2 id="insights-heading" class="insights-title"><i class="fas fa-map-marked-alt"></i> Explore employers &amp; jobs</h2>
-            <p class="insights-lead">Places are sampled around <strong>Metro Manila</strong> via OpenStreetMap (Overpass). Jobs are searched on <strong>Careerjet Philippines</strong> using your top match title. Results depend on live APIs and your API configuration.</p>
+            <p class="insights-lead">Places are sampled around <strong>Metro Manila</strong> via OpenStreetMap (Overpass). Jobs are searched on <strong>Careerjet Philippines</strong> using your top match title.</p>
 
             <div class="insights-grid">
                 <div class="insights-card">

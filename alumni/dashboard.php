@@ -178,21 +178,10 @@
                         Hi, <?php echo htmlspecialchars($user_name); ?>!
                     </div>
                     <p class="welcome-subtitle">Welcome to your alumni command center. Track your professional journey.</p>
-                    <?php if ($record_gpa !== null && $record_ojt !== null): ?>
-                        <p class="academic-record-line"><i class="fas fa-graduation-cap" style="color:#0d5c34;"></i> Official record (read-only): GPA <strong><?php echo htmlspecialchars(number_format($record_gpa, 2, '.', '')); ?></strong> · OJT <strong><?php echo htmlspecialchars(number_format($record_ojt, 2, '.', '')); ?>%</strong></p>
-                        <?php if ($record_program_name || $record_avg_prof !== null || $record_avg_elec !== null || $record_soft !== null || $record_hard !== null): ?>
-                            <p class="academic-record-line" style="margin-top:8px;">
-                                <?php if ($record_program_name): ?><span class="academic-record-detail"><strong>Program:</strong> <?php echo htmlspecialchars($record_program_name); ?></span><br><?php endif; ?>
-                                <?php if ($record_avg_prof !== null || $record_avg_elec !== null): ?>
-                                    <span class="academic-record-detail"><strong>Coursework:</strong> Prof <?php echo $dash_fmt_pct($record_avg_prof); ?> · Elective <?php echo $dash_fmt_pct($record_avg_elec); ?></span><br>
-                                <?php endif; ?>
-                                <?php if ($record_soft !== null || $record_hard !== null): ?>
-                                    <span class="academic-record-detail"><strong>Skills (on file):</strong> Soft <?php echo $dash_fmt_pct($record_soft); ?> · Hard <?php echo $dash_fmt_pct($record_hard); ?></span>
-                                <?php endif; ?>
-                            </p>
-                        <?php endif; ?>
-                    <?php else: ?>
-                        <p class="academic-record-line muted">Official GPA and OJT are not on file yet. Please contact the Office of the Registrar or an administrator.</p>
+                    <?php if ($record_program_name): ?>
+                        <p class="academic-record-line" style="margin-top:8px;">
+                            <span class="academic-record-detail"><strong>Program:</strong> <?php echo htmlspecialchars($record_program_name); ?></span>
+                        </p>
                     <?php endif; ?>
                 </div>
             </div>

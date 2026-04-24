@@ -19,7 +19,7 @@ body {
 .admin-sidebar {
     width: 260px;
     /* Updated to a nice dark-to-light green gradient */
-    background: linear-gradient(135deg, #0d5c34 0%, #10b981 100%); 
+    background: linear-gradient(135deg, #095f33 0%, #003323 100%); 
     color: white;
     height: 100vh;
     position: fixed;

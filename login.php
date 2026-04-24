@@ -97,10 +97,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <form action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]); ?>" method="POST">
                     
                     <div class="form-group">
-                        <label for="student_id">Student ID / Admin ID</label>
+                        <label for="student_id">PLP Student ID</label>
                         <div class="input-icon-wrap">
                             <i class="far fa-id-card"></i>
-                            <input type="text" id="student_id" name="student_id" placeholder="e.g., 23-00186 or 00-ADMIN" required>
+                            <input type="text" id="student_id" name="student_id" placeholder="Enter your PLP Student ID" required>
                         </div>
                     </div>
 
