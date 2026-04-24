@@ -3,7 +3,7 @@ session_start();
 require '../includes/db.php';
 
 if (!isset($_SESSION['loggedin'])) {
-    header("Location: login.php");
+    header("Location: ../login.php");
     exit;
 }
 
@@ -26,11 +26,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['new_password'])) {
         // Encrypt the password
         $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
 
-        $stmt = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
+        $stmt = $conn->prepare("UPDATE users SET password = ?, is_temporary = 0 WHERE id = ?");
         $stmt->bind_param("si", $hashed_password, $user_id);
 
         if ($stmt->execute()) {
-            $status_message = "<div class='alert success' id='status-alert'><i class='fas fa-check-circle'></i> Password updated successfully!</div>";
+            // Force re-login after password change.
+            $_SESSION = [];
+            if (ini_get('session.use_cookies')) {
+                $params = session_get_cookie_params();
+                setcookie(session_name(), '', time() - 42000, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
+            }
+            session_destroy();
+            header("Location: ../login.php?password_updated=1");
+            exit;
         } else {
             $status_message = "<div class='alert error' id='status-alert'><i class='fas fa-times-circle'></i> Error updating database.</div>";
         }

@@ -10,18 +10,59 @@ if (!isset($_SESSION['loggedin']) || empty($_SESSION['user_id'])) {
 $user_id = (int) $_SESSION['user_id'];
 $name = $conn->real_escape_string($_SESSION['full_name']);
 
+$col_exists = function ($table, $column) use ($conn) {
+    static $cache = [];
+    $key = $table . '.' . $column;
+    if (isset($cache[$key])) {
+        return $cache[$key];
+    }
+    $stmt = $conn->prepare("SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1");
+    if (!$stmt) {
+        $cache[$key] = false;
+        return false;
+    }
+    $stmt->bind_param('ss', $table, $column);
+    $stmt->execute();
+    $cache[$key] = $stmt->get_result()->fetch_row() ? true : false;
+    $stmt->close();
+    return $cache[$key];
+};
+$table_exists = function ($table) use ($conn) {
+    static $cache = [];
+    if (isset($cache[$table])) {
+        return $cache[$table];
+    }
+    $stmt = $conn->prepare("SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? LIMIT 1");
+    if (!$stmt) {
+        $cache[$table] = false;
+        return false;
+    }
+    $stmt->bind_param('s', $table);
+    $stmt->execute();
+    $cache[$table] = $stmt->get_result()->fetch_row() ? true : false;
+    $stmt->close();
+    return $cache[$table];
+};
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $stmt_acad = $conn->prepare('
-        SELECT a.avg_grade AS gpa, a.ojt_grade AS ojt_grade_percent 
-        FROM users u 
-        LEFT JOIN alumni_academic_info a ON u.student_id = a.student_id 
-        WHERE u.id = ? LIMIT 1
-    ');
-    $stmt_acad->bind_param('i', $user_id);
-    $stmt_acad->execute();
-    $acad_row = $stmt_acad->get_result()->fetch_assoc();
-    $stmt_acad->close();
+    $acad_row = null;
+    if ($table_exists('alumni_academic_info')) {
+        $stmt_acad = $conn->prepare('
+            SELECT a.avg_grade AS gpa, a.ojt_grade AS ojt_grade_percent 
+            FROM users u 
+            LEFT JOIN alumni_academic_info a ON u.student_id = a.student_id 
+            WHERE u.id = ? LIMIT 1
+        ');
+    } else {
+        $stmt_acad = $conn->prepare('SELECT gpa, ojt_grade_percent FROM users WHERE id = ? LIMIT 1');
+    }
+    if ($stmt_acad) {
+        $stmt_acad->bind_param('i', $user_id);
+        $stmt_acad->execute();
+        $acad_row = $stmt_acad->get_result()->fetch_assoc();
+        $stmt_acad->close();
+    }
 
     if (!$acad_row || $acad_row['gpa'] === null || $acad_row['ojt_grade_percent'] === null) {
         $_SESSION['prediction_form_error'] = 'Your official GPA and OJT grade are not on file. Please ask an administrator to enter them under Admin → Users → Academic Information.';
@@ -163,12 +204,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $employability_status_esc = $conn->real_escape_string($employability_status);
     $recommended_profession_esc = $conn->real_escape_string($recommended_profession);
 
-    $sql = "INSERT INTO alumni_assessments 
-            (student_id, name, program_id, grad_year, employment_status, industry, current_company, current_position, current_salary, years_experience, months_to_hire, gpa, ojt_grade, soft_skills_avg, hard_skills_avg, cv_filename, employability_status, recommended_profession) 
-            VALUES 
-            ($user_id, '$name', $program_id, $grad_year, '$emp_status', " . ($industry ? "'$industry'" : "NULL") . ", '$current_company', '$current_pos', '$current_salary', $years_exp, $months_to_hire, $gpa, $ojt_grade_100, $ss_avg, $hs_avg, '$cv_filename', '$employability_status_esc', '$recommended_profession_esc')";
-    
-    $conn->query($sql);
+    $insert_map = [
+        'name' => "'" . $name . "'",
+        'program_id' => (string) $program_id,
+        'grad_year' => (string) $grad_year,
+        'employment_status' => "'" . $emp_status . "'",
+        'industry' => ($industry ? "'" . $industry . "'" : "NULL"),
+        'current_company' => "'" . $current_company . "'",
+        'current_position' => "'" . $current_pos . "'",
+        'current_salary' => "'" . $current_salary . "'",
+        'years_experience' => (string) $years_exp,
+        'months_to_hire' => (string) $months_to_hire,
+        'gpa' => (string) $gpa,
+        'ojt_grade' => (string) $ojt_grade_100,
+        'soft_skills_avg' => (string) $ss_avg,
+        'hard_skills_avg' => (string) $hs_avg,
+        'cv_filename' => "'" . $cv_filename . "'",
+        'employability_status' => "'" . $employability_status_esc . "'",
+        'recommended_profession' => "'" . $recommended_profession_esc . "'",
+    ];
+    foreach (['user_id', 'student_id', 'alumni_id'] as $user_fk_col) {
+        if ($col_exists('alumni_assessments', $user_fk_col)) {
+            $insert_map[$user_fk_col] = (string) $user_id;
+            break;
+        }
+    }
+
+    $insert_cols = [];
+    $insert_vals = [];
+    foreach ($insert_map as $col => $val) {
+        if ($col_exists('alumni_assessments', $col)) {
+            $insert_cols[] = $col;
+            $insert_vals[] = $val;
+        }
+    }
+
+    if (!empty($insert_cols)) {
+        $sql = "INSERT INTO alumni_assessments (" . implode(', ', $insert_cols) . ") VALUES (" . implode(', ', $insert_vals) . ")";
+        $conn->query($sql);
+    }
     $assessment_id = (int) $conn->insert_id;
 
     $_SESSION['prediction_results'] = [

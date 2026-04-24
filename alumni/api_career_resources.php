@@ -43,7 +43,11 @@ if ($cred['ok']) {
             $jobs[] = normalize_careerjet_job($job);
         }
     } elseif (!empty($res['error'])) {
-        $careerjet_error = $res['error'];
+        $err = (string) $res['error'];
+        // Avoid exposing noisy API status details in alumni UI.
+        $careerjet_error = stripos($err, 'temporarily unavailable') !== false
+            ? 'Careerjet listings are temporarily unavailable right now.'
+            : $err;
     }
 } else {
     $careerjet_error = $cred['error'] ?? 'Careerjet not configured.';
