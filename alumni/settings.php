@@ -49,6 +49,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['new_password'])) {
 // 3. Fetch programs logic
 $sql = "SELECT * FROM programs";
 $result = $conn->query($sql);
+
+// 4. FETCH REAL USER DATA FOR DISPLAY
+$user_id = $_SESSION['user_id'];
+$stmt_user = $conn->prepare("SELECT student_id, full_name, email FROM users WHERE id = ?");
+$stmt_user->bind_param("i", $user_id);
+$stmt_user->execute();
+$user_data = $stmt_user->get_result()->fetch_assoc();
+$stmt_user->close();
+
+$display_name  = htmlspecialchars($user_data['full_name'] ?? 'Alumni');
+$display_email = htmlspecialchars($user_data['email'] ?? 'Not provided');
+$display_id    = htmlspecialchars($user_data['student_id'] ?? 'Not provided');
 ?>
 
 <!DOCTYPE html>
@@ -102,14 +114,23 @@ $result = $conn->query($sql);
 
         <div class="content-card" style="margin-bottom: 25px;">
             <h3><i class="fas fa-id-card"></i> Personal Information</h3>
-            <div class="form-row">
-                <div class="form-group"><label>First Name</label><input type="text" value="Juan" readonly disabled></div>
-                <div class="form-group"><label>Middle Name</label><input type="text" value="D." readonly disabled></div>
-                <div class="form-group"><label>Last Name</label><input type="text" value="Cruz" readonly disabled></div>
+            
+            <div class="form-row" style="display: flex; gap: 15px; margin-bottom: 15px;">
+                <div class="form-group" style="flex: 2;">
+                    <label style="display:block; font-size:0.85rem; color:#6b7280; margin-bottom:5px;">Full Name</label>
+                    <input type="text" value="<?= $display_name ?>" readonly disabled style="width:100%; padding:10px; border:1px solid #d1d5db; border-radius:6px; background:#f3f4f6; color:#6b7280;">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label style="display:block; font-size:0.85rem; color:#6b7280; margin-bottom:5px;">Student ID</label>
+                    <input type="text" value="<?= $display_id ?>" readonly disabled style="width:100%; padding:10px; border:1px solid #d1d5db; border-radius:6px; background:#f3f4f6; color:#6b7280;">
+                </div>
             </div>
+
             <div class="form-row">
-                <div class="form-group"><label>Email Address</label><input type="email" value="cruz.juan@plpasig.edu.ph" readonly disabled></div>
-                <div class="form-group"><label>Age</label><input type="number" value="25" readonly disabled></div>
+                <div class="form-group" style="width: 100%;">
+                    <label style="display:block; font-size:0.85rem; color:#6b7280; margin-bottom:5px;">Email Address</label>
+                    <input type="email" value="<?= $display_email ?>" readonly disabled style="width:100%; padding:10px; border:1px solid #d1d5db; border-radius:6px; background:#f3f4f6; color:#6b7280;">
+                </div>
             </div>
         </div>
 

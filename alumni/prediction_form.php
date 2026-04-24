@@ -245,7 +245,6 @@ $programs = $conn->query('SELECT * FROM programs ORDER BY name ASC');
                             <?php if ($official_grad_year !== null): ?>
                                 <input type="hidden" name="grad_year" id="gradYearInput" value="<?= (int) $official_grad_year ?>">
                                 <div class="readonly-field"><?= (int) $official_grad_year ?></div>
-                                <small>From your official imported/admin record. Not editable here.</small>
                             <?php else: ?>
                                 <select name="grad_year" id="gradYearInput" required>
                                     <option value="">Select Year...</option>
