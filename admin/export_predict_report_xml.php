@@ -230,40 +230,119 @@ if ($xsdPath) {
     libxml_clear_errors();
 }
 
-if ($downloadMode && $format === 'styled') {
+if ($format === 'styled') {
     $esc = function ($v) {
         return htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8');
     };
-    $htmlOutput = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>PLP Employability Report</title><style>
-    body{font-family:Arial,sans-serif;margin:20px;background:#f8fafc;color:#111827}.wrap{max-width:1200px;margin:0 auto}
-    .card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin-bottom:16px}
-    .title{margin:0;font-size:24px;color:#0d5c34}.sub{margin:8px 0 0;color:#6b7280;font-size:13px}
-    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.kpi{background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:10px}
-    .kpi .label{font-size:12px;color:#6b7280}.kpi .value{font-size:20px;font-weight:700}.ok{color:#059669}.bad{color:#dc2626}
-    table{width:100%;border-collapse:collapse;font-size:13px}th,td{border:1px solid #e5e7eb;padding:8px;text-align:left}th{background:#f3f4f6}
-    </style></head><body><div class="wrap"><div class="card"><h1 class="title">PLP Alumni Tracer - Employability Report</h1>
-    <p class="sub">Generated at: '.$esc($generatedAt).' | XSD Validation: <strong class="'.($isValidXsd ? 'ok' : 'bad').'">'.($isValidXsd ? 'PASS' : 'FAIL').'</strong></p></div>';
-    $htmlOutput .= '<div class="card"><h2>Filters</h2><p class="sub">Range: '.$esc($range).' | Program ID: '.$esc($programId).' | Start: '.$esc($startDate).' | End: '.$esc($endDate).'</p></div>';
-    $htmlOutput .= '<div class="card"><h2>Summary</h2><div class="grid">';
-    $htmlOutput .= '<div class="kpi"><div class="label">Total Assessments</div><div class="value">'.$esc($totalAssessments).'</div></div>';
-    $htmlOutput .= '<div class="kpi"><div class="label">Employment Rate</div><div class="value">'.$esc($employmentRate).'%</div></div>';
-    $htmlOutput .= '<div class="kpi"><div class="label">Good Match Count</div><div class="value">'.$esc($goodMatchCount).'</div></div>';
-    $htmlOutput .= '<div class="kpi"><div class="label">Good Match Rate</div><div class="value">'.$esc($goodMatchRate).'%</div></div></div></div>';
-    $htmlOutput .= '<div class="card"><h2>Program Breakdown</h2><table><thead><tr><th>Program</th><th>Total</th><th>Employed</th><th>Employment %</th><th>Good Match</th><th>Good Match %</th></tr></thead><tbody>';
+    $toDataUri = function (array $paths): string {
+        foreach ($paths as $path) {
+            if (is_string($path) && $path !== '' && is_file($path) && is_readable($path)) {
+                $ext = strtolower((string) pathinfo($path, PATHINFO_EXTENSION));
+                $mime = 'image/png';
+                if ($ext === 'jpg' || $ext === 'jpeg') {
+                    $mime = 'image/jpeg';
+                } elseif ($ext === 'webp') {
+                    $mime = 'image/webp';
+                } elseif ($ext === 'svg') {
+                    $mime = 'image/svg+xml';
+                }
+                $bin = @file_get_contents($path);
+                if ($bin !== false) {
+                    return 'data:' . $mime . ';base64,' . base64_encode($bin);
+                }
+            }
+        }
+        return '';
+    };
+
+    $pasigWordmark = $toDataUri([
+        __DIR__ . '/../assets/c__Users_PLPASIG_AppData_Roaming_Cursor_User_workspaceStorage_891f824531ccf2bd9d821d00cdb14b4d_images_pasig_logo-4893ad0c-8ec7-48eb-a03a-c6e21a0deef2.png',
+        'C:/Users/PLPASIG/.cursor/projects/c-xampp-htdocs-plp-alumni-tracer/assets/c__Users_PLPASIG_AppData_Roaming_Cursor_User_workspaceStorage_891f824531ccf2bd9d821d00cdb14b4d_images_pasig_logo-4893ad0c-8ec7-48eb-a03a-c6e21a0deef2.png',
+        __DIR__ . '/../assets/img/university_logo.png',
+    ]);
+    $plpLogo = $toDataUri([
+        __DIR__ . '/../assets/img/university_logo.png',
+        __DIR__ . '/../assets/img/plp_building.png',
+    ]);
+
+    $htmlOutput = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>PLP Employability Report</title><style>
+    :root{--bg:#f4f7fb;--card:#ffffff;--line:#e2e8f0;--text:#0f172a;--muted:#475569;--brand:#0f766e;--brand-soft:#ecfeff;--ok:#047857;--warn:#b45309;--bad:#b91c1c}
+    *{box-sizing:border-box}
+    body{margin:0;padding:24px;background:var(--bg);font-family:"Segoe UI",Arial,sans-serif;color:var(--text)}
+    .wrap{max-width:1300px;margin:0 auto}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:16px;box-shadow:0 6px 20px rgba(15,23,42,.04)}
+    .header{display:flex;justify-content:space-between;align-items:flex-start;gap:20px}
+    .logo-stack{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+    .logo-stack img{height:56px;max-width:180px;width:auto;object-fit:contain;border-radius:8px;background:#fff}
+    .title{margin:0;font-size:25px;line-height:1.2;color:var(--brand)}
+    .subtitle{margin:6px 0 0;color:var(--muted);font-size:13px}
+    .meta{font-size:12px;color:var(--muted);text-align:right;line-height:1.55}
+    .badge{display:inline-block;padding:4px 10px;border-radius:999px;font-weight:700;font-size:11px;letter-spacing:.02em}
+    .badge.ok{background:#dcfce7;color:var(--ok)} .badge.bad{background:#fee2e2;color:var(--bad)}
+    .filters{display:flex;gap:8px;flex-wrap:wrap}
+    .chip{background:#f8fafc;border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:12px;color:#1e293b}
+    .metrics{display:grid;grid-template-columns:repeat(4,minmax(160px,1fr));gap:12px}
+    .metric{background:linear-gradient(180deg,#ffffff,#f8fafc);border:1px solid var(--line);border-radius:12px;padding:12px}
+    .metric .label{font-size:12px;color:var(--muted)}
+    .metric .value{margin-top:6px;font-size:25px;font-weight:800;line-height:1}
+    .metric .hint{margin-top:4px;font-size:11px;color:#64748b}
+    .section-title{font-size:16px;margin:0 0 10px;color:#0f172a}
+    .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px;background:#fff;max-height:520px}
+    table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px;line-height:1.45}
+    th,td{padding:9px 10px;border-bottom:1px solid #e8edf4;text-align:left;white-space:nowrap;vertical-align:middle}
+    thead th{position:sticky;top:0;background:#f1f5f9;color:#0f172a;font-weight:700;z-index:1}
+    tbody tr:nth-child(even){background:#fbfdff}
+    .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-weight:700;font-size:11px}
+    .pill.good{background:#dcfce7;color:#065f46}.pill.mid{background:#fef3c7;color:#92400e}.pill.low{background:#fee2e2;color:#991b1b}
+    .mono{font-variant-numeric:tabular-nums}
+    .summary-note{font-size:12px;color:#64748b;margin-top:8px}
+    @media (max-width:980px){.metrics{grid-template-columns:repeat(2,minmax(140px,1fr))}.header{flex-direction:column}.meta{text-align:left}}
+    @media print{body{background:#fff;padding:0}.card{box-shadow:none;break-inside:avoid}.table-wrap{max-height:none}}
+    </style></head><body><div class="wrap">';
+    $htmlOutput .= '<div class="card"><div class="header"><div><div class="logo-stack">';
+    if ($pasigWordmark !== '') {
+        $htmlOutput .= '<img src="' . $pasigWordmark . '" alt="Pasig Logo">';
+    }
+    if ($plpLogo !== '') {
+        $htmlOutput .= '<img src="' . $plpLogo . '" alt="PLP Logo">';
+    }
+    $htmlOutput .= '</div><h1 class="title">PLP Alumni Tracer Employability Report</h1><p class="subtitle">Professional analytics overview for alumni prediction outcomes and program-level performance.</p></div>';
+    $htmlOutput .= '<div class="meta"><div><strong>Generated:</strong> '.$esc($generatedAt).'</div><div><strong>XSD Validation:</strong> <span class="badge '.($isValidXsd ? 'ok' : 'bad').'">'.($isValidXsd ? 'PASS' : 'FAIL').'</span></div><div><strong>Rows:</strong> '.count($recentPredictions).' recent predictions</div></div></div></div>';
+    $htmlOutput .= '<div class="card"><h2 class="section-title">Applied Filters</h2><div class="filters">';
+    $htmlOutput .= '<span class="chip"><strong>Range:</strong> '.$esc($range).'</span>';
+    $htmlOutput .= '<span class="chip"><strong>Program ID:</strong> '.$esc($programId > 0 ? $programId : 'All').'</span>';
+    $htmlOutput .= '<span class="chip"><strong>Start:</strong> '.$esc($startDate !== '' ? $startDate : 'Not set').'</span>';
+    $htmlOutput .= '<span class="chip"><strong>End:</strong> '.$esc($endDate !== '' ? $endDate : 'Not set').'</span>';
+    $htmlOutput .= '</div></div>';
+    $htmlOutput .= '<div class="card"><h2 class="section-title">Executive Summary</h2><div class="metrics">';
+    $htmlOutput .= '<div class="metric"><div class="label">Total Assessments</div><div class="value mono">'.$esc($totalAssessments).'</div><div class="hint">Records included in this report</div></div>';
+    $htmlOutput .= '<div class="metric"><div class="label">Employment Rate</div><div class="value mono">'.$esc($employmentRate).'%</div><div class="hint">'.$esc($totalEmployed).' employed / '.$esc($totalAssessments).' total</div></div>';
+    $htmlOutput .= '<div class="metric"><div class="label">Good Match Count</div><div class="value mono">'.$esc($goodMatchCount).'</div><div class="hint">'.$esc($jobMismatchCount).' marked as mismatch</div></div>';
+    $htmlOutput .= '<div class="metric"><div class="label">Good Match Rate</div><div class="value mono">'.$esc($goodMatchRate).'%</div><div class="hint">Employability recommendation fit</div></div>';
+    $htmlOutput .= '</div><p class="summary-note">This layout prioritizes readability for high-volume records through sticky headers, compact chips, and grouped metrics.</p></div>';
+    $htmlOutput .= '<div class="card"><h2 class="section-title">Program Breakdown</h2><div class="table-wrap"><table><thead><tr><th>Program</th><th>Total</th><th>Employed</th><th>Employment %</th><th>Good Match</th><th>Good Match %</th><th>Avg GPA</th><th>Avg OJT</th><th>Avg Soft Skills</th><th>Avg Hard Skills</th></tr></thead><tbody>';
     foreach ($programBreakdown as $program) {
         $t = (int) ($program['total_assessments'] ?? 0);
         $e = (int) ($program['employed_count'] ?? 0);
         $g = (int) ($program['good_match_count'] ?? 0);
-        $htmlOutput .= '<tr><td>'.$esc($program['program_name'] ?? '').'</td><td>'.$t.'</td><td>'.$e.'</td><td>'.($t ? round(($e/$t)*100,2) : 0).'%</td><td>'.$g.'</td><td>'.($t ? round(($g/$t)*100,2) : 0).'%</td></tr>';
+        $htmlOutput .= '<tr><td>'.$esc($program['program_name'] ?? '').'</td><td class="mono">'.$t.'</td><td class="mono">'.$e.'</td><td class="mono">'.($t ? round(($e/$t)*100,2) : 0).'%</td><td class="mono">'.$g.'</td><td class="mono">'.($t ? round(($g/$t)*100,2) : 0).'%</td><td class="mono">'.$esc($program['avg_gpa'] ?? 0).'</td><td class="mono">'.$esc($program['avg_ojt_grade'] ?? 0).'</td><td class="mono">'.$esc($program['avg_soft_skills'] ?? 0).'</td><td class="mono">'.$esc($program['avg_hard_skills'] ?? 0).'</td></tr>';
     }
-    $htmlOutput .= '</tbody></table></div>';
-    $htmlOutput .= '<div class="card"><h2>Recent Predictions (Latest 50)</h2><table><thead><tr><th>ID</th><th>Name</th><th>Program</th><th>Grad Year</th><th>Employment Status</th><th>Employability Status</th><th>Recommended Profession</th><th>GPA</th><th>OJT</th><th>Soft Avg</th><th>Hard Avg</th><th>Created At</th></tr></thead><tbody>';
+    $htmlOutput .= '</tbody></table></div></div>';
+    $htmlOutput .= '<div class="card"><h2 class="section-title">Recent Predictions (Latest 50)</h2><div class="table-wrap"><table><thead><tr><th>ID</th><th>Name</th><th>Program</th><th>Grad Year</th><th>Employment Status</th><th>Employability</th><th>Predicted Level</th><th>Recommended Profession</th><th>GPA</th><th>OJT</th><th>Soft Avg</th><th>Hard Avg</th><th>Created At</th></tr></thead><tbody>';
     foreach ($recentPredictions as $item) {
-        $htmlOutput .= '<tr><td>'.$esc($item['id'] ?? '').'</td><td>'.$esc($item['name'] ?? '').'</td><td>'.$esc($item['program_name'] ?? '').'</td><td>'.$esc($item['grad_year'] ?? '').'</td><td>'.$esc($item['employment_status'] ?? '').'</td><td>'.$esc($item['employability_status'] ?? '').'</td><td>'.$esc($item['recommended_profession'] ?? '').'</td><td>'.$esc($item['gpa'] ?? 0).'</td><td>'.$esc($item['ojt_grade'] ?? 0).'</td><td>'.$esc($item['soft_skills_avg'] ?? 0).'</td><td>'.$esc($item['hard_skills_avg'] ?? 0).'</td><td>'.$esc($item['created_at'] ?? '').'</td></tr>';
+        $fit = round((((float) ($item['soft_skills_avg'] ?? 0) + (float) ($item['hard_skills_avg'] ?? 0)) / 2), 0);
+        $pred = $fit >= 70 ? 'High' : ($fit >= 50 ? 'Medium' : 'Low');
+        $predClass = $fit >= 70 ? 'good' : ($fit >= 50 ? 'mid' : 'low');
+        $statusClass = strcasecmp((string) ($item['employability_status'] ?? ''), 'Good Match') === 0 ? 'good' : 'low';
+        $htmlOutput .= '<tr><td class="mono">'.$esc($item['id'] ?? '').'</td><td>'.$esc($item['name'] ?? '').'</td><td>'.$esc($item['program_name'] ?? '').'</td><td class="mono">'.$esc($item['grad_year'] ?? '').'</td><td>'.$esc($item['employment_status'] ?? '').'</td><td><span class="pill '.$statusClass.'">'.$esc($item['employability_status'] ?? '').'</span></td><td><span class="pill '.$predClass.'">'.$pred.'</span></td><td>'.$esc($item['recommended_profession'] ?? '').'</td><td class="mono">'.$esc($item['gpa'] ?? 0).'</td><td class="mono">'.$esc($item['ojt_grade'] ?? 0).'</td><td class="mono">'.$esc($item['soft_skills_avg'] ?? 0).'</td><td class="mono">'.$esc($item['hard_skills_avg'] ?? 0).'</td><td class="mono">'.$esc($item['created_at'] ?? '').'</td></tr>';
     }
-    $htmlOutput .= '</tbody></table></div></div></body></html>';
+    $htmlOutput .= '</tbody></table></div></div></div></body></html>';
     header('Content-Type: text/html; charset=UTF-8');
-    header('Content-Disposition: attachment; filename="plp_employability_report_' . gmdate('Ymd_His') . '.html"');
+    if ($downloadMode) {
+        header('Content-Disposition: attachment; filename="plp_employability_report_' . gmdate('Ymd_His') . '.html"');
+    } else {
+        header('Content-Disposition: inline; filename="plp_employability_report_' . gmdate('Ymd_His') . '.html"');
+    }
     echo $htmlOutput;
     exit;
 }

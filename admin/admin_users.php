@@ -3,6 +3,44 @@ session_start();
 
 require '../includes/db.php';
 
+$tableExists = static function ($table) use ($conn) {
+    static $cache = [];
+    if (isset($cache[$table])) {
+        return $cache[$table];
+    }
+    $stmt = $conn->prepare("SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? LIMIT 1");
+    if (!$stmt) {
+        $cache[$table] = false;
+        return false;
+    }
+    $stmt->bind_param('s', $table);
+    $stmt->execute();
+    $cache[$table] = $stmt->get_result()->fetch_row() ? true : false;
+    $stmt->close();
+    return $cache[$table];
+};
+
+$columnExists = static function ($table, $column) use ($conn) {
+    static $cache = [];
+    $key = $table . '.' . $column;
+    if (isset($cache[$key])) {
+        return $cache[$key];
+    }
+    $stmt = $conn->prepare("SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1");
+    if (!$stmt) {
+        $cache[$key] = false;
+        return false;
+    }
+    $stmt->bind_param('ss', $table, $column);
+    $stmt->execute();
+    $cache[$key] = $stmt->get_result()->fetch_row() ? true : false;
+    $stmt->close();
+    return $cache[$key];
+};
+
+$academicTableExists = $tableExists('alumni_academic_info');
+$usersHasProgramCol = $columnExists('users', 'program_id');
+
 // --- DELETE USER ---
 if (isset($_GET['delete_id'])) {
     $delete_id = $conn->real_escape_string($_GET['delete_id']);
@@ -72,9 +110,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_academic'])) {
     $soft_skills_avg  = !empty($_POST['soft_skills_avg']) ? "'" . $conn->real_escape_string($_POST['soft_skills_avg']) . "'" : "NULL";
     $hard_skills_avg  = !empty($_POST['hard_skills_avg']) ? "'" . $conn->real_escape_string($_POST['hard_skills_avg']) . "'" : "NULL";
 
+    if (!$academicTableExists) {
+        echo json_encode(['success' => false, 'error' => 'Academic table (alumni_academic_info) is missing.']);
+        exit();
+    }
+
     // Detect if the CSV already added the grades (Checking by student_id)
     $check = $conn->query("SELECT student_id FROM alumni_academic_info WHERE student_id = '$student_id'");
-    
+
     if ($check && $check->num_rows > 0) {
         // Data exists from CSV! Just UPDATE the edits made by the admin.
         $sql = "UPDATE alumni_academic_info SET 
@@ -101,6 +144,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_academic'])) {
 if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_academic'])) {
     header('Content-Type: application/json'); // Ensure clean JSON output
     $student_id = $conn->real_escape_string($_GET['student_id']);
+    if (!$academicTableExists) {
+        echo json_encode(null);
+        exit();
+    }
     $result = $conn->query("SELECT * FROM alumni_academic_info WHERE student_id = '$student_id'");
     if ($result && $result->num_rows > 0) {
         echo json_encode($result->fetch_assoc());
@@ -135,15 +182,21 @@ if ($role_filter !== '') {
     $where_clauses[] = "u.role = '$role_filter'";
 }
 if ($program_filter !== '') {
-    $where_clauses[] = "a.program_id = '$program_filter'";
+    if ($academicTableExists) {
+        $where_clauses[] = "a.program_id = '$program_filter'";
+    } elseif ($usersHasProgramCol) {
+        $where_clauses[] = "u.program_id = '$program_filter'";
+    }
 }
 
 $where_sql = count($where_clauses) > 0 ? "WHERE " . implode(" AND ", $where_clauses) : "";
 
+$academicJoin = $academicTableExists ? "LEFT JOIN alumni_academic_info a ON u.student_id = a.student_id" : "";
+
 // 3. Count total for pagination (using LEFT JOIN so we can filter by program)
 $total_query = "SELECT COUNT(DISTINCT u.student_id) AS total 
                 FROM users u 
-                LEFT JOIN alumni_academic_info a ON u.student_id = a.student_id 
+                $academicJoin
                 $where_sql";
 $total_row   = $conn->query($total_query)->fetch_assoc();
 $total_pages = ceil($total_row['total'] / $results_per_page);
@@ -271,7 +324,7 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
                     <?php
                     // Fetch filtered users with JOIN to match the program ID
                     $fetch_query = "SELECT u.* FROM users u 
-                                    LEFT JOIN alumni_academic_info a ON u.student_id = a.student_id 
+                                    $academicJoin
                                     $where_sql 
                                     GROUP BY u.student_id 
                                     ORDER BY u.created_at DESC 

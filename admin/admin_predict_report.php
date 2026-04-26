@@ -5,6 +5,35 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') {
     exit; 
 }
 require '../includes/db.php';
+
+$colExists = static function ($table, $column) use ($conn) {
+    static $cache = [];
+    $key = $table . '.' . $column;
+    if (isset($cache[$key])) {
+        return $cache[$key];
+    }
+    $stmt = $conn->prepare("SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1");
+    if (!$stmt) {
+        $cache[$key] = false;
+        return false;
+    }
+    $stmt->bind_param('ss', $table, $column);
+    $stmt->execute();
+    $cache[$key] = $stmt->get_result()->fetch_row() ? true : false;
+    $stmt->close();
+    return $cache[$key];
+};
+
+$pickCol = static function ($table, $candidates) use ($colExists) {
+    foreach ($candidates as $candidate) {
+        if ($colExists($table, $candidate)) {
+            return $candidate;
+        }
+    }
+    return null;
+};
+
+$assessmentUserCol = $pickCol('alumni_assessments', ['user_id', 'student_id', 'alumni_id']);
 $range = isset($_GET['range']) ? (string) $_GET['range'] : 'all';
 $programId = isset($_GET['program_id']) ? (int) $_GET['program_id'] : 0;
 $startDate = isset($_GET['start_date']) ? (string) $_GET['start_date'] : '';
@@ -50,10 +79,12 @@ if ($programId > 0) {
 $whereSql = empty($whereParts) ? '' : ('WHERE ' . implode(' AND ', $whereParts));
 
 $latestRows = [];
-$stmt = $conn->prepare("
+$stmt = null;
+if ($assessmentUserCol !== null) {
+    $stmt = $conn->prepare("
     SELECT
         a.id,
-        a.student_id,
+        a.{$assessmentUserCol} AS assessment_user_id,
         a.name,
         a.grad_year,
         a.gpa,
@@ -70,11 +101,12 @@ $stmt = $conn->prepare("
         u.avg_elective_grade
     FROM alumni_assessments a
     LEFT JOIN programs p ON p.id = a.program_id
-    LEFT JOIN users u ON u.id = a.student_id
+    LEFT JOIN users u ON u.id = a.{$assessmentUserCol}
     $whereSql
     ORDER BY a.id DESC
     LIMIT 100
 ");
+}
 if ($stmt) {
     if ($bindTypes !== '' && !empty($bindParams)) {
         $stmt->bind_param($bindTypes, ...$bindParams);
@@ -202,19 +234,11 @@ foreach ($latestRows as $r) {
                 <h3 style="font-size: 1.1rem; color: #1f2937; margin: 0;">Latest Prediction Results</h3>
                 
                 <div class="action-toolbar" style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <a href="export_predict_report_xml.php?<?= htmlspecialchars($filterQuery) ?>&download=1&format=styled" class="btn btn-primary">
-                        <i class="fas fa-download"></i> Styled Report
+                    <a href="export_predict_report_xml.php?<?= htmlspecialchars($filterQuery) ?>&format=styled" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+                        <i class="fas fa-file-alt"></i> View Report
                     </a>
-                    
-                    <button onclick="window.print()" class="btn btn-secondary">
-                        <i class="fas fa-print"></i> Print
-                    </button>
-                    
-                    <a href="export_predict_report_xml.php?<?= htmlspecialchars($filterQuery) ?>" target="_blank" rel="noopener noreferrer" class="btn btn-outline">
-                        <i class="fas fa-file-code"></i> View XML
-                    </a>
-                    <a href="export_predict_report_xml.php?<?= htmlspecialchars($filterQuery) ?>&download=1" class="btn btn-outline">
-                        <i class="fas fa-file-export"></i> Raw XML
+                    <a href="export_predict_report_xml.php?<?= htmlspecialchars($filterQuery) ?>&download=1&format=styled" class="btn btn-secondary">
+                        <i class="fas fa-download"></i> Download Report
                     </a>
                 </div>
             </div>

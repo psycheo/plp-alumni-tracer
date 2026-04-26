@@ -4,13 +4,45 @@ session_start();
 
 require '../includes/db.php';
 
+$colExists = static function ($table, $column) use ($conn) {
+    static $cache = [];
+    $key = $table . '.' . $column;
+    if (isset($cache[$key])) {
+        return $cache[$key];
+    }
+    $stmt = $conn->prepare("SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1");
+    if (!$stmt) {
+        $cache[$key] = false;
+        return false;
+    }
+    $stmt->bind_param('ss', $table, $column);
+    $stmt->execute();
+    $cache[$key] = $stmt->get_result()->fetch_row() ? true : false;
+    $stmt->close();
+    return $cache[$key];
+};
+
+$pickCol = static function ($table, $candidates) use ($colExists) {
+    foreach ($candidates as $candidate) {
+        if ($colExists($table, $candidate)) {
+            return $candidate;
+        }
+    }
+    return null;
+};
+
+$feedbackUserCol = $pickCol('feedbacks', ['user_id', 'student_id', 'alumni_id']);
+
 // 1. Fetch only "Unresolved" feedbacks
-$sql = "SELECT f.*, u.full_name, f.student_id AS user_id
+$sql = "SELECT f.*, u.full_name, u.id AS user_id
         FROM feedbacks f 
-        JOIN users u ON f.student_id = u.id 
+        JOIN users u ON f.{$feedbackUserCol} = u.id 
         WHERE f.status = 'Unresolved' 
         ORDER BY f.created_at DESC";
-$feedbacks = $conn->query($sql);
+$feedbacks = null;
+if ($feedbackUserCol !== null) {
+    $feedbacks = $conn->query($sql);
+}
 
 // 2. Fetch stats for the cards
 $total_reviews = $conn->query("SELECT COUNT(*) as total FROM feedbacks")->fetch_assoc()['total'];
