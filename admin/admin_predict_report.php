@@ -145,7 +145,6 @@ foreach ($latestRows as $r) {
     <link rel="stylesheet" href="../assets/css/admin-style.css?v=4">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* General Styles */
         .badge { padding: 5px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; color: white; display: inline-block; width: 100px; text-align: center; }
         .bg-green { background: #10b981; }
         .bg-red { background: #ef4444; }
@@ -153,43 +152,13 @@ foreach ($latestRows as $r) {
         .progress-bar { height: 100%; border-radius: 4px; }
         .prob-card { display: flex; align-items: center; gap: 15px; border-left: 4px solid; }
 
-        /* PRINT STYLES - This handles the look of the printed report */
         @media print {
-            /* 1. Hide non-essential elements */
-            .admin-sidebar, 
-            .page-title p, 
-            button, 
-            .filter-section, 
-            .actions-column, 
-            .fa-eye { 
-                display: none !important; 
-            }
-
-            /* 2. Reset layout for paper */
-            .admin-main { 
-                margin: 0 !important; 
-                padding: 0 !important; 
-                width: 100% !important; 
-            }
-
-            .admin-card { 
-                box-shadow: none !important; 
-                border: 1px solid #e5e7eb !important; 
-                margin-bottom: 20px !important;
-            }
-
-            /* 3. Force colors to show on print */
+            .admin-sidebar, .page-title p, .filter-section, .action-toolbar, .fa-eye { display: none !important; }
+            .admin-main { margin: 0 !important; padding: 0 !important; width: 100% !important; }
+            .admin-card { box-shadow: none !important; border: 1px solid #e5e7eb !important; margin-bottom: 20px !important; }
             body { background: white !important; }
-            .badge, .progress-bar, .bg-green, .bg-red { 
-                print-color-adjust: exact; 
-                -webkit-print-color-adjust: exact; 
-            }
-
-            /* 4. Page orientation */
-            @page { 
-                size: landscape; 
-                margin: 10mm; 
-            }
+            .badge, .progress-bar, .bg-green, .bg-red { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+            @page { size: landscape; margin: 10mm; }
         }
     </style>
 </head>
@@ -243,7 +212,7 @@ foreach ($latestRows as $r) {
                 </div>
             </div>
 
-            <form method="GET" id="filterForm" class="filter-section" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 20px;">
+            <form method="GET" id="filterForm" class="filter-section" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px;">
                 <div>
                     <label style="display: block; font-size: 0.8rem; color: #6b7280; margin-bottom: 5px; font-weight: 500;">Date Range</label>
                     <select name="range" id="rangeSelect" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; outline: none; color: #374151;">
@@ -269,10 +238,6 @@ foreach ($latestRows as $r) {
                 <div>
                     <label style="display: block; font-size: 0.8rem; color: #6b7280; margin-bottom: 5px; font-weight: 500;">End Date</label>
                     <input type="date" name="end_date" id="endDate" value="<?= htmlspecialchars($endDate) ?>" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px; outline: none; color: #374151;">
-                </div>
-                <div style="display:flex; align-items:flex-end; gap:8px;">
-                    <button type="submit" class="btn btn-primary" style="height: 35px; padding: 0 15px;"><i class="fas fa-filter"></i></button>
-                    <a href="admin_predict_report.php" class="btn btn-secondary" style="height: 35px; padding: 0 15px;"><i class="fas fa-undo"></i></a>
                 </div>
             </form>
             <p style="font-size:0.78rem;color:#6b7280;margin:-8px 0 0 0;">
@@ -352,35 +317,24 @@ foreach ($latestRows as $r) {
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const filterForm = document.getElementById('filterForm');
             const rangeSelect = document.getElementById('rangeSelect');
             const startDate = document.getElementById('startDate');
             const endDate = document.getElementById('endDate');
 
             function toggleDateInputs() {
                 if (rangeSelect.value === 'custom') {
-                    // Enable inputs and make them required
                     startDate.disabled = false;
                     endDate.disabled = false;
-                    startDate.required = true;
-                    endDate.required = true;
-                    
-                    // Visual cue that they are active
                     startDate.style.backgroundColor = '#ffffff';
                     endDate.style.backgroundColor = '#ffffff';
                     startDate.style.cursor = 'text';
                     endDate.style.cursor = 'text';
                 } else {
-                    // Disable inputs and remove requirements
                     startDate.disabled = true;
                     endDate.disabled = true;
-                    startDate.required = false;
-                    endDate.required = false;
-                    
-                    // Clear values so old dates don't linger
                     startDate.value = ''; 
                     endDate.value = '';
-                    
-                    // Visual cue that they are locked
                     startDate.style.backgroundColor = '#f3f4f6';
                     endDate.style.backgroundColor = '#f3f4f6';
                     startDate.style.cursor = 'not-allowed';
@@ -388,11 +342,26 @@ foreach ($latestRows as $r) {
                 }
             }
 
-            // Run immediately on page load to set the correct initial state
-            toggleDateInputs();
+            // AUTO-SUBMIT LOGIC: Submits form whenever an input changes
+            filterForm.addEventListener('change', function(e) {
+                // If it's the range select and it's changed to custom, don't submit yet 
+                // until they've had a chance to pick dates.
+                if (e.target.id === 'rangeSelect' && e.target.value === 'custom') {
+                    toggleDateInputs();
+                    return; 
+                }
+                
+                // If custom range is active, only submit if BOTH dates are filled
+                if (rangeSelect.value === 'custom') {
+                    if (startDate.value !== '' && endDate.value !== '') {
+                        filterForm.submit();
+                    }
+                } else {
+                    filterForm.submit();
+                }
+            });
 
-            // Listen for changes on the dropdown menu
-            rangeSelect.addEventListener('change', toggleDateInputs);
+            toggleDateInputs();
         });
     </script>
 
