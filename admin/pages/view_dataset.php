@@ -52,7 +52,7 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dataset Management - PLP Admin</title>
     
-    <link rel="stylesheet" href="../assets/css/admin-style.css?v=4">
+    <link rel="stylesheet" href="../../assets/css/admin-style.css?v=4">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -109,7 +109,7 @@ try {
 </head>
 <body>
 
-    <?php include '../includes/admin_sidebar.php'; ?>
+    <?php include '../../includes/admin_sidebar.php'; ?>
 
     <main class="admin-main">
 
@@ -118,7 +118,7 @@ try {
                 <h1>Dataset Management</h1>
                 <p>Upload new models and view active training records.</p>
             </div>
-            <a href="admin_dashboard.php" class="btn-upload" style="text-decoration: none; display: inline-flex; align-items: center;">
+            <a href="dashboard.php" class="btn-upload" style="text-decoration: none; display: inline-flex; align-items: center;">
                 <i class="fas fa-home" style="margin-right:8px;"></i> Back to Dashboard
             </a>
         </div>
@@ -144,7 +144,7 @@ try {
                     </strong>
                 </div>
 
-                <form action="process_upload.php" method="POST" enctype="multipart/form-data" id="uploadForm">
+                <form action="../handlers/process_upload.php" method="POST" enctype="multipart/form-data" id="uploadForm">
                     <input type="hidden" name="parsed_dataset" id="parsedDataset">
                     <input type="hidden" name="file_name" id="fileNameHidden">
 
@@ -292,7 +292,7 @@ try {
             <p>This will permanently wipe all <strong><?= number_format($totalRows) ?> records</strong> from the database. This action cannot be undone.</p>
             <div class="modal-actions">
                 <button type="button" class="btn-cancel-modal" onclick="document.getElementById('deleteModal').classList.remove('active')">Cancel</button>
-                <form action="delete_dataset.php" method="POST" style="margin:0;">
+                <form action="../handlers/delete_dataset.php" method="POST" style="margin:0;">
                     <button type="submit" class="btn-delete">Yes, Delete All</button>
                 </form>
             </div>

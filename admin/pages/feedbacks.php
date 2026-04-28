@@ -2,7 +2,7 @@
 session_start();
 // if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') { header("Location: login.php"); exit; }
 
-require '../includes/db.php';
+require '../../includes/db.php';
 
 $colExists = static function ($table, $column) use ($conn) {
     static $cache = [];
@@ -55,12 +55,12 @@ $unresolved_count = $conn->query("SELECT COUNT(*) as total FROM feedbacks WHERE 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Feedbacks - PLP Admin</title>
-    <link rel="stylesheet" href="../assets/css/admin-style.css?v=4">
+    <link rel="stylesheet" href="../../assets/css/admin-style.css?v=4">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
-    <?php include '../includes/admin_sidebar.php'; ?>
+    <?php include '../../includes/admin_sidebar.php'; ?>
 
     <main class="admin-main">
         <div class="page-title">
@@ -137,7 +137,7 @@ $unresolved_count = $conn->query("SELECT COUNT(*) as total FROM feedbacks WHERE 
                         </p>
                         
                         <div class="feedback-actions">
-                            <a href="process_feedback.php?read_id=<?php echo $row['id']; ?>" class="btn-action btn-mark">
+                            <a href="../handlers/process_feedback.php?read_id=<?php echo $row['id']; ?>" class="btn-action btn-mark">
                                 <i class="fas fa-check"></i> Mark as Read
                             </a>
                             <button onclick="openReplyModal(<?php echo $row['id']; ?>, <?php echo $row['user_id']; ?>, '<?php echo addslashes($row['full_name']); ?>')" class="btn-action btn-reply">
@@ -203,7 +203,7 @@ $unresolved_count = $conn->query("SELECT COUNT(*) as total FROM feedbacks WHERE 
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
 
-            fetch('process_feedback.php', {
+            fetch('../handlers/process_feedback.php', {
                 method: 'POST',
                 body: formData
             })

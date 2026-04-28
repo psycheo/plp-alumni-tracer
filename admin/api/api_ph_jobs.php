@@ -8,7 +8,7 @@
  */
 header('Content-Type: application/json; charset=utf-8');
 
-require_once dirname(__DIR__) . '/includes/careerjet_api.php';
+require_once dirname(__DIR__) . '../../includes/careerjet_api.php';
 
 $cred = careerjet_load_credentials();
 if (!$cred['ok']) {

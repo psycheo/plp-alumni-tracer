@@ -4,7 +4,7 @@ if (!isset($_SESSION['loggedin']) || $_SESSION['role'] !== 'admin') {
     header("Location: login.php"); 
     exit; 
 }
-require '../includes/db.php';
+require '../../includes/db.php';
 
 $colExists = static function ($table, $column) use ($conn) {
     static $cache = [];
@@ -142,7 +142,7 @@ foreach ($latestRows as $r) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Predict & Report - PLP Admin</title>
-    <link rel="stylesheet" href="../assets/css/admin-style.css?v=4">
+    <link rel="stylesheet" href="../../assets/css/admin-style.css?v=4">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .badge { padding: 5px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; color: white; display: inline-block; width: 100px; text-align: center; }
@@ -164,7 +164,7 @@ foreach ($latestRows as $r) {
 </head>
 <body>
 
-    <?php include '../includes/admin_sidebar.php'; ?>
+    <?php include '../../includes/admin_sidebar.php'; ?>
 
     <main class="admin-main">
         <div class="page-title">
@@ -203,10 +203,10 @@ foreach ($latestRows as $r) {
                 <h3 style="font-size: 1.1rem; color: #1f2937; margin: 0;">Latest Prediction Results</h3>
                 
                 <div class="action-toolbar" style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <a href="export_predict_report_xml.php?<?= htmlspecialchars($filterQuery) ?>&format=styled" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+                    <a href="../export/export_predict_report_xml.php?<?= htmlspecialchars($filterQuery) ?>&format=styled" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
                         <i class="fas fa-file-alt"></i> View Report
                     </a>
-                    <a href="export_predict_report_xml.php?<?= htmlspecialchars($filterQuery) ?>&download=1&format=styled" class="btn btn-secondary">
+                    <a href="../export/export_predict_report_xml.php?<?= htmlspecialchars($filterQuery) ?>&download=1&format=styled" class="btn btn-secondary">
                         <i class="fas fa-download"></i> Download Report
                     </a>
                 </div>

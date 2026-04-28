@@ -6,37 +6,37 @@
     
     <ul class="sidebar-menu">
         <li>
-            <a href="../admin/admin_dashboard.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'admin_dashboard.php' ? 'active' : ''; ?>">
+            <a href="../pages/dashboard.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'admin_dashboard.php' ? 'active' : ''; ?>">
                 <i class="fas fa-chart-line"></i> Dashboard
             </a>
         </li>
         <li>
-            <a href="../admin/admin_employment_comp.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'admin_employment_comp.php' ? 'active' : ''; ?>">
+            <a href="../pages/employment_comparison.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'admin_employment_comp.php' ? 'active' : ''; ?>">
                 <i class="fas fa-exchange-alt"></i> Job Comparison
             </a>
         </li>
         <li>
-            <a href="../admin/admin_predict_report.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'admin_predict_report.php' ? 'active' : ''; ?>">
+            <a href="../pages/predict_report.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'admin_predict_report.php' ? 'active' : ''; ?>">
                 <i class="fas fa-file-invoice"></i> Predict & Report
             </a>
         </li>
         <li>
-            <a href="../admin/admin_companies.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'admin_companies.php' ? 'active' : ''; ?>">
+            <a href="../pages/companies.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'admin_companies.php' ? 'active' : ''; ?>">
                 <i class="fas fa-building"></i> Companies
             </a>
         </li>
         <li>
-            <a href="../admin/admin_jobs.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'admin_jobs.php' ? 'active' : ''; ?>">
+            <a href="../pages/jobs.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'admin_jobs.php' ? 'active' : ''; ?>">
                 <i class="fas fa-briefcase"></i> Jobs
             </a>
         </li>
         <li>
-            <a href="../admin/admin_users.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'admin_users.php' ? 'active' : ''; ?>">
+            <a href="../pages/users.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'admin_users.php' ? 'active' : ''; ?>">
                 <i class="fas fa-users"></i> Users
             </a>
         </li>
         <li>
-            <a href="../admin/admin_feedbacks.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'admin_feedbacks.php' ? 'active' : ''; ?>">
+            <a href="../pages/feedbacks.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'admin_feedbacks.php' ? 'active' : ''; ?>">
                 <i class="fas fa-comments"></i> Feedbacks
             </a>
         </li>

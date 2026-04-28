@@ -5,7 +5,7 @@ session_start();
 
 // Only allow POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header("Location: view_dataset.php");
+    header("Location: ../pages/view_dataset.php");
     exit;
 }
 
@@ -28,12 +28,12 @@ try {
     $pdo->exec("UPDATE upload_history SET status = 'deleted' WHERE status = 'active'");
 
     $_SESSION['delete_message'] = "Success! All $count records have been deleted from the dataset.";
-    header("Location: view_dataset.php");
+    header("Location: ../pages/view_dataset.php");
     exit;
 
 } catch (PDOException $e) {
     $_SESSION['delete_error'] = "Database Error: " . $e->getMessage();
-    header("Location: view_dataset.php");
+    header("Location: ../pages/view_dataset.php");
     exit;
 }
 ?>

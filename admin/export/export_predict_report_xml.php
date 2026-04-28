@@ -5,7 +5,7 @@ if (!isset($_SESSION['loggedin']) || !isset($_SESSION['role']) || $_SESSION['rol
     exit;
 }
 
-require '../includes/db.php';
+require '../../includes/db.php';
 
 function stmt_fetch_assoc(mysqli $conn, string $sql, string $types = '', array $params = []): array
 {
@@ -139,7 +139,7 @@ $recentPredictions = stmt_fetch_all($conn, $recentSql, $filterTypes, $filterPara
 $basePath = rtrim(str_replace('\\', '/', dirname(dirname($_SERVER['SCRIPT_NAME']))), '/');
 $xslHref = $basePath . '/assets/xml/employability_report.xsl';
 $xsdHref = $basePath . '/assets/xml/employability_report.xsd';
-$xsdPath = realpath(__DIR__ . '/../assets/xml/employability_report.xsd');
+$xsdPath = realpath(__DIR__ . '/../../assets/xml/employability_report.xsd');
 
 $xml = new XMLWriter();
 $xml->openMemory();
@@ -256,13 +256,13 @@ if ($format === 'styled') {
     };
 
     $pasigWordmark = $toDataUri([
-        __DIR__ . '/../assets/c__Users_PLPASIG_AppData_Roaming_Cursor_User_workspaceStorage_891f824531ccf2bd9d821d00cdb14b4d_images_pasig_logo-4893ad0c-8ec7-48eb-a03a-c6e21a0deef2.png',
+        __DIR__ . '/../../assets/c__Users_PLPASIG_AppData_Roaming_Cursor_User_workspaceStorage_891f824531ccf2bd9d821d00cdb14b4d_images_pasig_logo-4893ad0c-8ec7-48eb-a03a-c6e21a0deef2.png',
         'C:/Users/PLPASIG/.cursor/projects/c-xampp-htdocs-plp-alumni-tracer/assets/c__Users_PLPASIG_AppData_Roaming_Cursor_User_workspaceStorage_891f824531ccf2bd9d821d00cdb14b4d_images_pasig_logo-4893ad0c-8ec7-48eb-a03a-c6e21a0deef2.png',
-        __DIR__ . '/../assets/img/university_logo.png',
+        __DIR__ . '/../../assets/img/university_logo.png',
     ]);
     $plpLogo = $toDataUri([
-        __DIR__ . '/../assets/img/university_logo.png',
-        __DIR__ . '/../assets/img/plp_building.png',
+        __DIR__ . '/../../assets/img/university_logo.png',
+        __DIR__ . '/../../assets/img/plp_building.png',
     ]);
 
     $htmlOutput = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>PLP Employability Report</title><style>

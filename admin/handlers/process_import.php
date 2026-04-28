@@ -2,7 +2,7 @@
 session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
-require '../includes/db.php'; 
+require '../../includes/db.php'; 
 
 $column_exists = function ($table, $column) use ($conn) {
     static $cache = [];
@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['json_data'])) {
     
     if (empty($data)) {
         $_SESSION['error_msg'] = "No data found in file.";
-        header("Location: admin_users.php");
+        header("Location: ../pages/users.php");
         exit();
     }
 
@@ -158,10 +158,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['json_data'])) {
     }
 
     $_SESSION['success_msg'] = "Successfully registered/updated $success_count alumni.";
-    header("Location: admin_users.php");
+    header("Location: ../pages/users.php");
     exit();
 } else {
-    header("Location: admin_users.php");
+    header("Location: ../pages/admin_users.php");
     exit();
 }
 ?>

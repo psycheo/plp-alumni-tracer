@@ -36,7 +36,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                     // Route based on role
                     if ($user['role'] === 'admin') {
-                        header("Location: admin/admin_dashboard.php");
+                        header("Location: admin/pages/dashboard.php");
                     } else {
                         header("Location: alumni/dashboard.php");
                     }

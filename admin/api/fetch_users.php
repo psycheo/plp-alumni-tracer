@@ -1,5 +1,5 @@
 <?php
-require '../includes/db.php';
+require '../../includes/db.php';
 
 $search = isset($_GET['search']) ? $conn->real_escape_string($_GET['search']) : '';
 $role = isset($_GET['role']) ? $conn->real_escape_string($_GET['role']) : '';

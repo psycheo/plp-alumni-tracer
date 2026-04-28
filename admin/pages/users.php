@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-require '../includes/db.php';
+require '../../includes/db.php';
 
 $tableExists = static function ($table) use ($conn) {
     static $cache = [];
@@ -210,7 +210,7 @@ if ($prog_result = $conn->query("SELECT id, name FROM programs ORDER BY name ASC
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Users - PLP Admin</title>
-    <link rel="stylesheet" href="../assets/css/admin-style.css?v=4">
+    <link rel="stylesheet" href="../../assets/css/admin-style.css?v=4">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <style>
@@ -313,7 +313,7 @@ if ($prog_result = $conn->query("SELECT id, name FROM programs ORDER BY name ASC
 </head>
 <body>
 
-<?php include '../includes/admin_sidebar.php'; ?>
+<?php include '../../includes/admin_sidebar.php'; ?>
 
 <main class="admin-main">
     <div class="page-title" style="display:flex; justify-content:space-between; align-items:center;">
@@ -481,7 +481,7 @@ if ($prog_result = $conn->query("SELECT id, name FROM programs ORDER BY name ASC
             <p class="preview-count" id="previewCount" style="display:none;"></p>
         </div>
 
-        <form action="process_import.php" method="POST">
+        <form action="../handlers/process_import.php" method="POST">
             <input type="hidden" name="json_data" id="json_data">
             <div class="modal-actions">
                 <button type="button" class="btn-cancel" onclick="document.getElementById('importModal').style.display='none'">Cancel</button>
@@ -564,7 +564,7 @@ document.addEventListener('DOMContentLoaded', () => {
         tableBody.innerHTML = '<tr><td colspan="6" class="loading-indicator"><i class="fas fa-spinner fa-spin"></i> Loading users...</td></tr>';
         
         // Fetch data from server
-        fetch(`admin_users.php?fetch_users=1&search=${encodeURIComponent(search)}&role_filter=${encodeURIComponent(role)}&program_filter=${encodeURIComponent(program)}`)
+        fetch(`users.php?fetch_users=1&search=${encodeURIComponent(search)}&role_filter=${encodeURIComponent(role)}&program_filter=${encodeURIComponent(program)}`)
             .then(response => response.json())
             .then(users => {
                 if (users.length === 0) {
@@ -661,7 +661,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('soft_skills_avg').value = '';
                 document.getElementById('hard_skills_avg').value = '';
                 
-                fetch(`admin_users.php?get_academic=1&student_id=${encodeURIComponent(studentId)}`)
+                fetch(`users.php?get_academic=1&student_id=${encodeURIComponent(studentId)}`)
                     .then(r => r.json())
                     .then(data => {
                         if (data) {
@@ -705,7 +705,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const form = document.getElementById('academicForm');
         const formData = new FormData(form);
         
-        fetch('admin_users.php', { method: 'POST', body: formData })
+        fetch('users.php', { method: 'POST', body: formData })
             .then(r => r.json())
             .then(res => {
                 if (res.success) {

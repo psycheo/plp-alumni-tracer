@@ -1,6 +1,6 @@
 <?php
 session_start();
-require '../includes/db.php';
+require '../../includes/db.php';
 
 $colExists = static function ($table, $column) use ($conn) {
     static $cache = [];
@@ -34,7 +34,7 @@ if (isset($_GET['read_id'])) {
     $stmt = $conn->prepare("UPDATE feedbacks SET status = 'Resolved' WHERE id = ?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
-    header("Location: admin_feedbacks.php?msg=marked_read");
+    header("Location: ../pages/feedbacks.php?msg=marked_read");
     exit;
 }
 

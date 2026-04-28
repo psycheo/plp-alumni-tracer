@@ -9,7 +9,7 @@ session_start();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Companies - PLP Admin</title>
-    <link rel="stylesheet" href="../assets/css/admin-style.css?v=4">
+    <link rel="stylesheet" href="../../assets/css/admin-style.css?v=4">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .filter-bar { display: flex; gap: 15px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
@@ -29,7 +29,7 @@ session_start();
 </head>
 <body>
 
-    <?php include '../includes/admin_sidebar.php'; ?>
+    <?php include '../../includes/admin_sidebar.php'; ?>
 
     <main class="admin-main">
         <div class="page-title">
@@ -93,7 +93,7 @@ session_start();
             loader.style.display = 'block';
 
             try {
-                const res = await fetch('api_ph_jobs.php', {
+                const res = await fetch('../api/api_ph_jobs.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({

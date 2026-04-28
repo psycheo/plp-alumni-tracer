@@ -11,7 +11,7 @@ if (php_sapi_name() !== 'cli') {
     exit(1);
 }
 
-require __DIR__ . '/../includes/db.php';
+require __DIR__ . '/../../includes/db.php';
 
 $summarySql = "
     SELECT
@@ -62,7 +62,7 @@ $xml->setIndent(true);
 $xml->setIndentString('  ');
 $xml->startElement('employabilityReport');
 $xml->writeAttribute('xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance');
-$xml->writeAttribute('xsi:noNamespaceSchemaLocation', '../assets/xml/employability_report.xsd');
+$xml->writeAttribute('xsi:noNamespaceSchemaLocation', '../../assets/xml/employability_report.xsd');
 $xml->writeAttribute('system', 'PLP Alumni Tracer');
 $xml->writeAttribute('version', '1.1');
 $xml->writeAttribute('generatedAtUtc', gmdate('c'));
@@ -111,14 +111,14 @@ $xml->endElement();
 $xml->endDocument();
 
 $output = $xml->outputMemory();
-$targetDir = __DIR__ . '/../exports/xml/monthly';
+$targetDir = __DIR__ . '/../exports/xml/monthly'; ///????
 if (!is_dir($targetDir)) {
     mkdir($targetDir, 0777, true);
 }
 $file = $targetDir . '/monthly_employability_' . date('Ymd_His') . '.xml';
 file_put_contents($file, $output);
 
-$xsdPath = realpath(__DIR__ . '/../assets/xml/employability_report.xsd');
+$xsdPath = realpath(__DIR__ . '/../../assets/xml/employability_report.xsd');
 $xsdStatus = 'SKIPPED';
 if ($xsdPath) {
     libxml_use_internal_errors(true);

@@ -75,7 +75,7 @@ try {
 
         // 6. REDIRECT WITH SUCCESS MESSAGE
         $_SESSION['success_message'] = "Success! Successfully loaded $rowCount rows into the database. (Both .csv and .xlsx are supported!)";
-        header("Location: view_dataset.php");
+        header("Location: ../pages/view_dataset.php");
         exit;
     }
 } catch (PDOException $e) {

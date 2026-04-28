@@ -1,7 +1,7 @@
 <?php
 // 1. Start output buffering to catch rogue whitespace or echoes from db.php
 ob_start(); 
-require '../includes/db.php';
+require '../../includes/db.php';
 ob_end_clean(); // Wipe any accidental HTML output before starting JSON
 
 header('Content-Type: application/json');
