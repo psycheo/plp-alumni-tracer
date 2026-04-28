@@ -97,11 +97,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['plp_id']) && !isset($_
 
 // --- SAVE ACADEMIC INFO (AJAX) ---
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_academic'])) {
-    header('Content-Type: application/json'); // Crucial for Javascript
+    header('Content-Type: application/json');
     
     $student_id = $conn->real_escape_string($_POST['acad_student_id']);
     
-    // Safely escape values. If empty, use NULL.
     $program_id       = !empty($_POST['acad_program_id']) ? "'" . $conn->real_escape_string($_POST['acad_program_id']) . "'" : "NULL";
     $avg_grade        = !empty($_POST['avg_grade']) ? "'" . $conn->real_escape_string($_POST['avg_grade']) . "'" : "NULL";
     $ojt_grade        = !empty($_POST['ojt_grade']) ? "'" . $conn->real_escape_string($_POST['ojt_grade']) . "'" : "NULL";
@@ -115,18 +114,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_academic'])) {
         exit();
     }
 
-    // Detect if the CSV already added the grades (Checking by student_id)
     $check = $conn->query("SELECT student_id FROM alumni_academic_info WHERE student_id = '$student_id'");
 
     if ($check && $check->num_rows > 0) {
-        // Data exists from CSV! Just UPDATE the edits made by the admin.
         $sql = "UPDATE alumni_academic_info SET 
             program_id=$program_id, avg_grade=$avg_grade, ojt_grade=$ojt_grade,
             avg_prof_grade=$avg_prof_grade, avg_elec_grade=$avg_elec_grade,
             soft_skills_avg=$soft_skills_avg, hard_skills_avg=$hard_skills_avg
             WHERE student_id='$student_id'";
     } else {
-        // Data doesn't exist yet, do a fresh INSERT
         $sql = "INSERT INTO alumni_academic_info 
             (student_id, program_id, avg_grade, ojt_grade, avg_prof_grade, avg_elec_grade, soft_skills_avg, hard_skills_avg)
             VALUES ('$student_id', $program_id, $avg_grade, $ojt_grade, $avg_prof_grade, $avg_elec_grade, $soft_skills_avg, $hard_skills_avg)";
@@ -142,7 +138,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_academic'])) {
 
 // --- GET ACADEMIC INFO (AJAX) ---
 if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_academic'])) {
-    header('Content-Type: application/json'); // Ensure clean JSON output
+    header('Content-Type: application/json');
     $student_id = $conn->real_escape_string($_GET['student_id']);
     if (!$academicTableExists) {
         echo json_encode(null);
@@ -157,49 +153,56 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_academic'])) {
     exit();
 }
 
+// --- AJAX endpoint for live filtering ---
+if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['fetch_users'])) {
+    header('Content-Type: application/json');
+    
+    $search = isset($_GET['search']) ? $conn->real_escape_string($_GET['search']) : '';
+    $role_filter = isset($_GET['role_filter']) ? $conn->real_escape_string($_GET['role_filter']) : '';
+    $program_filter = isset($_GET['program_filter']) ? $conn->real_escape_string($_GET['program_filter']) : '';
+    
+    $where_clauses = [];
+    if ($search !== '') {
+        $where_clauses[] = "(u.full_name LIKE '%$search%' OR u.student_id LIKE '%$search%')";
+    }
+    if ($role_filter !== '') {
+        $where_clauses[] = "u.role = '$role_filter'";
+    }
+    if ($program_filter !== '') {
+        if ($academicTableExists) {
+            $where_clauses[] = "a.program_id = '$program_filter'";
+        } elseif ($usersHasProgramCol) {
+            $where_clauses[] = "u.program_id = '$program_filter'";
+        }
+    }
+    
+    $where_sql = count($where_clauses) > 0 ? "WHERE " . implode(" AND ", $where_clauses) : "";
+    $academicJoin = $academicTableExists ? "LEFT JOIN alumni_academic_info a ON u.student_id = a.student_id" : "";
+    
+    $query = "SELECT u.* FROM users u 
+              $academicJoin
+              $where_sql 
+              GROUP BY u.student_id 
+              ORDER BY u.created_at DESC";
+    
+    $result = $conn->query($query);
+    $users = [];
+    
+    if ($result && $result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $users[] = $row;
+        }
+    }
+    
+    echo json_encode($users);
+    exit();
+}
+
 // --- PROGRAM OPTIONS ---
 $programOptions = [];
 if ($prog_result = $conn->query("SELECT id, name FROM programs ORDER BY name ASC")) {
     while ($p = $prog_result->fetch_assoc()) { $programOptions[] = $p; }
 }
-
-// --- FILTERING & PAGINATION ---
-$results_per_page = 10;
-$page       = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
-$start_from = ($page - 1) * $results_per_page;
-
-// 1. Capture Filter Inputs
-$search         = isset($_GET['search']) ? $conn->real_escape_string($_GET['search']) : '';
-$role_filter    = isset($_GET['role_filter']) ? $conn->real_escape_string($_GET['role_filter']) : '';
-$program_filter = isset($_GET['program_filter']) ? $conn->real_escape_string($_GET['program_filter']) : '';
-
-// 2. Build the WHERE clause dynamically
-$where_clauses = [];
-if ($search !== '') {
-    $where_clauses[] = "(u.full_name LIKE '%$search%' OR u.student_id LIKE '%$search%')";
-}
-if ($role_filter !== '') {
-    $where_clauses[] = "u.role = '$role_filter'";
-}
-if ($program_filter !== '') {
-    if ($academicTableExists) {
-        $where_clauses[] = "a.program_id = '$program_filter'";
-    } elseif ($usersHasProgramCol) {
-        $where_clauses[] = "u.program_id = '$program_filter'";
-    }
-}
-
-$where_sql = count($where_clauses) > 0 ? "WHERE " . implode(" AND ", $where_clauses) : "";
-
-$academicJoin = $academicTableExists ? "LEFT JOIN alumni_academic_info a ON u.student_id = a.student_id" : "";
-
-// 3. Count total for pagination (using LEFT JOIN so we can filter by program)
-$total_query = "SELECT COUNT(DISTINCT u.student_id) AS total 
-                FROM users u 
-                $academicJoin
-                $where_sql";
-$total_row   = $conn->query($total_query)->fetch_assoc();
-$total_pages = ceil($total_row['total'] / $results_per_page);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -237,23 +240,78 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
         .btn-save   { padding: 8px 20px; background: #10b981; border: none; border-radius: 6px; cursor: pointer; color: white; font-weight: 600; }
         .import-zone { border: 2px dashed #10b981; padding: 20px; text-align: center; border-radius: 8px; background: #f0fdf4; cursor: pointer; margin-bottom: 10px; transition: background 0.2s; }
         .import-zone.drag-over { background: #d1fae5; border-color: #059669; }
-        .toast-notification { position: fixed; top: 20px; right: 20px; background: #10b981; color: white; padding: 15px 25px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 10px; transition: opacity 0.5s ease, transform 0.5s ease; }
-
-        /* CSV column mapping helper */
-        .mapping-hint { font-size: 0.78rem; color: #6b7280; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px 14px; margin-bottom: 12px; }
-        .mapping-hint strong { color: #374151; }
-        .preview-count { font-size: 0.85rem; color: #059669; font-weight: 600; margin-top: 6px; }
+        
+        /* Toast notification - LOWER RIGHT CORNER */
+        .toast-notification { 
+            position: fixed; 
+            bottom: 20px; 
+            right: 20px; 
+            background: #10b981; 
+            color: white; 
+            padding: 15px 25px; 
+            border-radius: 8px; 
+            z-index: 9999; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            animation: slideInRight 0.3s ease-out;
+        }
+        
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .filter-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 12px;
+            align-items: start;
+            margin-bottom: 20px;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+        .filter-group label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #4b5563;
+            margin-bottom: 5px;
+        }
+        .filter-group input, .filter-group select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            outline: none;
+            font-size: 0.85rem;
+            color: #374151;
+        }
+        .table-container {
+            overflow-x: auto;
+        }
+        .loading-indicator {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+        }
+        .no-results {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+        }
     </style>
 </head>
 <body>
-
-<?php if (isset($_SESSION['success_msg'])): ?>
-    <div class="toast-notification" id="success-toast">
-        <i class="fas fa-check-circle"></i>
-        <span><?php echo $_SESSION['success_msg']; ?></span>
-    </div>
-    <?php unset($_SESSION['success_msg']); ?>
-<?php endif; ?>
 
 <?php include '../includes/admin_sidebar.php'; ?>
 
@@ -273,42 +331,39 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
         </div>
     </div>
 
+    <!-- Live Filter Section -->
     <div class="admin-card" style="padding: 15px 20px; margin-bottom: 20px;">
-        <form method="GET" style="display: grid; grid-template-columns: 2fr 1fr 1fr auto; gap: 12px; align-items: center;">
-            
-            <div style="position: relative;">
-                <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #9ca3af;"></i>
-                <input type="text" name="search" placeholder="Search by name or student ID..." value="<?php echo htmlspecialchars($search); ?>" style="width: 100%; padding: 8px 12px 8px 35px; border: 1px solid #d1d5db; border-radius: 6px; outline: none; font-size: 0.85rem; color: #374151;">
+        <div class="filter-container">
+            <div class="filter-group">
+                <label><i class="fas fa-search"></i> Search</label>
+                <input type="text" id="liveSearch" placeholder="Search by name or student ID..." autocomplete="off">
             </div>
-
-            <div>
-                <select name="role_filter" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; outline: none; font-size: 0.85rem; color: #374151; background: #fff;">
+            
+            <div class="filter-group">
+                <label><i class="fas fa-user-tag"></i> Role</label>
+                <select id="roleFilter">
                     <option value="">All Roles</option>
-                    <option value="alumni" <?php if($role_filter === 'alumni') echo 'selected'; ?>>Alumni</option>
-                    <option value="admin" <?php if($role_filter === 'admin') echo 'selected'; ?>>Administrator</option>
+                    <option value="alumni">Alumni</option>
+                    <option value="admin">Administrator</option>
                 </select>
             </div>
 
-            <div>
-                <select name="program_filter" style="width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; outline: none; font-size: 0.85rem; color: #374151; background: #fff;">
+            <div class="filter-group">
+                <label><i class="fas fa-graduation-cap"></i> College/Program</label>
+                <select id="programFilter">
                     <option value="">All Colleges/Programs</option>
                     <?php foreach ($programOptions as $p): ?>
-                        <option value="<?php echo htmlspecialchars($p['id']); ?>" <?php if($program_filter == $p['id']) echo 'selected'; ?>>
+                        <option value="<?php echo htmlspecialchars($p['id']); ?>">
                             <?php echo htmlspecialchars($p['name']); ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
             </div>
-
-            <div style="display: flex; gap: 8px;">
-                <button type="submit" class="btn btn-primary" style="height: 35px; padding: 0 15px;"><i class="fas fa-filter"></i></button>
-                <a href="admin_users.php" class="btn btn-secondary" style="height: 35px; padding: 0 15px; display: inline-flex; align-items: center; justify-content: center;"><i class="fas fa-undo"></i></a>
-            </div>
-        </form>
+        </div>
     </div>
 
     <div class="admin-card table-card">
-        <div style="overflow-x: auto;">
+        <div class="table-container">
             <table class="admin-table" style="font-size: 0.8rem; width: 100%;">
                 <thead>
                     <tr>
@@ -321,60 +376,16 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
                     </tr>
                 </thead>
                 <tbody id="userTableBody">
-                    <?php
-                    // Fetch filtered users with JOIN to match the program ID
-                    $fetch_query = "SELECT u.* FROM users u 
-                                    $academicJoin
-                                    $where_sql 
-                                    GROUP BY u.student_id 
-                                    ORDER BY u.created_at DESC 
-                                    LIMIT $start_from, $results_per_page";
-                    $result = $conn->query($fetch_query);
-                    
-                    if ($result->num_rows > 0):
-                        while ($row = $result->fetch_assoc()):
-                            $badge_class = ($row['role'] == 'admin') ? 'role-admin' : 'role-alumni';
-                    ?>
                     <tr>
-                        <td><strong><?php echo htmlspecialchars($row['student_id']); ?></strong></td>
-                        <td style="text-transform:uppercase;"><?php echo htmlspecialchars($row['full_name']); ?></td>
-                        <td><?php echo htmlspecialchars($row['email']); ?></td>
-                        <td style="text-align: center;"><span class="role-badge <?php echo $badge_class; ?>"><?php echo ucfirst($row['role']); ?></span></td>
-                        <td style="text-align: center;"><?php echo date("M d, Y", strtotime($row['created_at'])); ?></td>
-                        <td style="text-align: center;">
-                            <button class="action-btn action-edit"
-                                data-id="<?php echo $row['student_id']; ?>"
-                                data-name="<?php echo htmlspecialchars($row['full_name']); ?>"
-                                data-email="<?php echo htmlspecialchars($row['email']); ?>"
-                                data-role="<?php echo $row['role']; ?>">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="action-btn action-academic"
-                                data-id="<?php echo $row['student_id']; ?>"
-                                data-name="<?php echo strtoupper(htmlspecialchars($row['full_name'])); ?>">
-                                <i class="fas fa-graduation-cap"></i>
-                            </button>
-                            <a href="?delete_id=<?php echo urlencode($row['student_id']); ?>"
-                               class="action-btn action-delete"
-                               onclick="return confirm('Delete this user?');">
-                                <i class="fas fa-trash-alt"></i>
-                            </a>
+                        <td colspan="6" class="loading-indicator">
+                            <i class="fas fa-spinner fa-spin"></i> Loading users...
                         </td>
                     </tr>
-                    <?php 
-                        endwhile; 
-                    else: 
-                    ?>
-                        <tr>
-                            <td colspan="6" style="text-align: center; padding: 20px; color: #6b7280;">No users found matching your filters.</td>
-                        </tr>
-                    <?php endif; ?>
                 </tbody>
             </table>
         </div>
     </div>
 </main>
-
 
 <div class="modal-overlay" id="academicModal">
     <div class="modal-content">
@@ -534,92 +545,175 @@ $total_pages = ceil($total_row['total'] / $results_per_page);
 </div>
 
 <script>
+let debounceTimer;
+
 document.addEventListener('DOMContentLoaded', () => {
-
-    // --- Toast auto-dismiss ---
-    const toast = document.getElementById('success-toast');
-    if (toast) {
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            toast.style.transform = 'translateY(-20px)';
-            setTimeout(() => toast.remove(), 500);
-        }, 3000);
+    // Elements
+    const searchInput = document.getElementById('liveSearch');
+    const roleFilter = document.getElementById('roleFilter');
+    const programFilter = document.getElementById('programFilter');
+    const tableBody = document.getElementById('userTableBody');
+    
+    // Function to fetch and display users
+    function fetchUsers() {
+        const search = searchInput.value;
+        const role = roleFilter.value;
+        const program = programFilter.value;
+        
+        // Show loading state
+        tableBody.innerHTML = '<tr><td colspan="6" class="loading-indicator"><i class="fas fa-spinner fa-spin"></i> Loading users...</td></tr>';
+        
+        // Fetch data from server
+        fetch(`admin_users.php?fetch_users=1&search=${encodeURIComponent(search)}&role_filter=${encodeURIComponent(role)}&program_filter=${encodeURIComponent(program)}`)
+            .then(response => response.json())
+            .then(users => {
+                if (users.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="6" class="no-results">No users found matching your filters.</td></tr>';
+                    return;
+                }
+                
+                // Build table rows
+                let html = '';
+                users.forEach(user => {
+                    const badgeClass = user.role === 'admin' ? 'role-admin' : 'role-alumni';
+                    const createdDate = new Date(user.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+                    
+                    html += `
+                        <tr>
+                            <td><strong>${escapeHtml(user.student_id)}</strong></td>
+                            <td style="text-transform:uppercase;">${escapeHtml(user.full_name)}</td>
+                            <td>${escapeHtml(user.email)}</td>
+                            <td style="text-align: center;"><span class="role-badge ${badgeClass}">${user.role.charAt(0).toUpperCase() + user.role.slice(1)}</span></td>
+                            <td style="text-align: center;">${createdDate}</td>
+                            <td style="text-align: center;">
+                                <button class="action-btn action-edit"
+                                    data-id="${escapeHtml(user.student_id)}"
+                                    data-name="${escapeHtml(user.full_name)}"
+                                    data-email="${escapeHtml(user.email)}"
+                                    data-role="${user.role}">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn action-academic"
+                                    data-id="${escapeHtml(user.student_id)}"
+                                    data-name="${escapeHtml(user.full_name).toUpperCase()}">
+                                    <i class="fas fa-graduation-cap"></i>
+                                </button>
+                                <a href="?delete_id=${encodeURIComponent(user.student_id)}"
+                                   class="action-btn action-delete"
+                                   onclick="return confirm('Delete this user?');">
+                                    <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    `;
+                });
+                tableBody.innerHTML = html;
+                
+                // Re-attach event handlers for edit and academic buttons
+                attachButtonHandlers();
+            })
+            .catch(error => {
+                console.error('Error fetching users:', error);
+                tableBody.innerHTML = '<tr><td colspan="6" class="no-results">Error loading users. Please try again.</td></tr>';
+            });
     }
-
-    // --- Open modals ---
+    
+    // Helper function to escape HTML
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+    
+    // Attach event handlers to dynamic buttons
+    function attachButtonHandlers() {
+        // Edit buttons
+        document.querySelectorAll('.action-edit').forEach(btn => {
+            btn.onclick = function(e) {
+                e.preventDefault();
+                document.getElementById('orig_student_id').value = this.dataset.id;
+                document.getElementById('edit_plp_id').value = this.dataset.id;
+                document.getElementById('edit_full_name').value = this.dataset.name;
+                document.getElementById('edit_email').value = this.dataset.email;
+                document.getElementById('edit_role').value = this.dataset.role;
+                document.getElementById('editUserModal').style.display = 'flex';
+            };
+        });
+        
+        // Academic info buttons
+        document.querySelectorAll('.action-academic').forEach(btn => {
+            btn.onclick = function(e) {
+                e.preventDefault();
+                const studentId = this.dataset.id;
+                const name = this.dataset.name;
+                
+                document.getElementById('acad_student_id').value = studentId;
+                document.getElementById('acad_full_name').value = name;
+                document.getElementById('acad_program').value = '';
+                document.getElementById('avg_grade').value = '';
+                document.getElementById('ojt_grade').value = '';
+                document.getElementById('avg_prof_grade').value = '';
+                document.getElementById('avg_elec_grade').value = '';
+                document.getElementById('soft_skills_avg').value = '';
+                document.getElementById('hard_skills_avg').value = '';
+                
+                fetch(`admin_users.php?get_academic=1&student_id=${encodeURIComponent(studentId)}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data) {
+                            document.getElementById('acad_program').value = data.program_id || '';
+                            document.getElementById('avg_grade').value = data.avg_grade || '';
+                            document.getElementById('ojt_grade').value = data.ojt_grade || '';
+                            document.getElementById('avg_prof_grade').value = data.avg_prof_grade || '';
+                            document.getElementById('avg_elec_grade').value = data.avg_elec_grade || '';
+                            document.getElementById('soft_skills_avg').value = data.soft_skills_avg || '';
+                            document.getElementById('hard_skills_avg').value = data.hard_skills_avg || '';
+                        }
+                    })
+                    .catch(err => console.error("Error fetching data:", err));
+                
+                document.getElementById('academicModal').style.display = 'flex';
+            };
+        });
+    }
+    
+    // Live search with debounce
+    searchInput.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(fetchUsers, 300);
+    });
+    
+    // Role filter change
+    roleFilter.addEventListener('change', fetchUsers);
+    
+    // Program filter change
+    programFilter.addEventListener('change', fetchUsers);
+    
+    // Initial load
+    fetchUsers();
+    
+    // Open modals
     document.getElementById('openAddUserModal').onclick = () => document.getElementById('addUserModal').style.display = 'flex';
-    document.getElementById('openImportModal').onclick  = () => document.getElementById('importModal').style.display  = 'flex';
-
-    // --- Edit User ---
-    document.querySelectorAll('.action-edit').forEach(btn => {
-        btn.onclick = function () {
-            document.getElementById('orig_student_id').value = this.dataset.id;
-            document.getElementById('edit_plp_id').value     = this.dataset.id;
-            document.getElementById('edit_full_name').value  = this.dataset.name;
-            document.getElementById('edit_email').value      = this.dataset.email;
-            document.getElementById('edit_role').value       = this.dataset.role;
-            document.getElementById('editUserModal').style.display = 'flex';
-        };
-    });
-
-// --- Academic Info Modal: load existing data via AJAX ---
-    document.querySelectorAll('.action-academic').forEach(btn => {
-        btn.onclick = function () {
-            const studentId = this.dataset.id;
-            const name      = this.dataset.name;
-
-            // 1. Reset all fields to blank first
-            document.getElementById('acad_student_id').value  = studentId;
-            document.getElementById('acad_full_name').value   = name;
-            document.getElementById('acad_program').value     = '';
-            document.getElementById('avg_grade').value        = '';
-            document.getElementById('ojt_grade').value        = '';
-            document.getElementById('avg_prof_grade').value   = '';
-            document.getElementById('avg_elec_grade').value   = '';
-            document.getElementById('soft_skills_avg').value  = '';
-            document.getElementById('hard_skills_avg').value  = '';
-
-            // 2. Fetch the existing CSV data from the database
-            fetch(`admin_users.php?get_academic=1&student_id=${encodeURIComponent(studentId)}`)
-                .then(r => r.json())
-                .then(data => {
-                    if (data) {
-                        // 3. Populate the modal with the CSV data exactly like your screenshot
-                        document.getElementById('acad_program').value    = data.program_id      || '';
-                        document.getElementById('avg_grade').value       = data.avg_grade       || '';
-                        document.getElementById('ojt_grade').value       = data.ojt_grade       || '';
-                        document.getElementById('avg_prof_grade').value  = data.avg_prof_grade  || '';
-                        document.getElementById('avg_elec_grade').value  = data.avg_elec_grade  || '';
-                        document.getElementById('soft_skills_avg').value = data.soft_skills_avg || '';
-                        document.getElementById('hard_skills_avg').value = data.hard_skills_avg || '';
-                    }
-                })
-                .catch(err => console.error("Error fetching data:", err));
-
-            // Show the modal
-            document.getElementById('academicModal').style.display = 'flex';
-        };
-    });
-
-    // --- Save Academic Info via AJAX ---
+    document.getElementById('openImportModal').onclick = () => document.getElementById('importModal').style.display = 'flex';
+    
+    // Save Academic Info
     document.getElementById('saveAcademicBtn').onclick = function () {
-        const form     = document.getElementById('academicForm');
+        const form = document.getElementById('academicForm');
         const formData = new FormData(form);
-
+        
         fetch('admin_users.php', { method: 'POST', body: formData })
-            .then(r => r.text()) 
-            .then(text => {
-                try {
-                    const res = JSON.parse(text);
-                    if (res.success) {
-                        document.getElementById('academicModal').style.display = 'none';
-                        showToast('Academic information updated successfully!');
-                    } else {
-                        alert("Database Error: " + res.error);
-                    }
-                } catch (e) {
-                    console.error("Server response error: ", text);
-                    alert("A server error occurred. Check the console for details.");
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) {
+                    document.getElementById('academicModal').style.display = 'none';
+                    showToast('Academic information updated successfully!');
+                    fetchUsers(); // Refresh the user list
+                } else {
+                    alert("Database Error: " + res.error);
                 }
             })
             .catch(err => {
@@ -627,60 +721,69 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert("Network error: Could not connect to the server.");
             });
     };
-
-    // --- Helper: show toast ---
+    
     function showToast(msg) {
+        // Remove any existing toast
+        const existingToast = document.querySelector('.toast-notification');
+        if (existingToast) {
+            existingToast.remove();
+        }
+        
         const t = document.createElement('div');
         t.className = 'toast-notification';
         t.innerHTML = `<i class="fas fa-check-circle"></i><span>${msg}</span>`;
         document.body.appendChild(t);
+        
         setTimeout(() => {
             t.style.opacity = '0';
-            t.style.transform = 'translateY(-20px)';
+            t.style.transform = 'translateX(100%)';
             setTimeout(() => t.remove(), 500);
         }, 3000);
     }
-
-    // ============================================================
-    //  FILE IMPORT: reads academic columns from CSV/Excel too
-    // ============================================================
-    const dropZone   = document.getElementById('dropZone');
-    const fileInput  = document.getElementById('excel_file');
+    
+    // Check for session success message and show toast
+    <?php if (isset($_SESSION['success_msg'])): ?>
+        showToast('<?php echo addslashes($_SESSION['success_msg']); ?>');
+        <?php unset($_SESSION['success_msg']); ?>
+    <?php endif; ?>
+    
+    // File Import
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('excel_file');
     const processBtn = document.getElementById('processBtn');
-
-    // Drag-and-drop support
-    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-    dropZone.addEventListener('drop', e => {
-        e.preventDefault();
-        dropZone.classList.remove('drag-over');
-        const file = e.dataTransfer.files[0];
-        if (file) processFile(file);
-    });
-
+    
+    if(dropZone) {
+        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+        dropZone.addEventListener('drop', e => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            const file = e.dataTransfer.files[0];
+            if (file) processFile(file);
+        });
+    }
+    
     if(fileInput) {
         fileInput.onchange = function () {
             if (this.files[0]) processFile(this.files[0]);
         };
     }
-
+    
     function processFile(file) {
         document.getElementById('file-name-text').innerText = 'Selected: ' + file.name;
         const reader = new FileReader();
         reader.onload = (e) => {
-            const data     = new Uint8Array(e.target.result);
+            const data = new Uint8Array(e.target.result);
             const workbook = XLSX.read(data, { type: 'array' });
-            const sheet    = workbook.Sheets[workbook.SheetNames[0]];
+            const sheet = workbook.Sheets[workbook.SheetNames[0]];
             const jsonData = XLSX.utils.sheet_to_json(sheet, { defval: '' });
-
-            // Show row count
+            
             const count = document.getElementById('previewCount');
             count.style.display = 'block';
-            count.textContent   = `✓ ${jsonData.length} row(s) ready to import`;
-
-            // Pass entire row (including academic columns) to process_import.php
+            count.textContent = `✓ ${jsonData.length} row(s) ready to import`;
+            
             document.getElementById('json_data').value = JSON.stringify(jsonData);
-            processBtn.disabled     = false;
+            processBtn.disabled = false;
             processBtn.style.opacity = '1';
         };
         reader.readAsArrayBuffer(file);
