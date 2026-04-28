@@ -116,7 +116,8 @@ while ($row = $year_query->fetch_assoc()) {
             </div>
         </div>
 
-        <h3 style="margin-top: 30px; margin-bottom: 15px; color: #1f2937;">Overall Period Summary</h3>
+        <!-- UNCOMMENT IF STILL NEEDED -->
+        <!-- <h3 style="margin-top: 30px; margin-bottom: 15px; color: #1f2937;">Overall Period Summary</h3>
         <div class="compare-grid">
             <div class="admin-card" id="card_a" style="border-top: 4px solid #3b82f6; display: none;">
                 <h3 id="title_a" style="color: #3b82f6; margin-bottom: 15px;">Program A</h3>
@@ -135,7 +136,7 @@ while ($row = $year_query->fetch_assoc()) {
                     <tr><td><strong>Average Time to Hire:</strong></td><td id="time_b">-</td></tr>
                 </table>
             </div>
-        </div>
+        </div> -->
 
     </main>
 
