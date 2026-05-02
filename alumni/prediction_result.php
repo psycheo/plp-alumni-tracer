@@ -1,7 +1,10 @@
 <?php
 session_start();
+require_once __DIR__ . '/../includes/auth.php';
+require_alumni();
+
 if (!isset($_SESSION['prediction_results'])) {
-    header("Location: prediction_form.php");
+    header('Location: prediction_form.php');
     exit;
 }
 $res = $_SESSION['prediction_results'];

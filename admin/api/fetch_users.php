@@ -1,4 +1,8 @@
 <?php
+session_start();
+require_once __DIR__ . '/../../includes/auth.php';
+require_admin();
+
 require '../../includes/db.php';
 
 $search = isset($_GET['search']) ? $conn->real_escape_string($_GET['search']) : '';

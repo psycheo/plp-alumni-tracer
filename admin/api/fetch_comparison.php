@@ -1,6 +1,10 @@
 <?php
+session_start();
+require_once __DIR__ . '/../../includes/auth.php';
+require_admin_api();
+
 // 1. Start output buffering to catch rogue whitespace or echoes from db.php
-ob_start(); 
+ob_start();
 require '../../includes/db.php';
 ob_end_clean(); // Wipe any accidental HTML output before starting JSON
 

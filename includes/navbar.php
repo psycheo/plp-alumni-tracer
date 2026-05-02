@@ -26,7 +26,7 @@
             </a>
         </div>
 
-        <a href="../index.php" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        <a href="/plp-alumni-tracer/logout.php" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
     </div>
 </nav>
 

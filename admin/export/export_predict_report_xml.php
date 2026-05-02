@@ -1,9 +1,7 @@
 <?php
 session_start();
-if (!isset($_SESSION['loggedin']) || !isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
-    header('Location: login.php');
-    exit;
-}
+require_once __DIR__ . '/../../includes/auth.php';
+require_admin();
 
 require '../../includes/db.php';
 

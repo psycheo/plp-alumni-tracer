@@ -1,12 +1,8 @@
-    <?php
-    session_start();
-    require '../includes/db.php';
-
-    // Check if user is logged in
-    if (!isset($_SESSION['loggedin'])) {
-        header("Location: login.php");
-        exit;
-    }
+<?php
+session_start();
+require_once __DIR__ . '/../includes/auth.php';
+require_alumni();
+require '../includes/db.php';
 
     // Get user data from session
     $user_name = isset($_SESSION['full_name']) ? $_SESSION['full_name'] : 'Alumni';

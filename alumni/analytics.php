@@ -1,12 +1,8 @@
 <?php
 session_start();
+require_once __DIR__ . '/../includes/auth.php';
+require_alumni();
 require '../includes/db.php';
-
-// Check if user is logged in
-if (!isset($_SESSION['loggedin'])) {
-    header("Location: login.php");
-    exit;
-}
 
 // Fetch all programs from the database
 $sql = "SELECT * FROM programs";

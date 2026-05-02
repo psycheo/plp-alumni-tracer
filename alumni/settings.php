@@ -1,11 +1,8 @@
 <?php
 session_start();
+require_once __DIR__ . '/../includes/auth.php';
+require_alumni();
 require '../includes/db.php';
-
-if (!isset($_SESSION['loggedin'])) {
-    header("Location: ../login.php");
-    exit;
-}
 
 $status_message = ""; 
 
@@ -26,8 +23,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['new_password'])) {
         // Encrypt the password
         $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
 
-        $stmt = $conn->prepare("UPDATE users SET password = ?, is_temporary = 0 WHERE id = ?");
-        $stmt->bind_param("si", $hashed_password, $user_id);
+        $has_temp_col = false;
+        $col_chk = $conn->query("SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users' AND COLUMN_NAME = 'is_temporary' LIMIT 1");
+        if ($col_chk && $col_chk->num_rows > 0) {
+            $has_temp_col = true;
+        }
+
+        if ($has_temp_col) {
+            $stmt = $conn->prepare('UPDATE users SET password = ?, is_temporary = 0 WHERE id = ?');
+            $stmt->bind_param('si', $hashed_password, $user_id);
+        } else {
+            $stmt = $conn->prepare('UPDATE users SET password = ? WHERE id = ?');
+            $stmt->bind_param('si', $hashed_password, $user_id);
+        }
 
         if ($stmt->execute()) {
             // Force re-login after password change.

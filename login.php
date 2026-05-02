@@ -1,5 +1,15 @@
 <?php
 session_start();
+require_once __DIR__ . '/includes/auth.php';
+if (!empty($_SESSION['loggedin'])) {
+    if (($_SESSION['role'] ?? '') === 'admin') {
+        header('Location: ' . app_url('admin/pages/dashboard.php'));
+    } else {
+        header('Location: ' . app_url('alumni/dashboard.php'));
+    }
+    exit;
+}
+
 require_once 'includes/db.php';
 
 $error = "";
@@ -36,9 +46,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                     // Route based on role
                     if ($user['role'] === 'admin') {
-                        header("Location: admin/pages/dashboard.php");
+                        header('Location: ' . app_url('admin/pages/dashboard.php'));
                     } else {
-                        header("Location: alumni/dashboard.php");
+                        header('Location: ' . app_url('alumni/dashboard.php'));
                     }
                     exit;
                 } else {

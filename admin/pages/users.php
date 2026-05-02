@@ -1,5 +1,7 @@
 <?php
 session_start();
+require_once __DIR__ . '/../../includes/auth.php';
+require_admin();
 
 require '../../includes/db.php';
 
@@ -57,17 +59,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_user'])) {
     $full_name       = $conn->real_escape_string($_POST['edit_full_name']);
     $email           = $conn->real_escape_string($_POST['edit_email']);
     $role            = $conn->real_escape_string($_POST['edit_role']);
+    $edit_new_password = trim($_POST['edit_new_password'] ?? '');
 
     $duplicate_check = false;
     if ($student_id !== $orig_student_id) {
-        if ($conn->query("SELECT student_id FROM users WHERE student_id = '$student_id'")->num_rows > 0) {
-            $duplicate_check = true;
-            echo "<script>alert('Error: A user with this ID Number already exists.');</script>";
+        $dup = $conn->prepare('SELECT 1 FROM users WHERE student_id = ? LIMIT 1');
+        if ($dup) {
+            $dup->bind_param('s', $student_id);
+            $dup->execute();
+            if ($dup->get_result()->num_rows > 0) {
+                $duplicate_check = true;
+                echo "<script>alert('Error: A user with this ID Number already exists.');</script>";
+            }
+            $dup->close();
         }
     }
 
     if (!$duplicate_check) {
-        $conn->query("UPDATE users SET student_id='$student_id', full_name='$full_name', email='$email', role='$role' WHERE student_id='$orig_student_id'");
+        $pw_sql = '';
+        if ($edit_new_password !== '') {
+            $hp = $conn->real_escape_string(password_hash($edit_new_password, PASSWORD_DEFAULT));
+            $pw_sql = ", password = '$hp'";
+        }
+        $conn->query("UPDATE users SET student_id='$student_id', full_name='$full_name', email='$email', role='$role' $pw_sql WHERE student_id='$orig_student_id'");
         $_SESSION['success_msg'] = "User details successfully updated.";
         header("Location: " . strtok($_SERVER["REQUEST_URI"], '?'));
         exit();
@@ -80,11 +94,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['plp_id']) && !isset($_
     $full_name  = $conn->real_escape_string($_POST['full_name']);
     $email      = $conn->real_escape_string($_POST['email']);
     $role       = $conn->real_escape_string($_POST['role']);
-    $password   = $conn->real_escape_string($_POST['temp_password']);
+    $tempPassword = trim($_POST['temp_password'] ?? '');
+    if ($tempPassword === '') {
+        $tempPassword = ($role === 'admin') ? 'admin123' : 'alumni123';
+    }
+    $password = password_hash($tempPassword, PASSWORD_DEFAULT);
 
-    if ($conn->query("SELECT student_id FROM users WHERE student_id = '$student_id'")->num_rows > 0) {
+    $dup_add = $conn->prepare('SELECT 1 FROM users WHERE student_id = ? LIMIT 1');
+    $dup_add->bind_param('s', $student_id);
+    $dup_add->execute();
+    if ($dup_add->get_result()->num_rows > 0) {
+        $dup_add->close();
         echo "<script>alert('Error: A user with this ID Number already exists.');</script>";
     } else {
+        $dup_add->close();
         $sql = "INSERT INTO users (student_id, full_name, email, password, role) 
                 VALUES ('$student_id', '$full_name', '$email', '$password', '$role')";
         if ($conn->query($sql) === TRUE) {
@@ -503,12 +526,12 @@ if ($prog_result = $conn->query("SELECT id, name FROM programs ORDER BY name ASC
             <div class="form-group"><label>Email Address</label><input type="email" name="email" required></div>
             <div class="form-group">
                 <label>System Role</label>
-                <select name="role">
+                <select name="role" id="add_role">
                     <option value="alumni">Alumni</option>
                     <option value="admin">Administrator</option>
                 </select>
             </div>
-            <div class="form-group"><label>Temporary Password</label><input type="password" name="temp_password" value="alumni123" required></div>
+            <div class="form-group"><label>Temporary Password</label><input type="password" name="temp_password" id="temp_password" value="alumni123" required></div>
             <div class="modal-actions">
                 <button type="button" class="btn-cancel" onclick="document.getElementById('addUserModal').style.display='none'">Cancel</button>
                 <button type="submit" class="btn-save">Save User</button>
@@ -536,6 +559,7 @@ if ($prog_result = $conn->query("SELECT id, name FROM programs ORDER BY name ASC
                     <option value="admin">Administrator</option>
                 </select>
             </div>
+            <div class="form-group"><label>New password (optional)</label><input type="password" name="edit_new_password" id="edit_new_password" placeholder="Leave blank to keep current password" autocomplete="new-password"></div>
             <div class="modal-actions">
                 <button type="button" class="btn-cancel" onclick="document.getElementById('editUserModal').style.display='none'">Cancel</button>
                 <button type="submit" class="btn-save">Update User</button>
@@ -640,6 +664,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('edit_full_name').value = this.dataset.name;
                 document.getElementById('edit_email').value = this.dataset.email;
                 document.getElementById('edit_role').value = this.dataset.role;
+                const ep = document.getElementById('edit_new_password');
+                if (ep) ep.value = '';
                 document.getElementById('editUserModal').style.display = 'flex';
             };
         });
@@ -697,8 +723,24 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchUsers();
     
     // Open modals
-    document.getElementById('openAddUserModal').onclick = () => document.getElementById('addUserModal').style.display = 'flex';
+    document.getElementById('openAddUserModal').onclick = () => {
+        const roleSelect = document.getElementById('add_role');
+        const tempPasswordInput = document.getElementById('temp_password');
+        if (roleSelect && tempPasswordInput) {
+            roleSelect.value = 'alumni';
+            tempPasswordInput.value = 'alumni123';
+        }
+        document.getElementById('addUserModal').style.display = 'flex';
+    };
     document.getElementById('openImportModal').onclick = () => document.getElementById('importModal').style.display = 'flex';
+
+    const addRoleSelect = document.getElementById('add_role');
+    const tempPasswordInput = document.getElementById('temp_password');
+    if (addRoleSelect && tempPasswordInput) {
+        addRoleSelect.addEventListener('change', () => {
+            tempPasswordInput.value = addRoleSelect.value === 'admin' ? 'admin123' : 'alumni123';
+        });
+    }
     
     // Save Academic Info
     document.getElementById('saveAcademicBtn').onclick = function () {

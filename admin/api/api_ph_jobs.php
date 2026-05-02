@@ -6,9 +6,13 @@
  * GET  ?keywords=&location=  — simple search (Jobs admin page)
  * POST JSON { "companies": [ {"name","location"}, ... ], "extra_keywords": "..." } — batch tied to Overpass companies
  */
+session_start();
+require_once __DIR__ . '/../../includes/auth.php';
+require_admin_api();
+
 header('Content-Type: application/json; charset=utf-8');
 
-require_once dirname(__DIR__) . '../../includes/careerjet_api.php';
+require_once __DIR__ . '/../../includes/careerjet_api.php';
 
 $cred = careerjet_load_credentials();
 if (!$cred['ok']) {

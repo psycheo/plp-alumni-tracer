@@ -4,13 +4,10 @@
  * Requires logged-in alumni session.
  */
 session_start();
-header('Content-Type: application/json; charset=utf-8');
+require_once dirname(__DIR__) . '/includes/auth.php';
+require_alumni_api();
 
-if (!isset($_SESSION['loggedin']) || empty($_SESSION['user_id'])) {
-    http_response_code(403);
-    echo json_encode(['ok' => false, 'error' => 'Login required.']);
-    exit;
-}
+header('Content-Type: application/json; charset=utf-8');
 
 require_once dirname(__DIR__) . '/includes/careerjet_api.php';
 require_once dirname(__DIR__) . '/includes/overpass_places.php';

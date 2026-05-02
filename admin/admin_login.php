@@ -1,5 +1,11 @@
 <?php
 session_start();
+require_once __DIR__ . '/../includes/auth.php';
+if (!empty($_SESSION['loggedin']) && ($_SESSION['role'] ?? '') === 'admin') {
+    header('Location: ' . app_url('admin/pages/dashboard.php'));
+    exit;
+}
+
 require_once '../includes/db.php';
 
 $error = "";
@@ -32,7 +38,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $_SESSION['full_name'] = $user['full_name'];
                     $_SESSION['role'] = $user['role'];
 
-                    header("Location: admin_dashboard.php");
+                    header('Location: ' . app_url('admin/pages/dashboard.php'));
                     exit;
                 } else {
                     $error = "Incorrect credentials. Please try again.";

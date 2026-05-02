@@ -1,9 +1,11 @@
 <?php
 session_start();
+require_once __DIR__ . '/../includes/auth.php';
+require_alumni();
 require '../includes/db.php';
 
-if (!isset($_SESSION['loggedin']) || empty($_SESSION['user_id'])) {
-    header('Location: login.php');
+if (empty($_SESSION['user_id'])) {
+    header('Location: ' . app_url('login.php'));
     exit;
 }
 
