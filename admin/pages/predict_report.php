@@ -204,9 +204,9 @@ foreach ($latestRows as $r) {
                     <a href="../export/export_predict_report_xml.php?<?= htmlspecialchars($filterQuery) ?>&format=styled" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
                         <i class="fas fa-file-alt"></i> View Report
                     </a>
-                    <a href="../export/export_predict_report_xml.php?<?= htmlspecialchars($filterQuery) ?>&download=1&format=styled" class="btn btn-secondary">
+                    <button type="button" class="btn btn-secondary" onclick="openDownloadModal()">
                         <i class="fas fa-download"></i> Download Report
-                    </a>
+                    </button>
                 </div>
             </div>
 
@@ -362,6 +362,77 @@ foreach ($latestRows as $r) {
             toggleDateInputs();
         });
     </script>
+
+<!-- Report Header Configuration Modal -->
+<div id="downloadModal" class="modal">
+    <div class="modal-content" style="width: 650px;">
+        <h2 style="margin-bottom: 20px; color: #1f2937; font-size: 1.5rem; font-weight: 700;">Configure Report Header</h2>
+        
+        <form id="downloadForm" action="../export/export_predict_report_xml.php" method="POST" enctype="multipart/form-data" target="_blank">
+            
+            <!-- Hidden inputs to preserve your active filters -->
+            <input type="hidden" name="format" value="styled">
+            <input type="hidden" name="download" value="1">
+            <input type="hidden" name="range" value="<?= htmlspecialchars($range) ?>">
+            <input type="hidden" name="program_id" value="<?= htmlspecialchars($programId) ?>">
+            <input type="hidden" name="start_date" value="<?= htmlspecialchars($startDate) ?>">
+            <input type="hidden" name="end_date" value="<?= htmlspecialchars($endDate) ?>">
+
+            <!-- 3 Lined Up Logos -->
+            <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                <div style="flex: 1;">
+                    <label style="display: block; font-size: 0.85rem; margin-bottom: 6px; font-weight: 600; color: #4b5563;">Left Logo</label>
+                    <input type="file" name="logo1" accept="image/*" style="width: 100%; font-size: 0.8rem; padding: 8px; border: 1px dashed #d1d5db; border-radius: 6px; background: #f9fafb; color: #6b7280; cursor: pointer;">
+                </div>
+                <div style="flex: 1;">
+                    <label style="display: block; font-size: 0.85rem; margin-bottom: 6px; font-weight: 600; color: #4b5563;">Center Logo</label>
+                    <input type="file" name="logo2" accept="image/*" style="width: 100%; font-size: 0.8rem; padding: 8px; border: 1px dashed #d1d5db; border-radius: 6px; background: #f9fafb; color: #6b7280; cursor: pointer;">
+                </div>
+                <div style="flex: 1;">
+                    <label style="display: block; font-size: 0.85rem; margin-bottom: 6px; font-weight: 600; color: #4b5563;">Right Logo</label>
+                    <input type="file" name="logo3" accept="image/*" style="width: 100%; font-size: 0.8rem; padding: 8px; border: 1px dashed #d1d5db; border-radius: 6px; background: #f9fafb; color: #6b7280; cursor: pointer;">
+                </div>
+            </div>
+
+            <!-- Editable Text Citations -->
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-size: 0.85rem; margin-bottom: 6px; font-weight: 600; color: #4b5563;">Department Name</label>
+                <input type="text" name="dept_name" value="College of Computer Studies" style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; color: #1f2937; outline: none;">
+            </div>
+            
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-size: 0.85rem; margin-bottom: 6px; font-weight: 600; color: #4b5563;">Address (Read-only)</label>
+                <input type="text" value="Alkalde Jose St. Kapasigan Pasig City, Philippines 1600" readonly style="width: 100%; padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 6px; background-color: #f9fafb; color: #9ca3af; font-size: 0.9rem; outline: none; cursor: not-allowed;">
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-size: 0.85rem; margin-bottom: 6px; font-weight: 600; color: #4b5563;">Contact Information</label>
+                <input type="text" name="contact_info" value="628-1014 Loc. 106    officeoftheoic@plpasig.edu.ph" style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; color: #1f2937; outline: none;">
+            </div>
+
+            <div style="margin-bottom: 25px;">
+                <label style="display: block; font-size: 0.85rem; margin-bottom: 6px; font-weight: 600; color: #4b5563;">University Name Base</label>
+                <input type="text" name="univ_name" value="PAMANTASAN NG LUNGSOD NG PASIG" style="width: 100%; padding: 10px 12px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 0.95rem; font-weight: 600; color: #1f2937; text-transform: uppercase; outline: none;">
+            </div>
+
+            <!-- Action Buttons aligned with your existing CSS -->
+            <div style="display: flex; justify-content: flex-end; gap: 12px; padding-top: 15px; border-top: 1px solid #f3f4f6;">
+                <button type="button" class="btn-cancel" onclick="closeDownloadModal()">Cancel</button>
+                <button type="submit" class="btn-send" onclick="closeDownloadModal()">Confirm Download</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openDownloadModal() {
+        document.getElementById('downloadModal').style.display = 'flex';
+    }
+
+    function closeDownloadModal() {
+        document.getElementById('downloadModal').style.display = 'none';
+    }
+</script>
 
 </body>
 </html>

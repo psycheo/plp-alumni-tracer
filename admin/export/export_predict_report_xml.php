@@ -42,12 +42,12 @@ function stmt_fetch_all(mysqli $conn, string $sql, string $types = '', array $pa
     return $rows;
 }
 
-$downloadMode = isset($_GET['download']) && $_GET['download'] === '1';
-$format = isset($_GET['format']) ? (string) $_GET['format'] : 'xml';
-$range = isset($_GET['range']) ? (string) $_GET['range'] : 'all';
-$programId = isset($_GET['program_id']) ? (int) $_GET['program_id'] : 0;
-$startDate = isset($_GET['start_date']) ? trim((string) $_GET['start_date']) : '';
-$endDate = isset($_GET['end_date']) ? trim((string) $_GET['end_date']) : '';
+$downloadMode = isset($_REQUEST['download']) && $_REQUEST['download'] === '1';
+$format = isset($_REQUEST['format']) ? (string) $_REQUEST['format'] : 'xml';
+$range = isset($_REQUEST['range']) ? (string) $_REQUEST['range'] : 'all';
+$programId = isset($_REQUEST['program_id']) ? (int) $_REQUEST['program_id'] : 0;
+$startDate = isset($_REQUEST['start_date']) ? trim((string) $_REQUEST['start_date']) : '';
+$endDate = isset($_REQUEST['end_date']) ? trim((string) $_REQUEST['end_date']) : '';
 $validRanges = ['all', 'last30', 'last6months', 'custom'];
 if (!in_array($range, $validRanges, true)) {
     $range = 'all';
@@ -253,94 +253,154 @@ if ($format === 'styled') {
         return '';
     };
 
-    $pasigWordmark = $toDataUri([
-        __DIR__ . '/../../assets/c__Users_PLPASIG_AppData_Roaming_Cursor_User_workspaceStorage_891f824531ccf2bd9d821d00cdb14b4d_images_pasig_logo-4893ad0c-8ec7-48eb-a03a-c6e21a0deef2.png',
-        'C:/Users/PLPASIG/.cursor/projects/c-xampp-htdocs-plp-alumni-tracer/assets/c__Users_PLPASIG_AppData_Roaming_Cursor_User_workspaceStorage_891f824531ccf2bd9d821d00cdb14b4d_images_pasig_logo-4893ad0c-8ec7-48eb-a03a-c6e21a0deef2.png',
-        __DIR__ . '/../../assets/img/university_logo.png',
-    ]);
-    $plpLogo = $toDataUri([
-        __DIR__ . '/../../assets/img/university_logo.png',
-        __DIR__ . '/../../assets/img/plp_building.png',
-    ]);
+    // Fetch custom text from the modal, falling back to defaults if viewed directly
+    $deptName = $_POST['dept_name'] ?? 'College of Computer Studies';
+    $address = 'Alkalde Jose St. Kapasigan Pasig City, Philippines 1600';
+    $contactInfo = $_POST['contact_info'] ?? '628-1014 Loc. 106    officeoftheoic@plpasig.edu.ph';
+    $univName = $_POST['univ_name'] ?? 'PAMANTASAN NG LUNGSOD NG PASIG';
 
-    $htmlOutput = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>PLP Employability Report</title><style>
-    :root{--bg:#f4f7fb;--card:#ffffff;--line:#e2e8f0;--text:#0f172a;--muted:#475569;--brand:#0f766e;--brand-soft:#ecfeff;--ok:#047857;--warn:#b45309;--bad:#b91c1c}
-    *{box-sizing:border-box}
-    body{margin:0;padding:24px;background:var(--bg);font-family:"Segoe UI",Arial,sans-serif;color:var(--text)}
-    .wrap{max-width:1300px;margin:0 auto}
-    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:16px;box-shadow:0 6px 20px rgba(15,23,42,.04)}
-    .header{display:flex;justify-content:space-between;align-items:flex-start;gap:20px}
-    .logo-stack{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-    .logo-stack img{height:56px;max-width:180px;width:auto;object-fit:contain;border-radius:8px;background:#fff}
-    .title{margin:0;font-size:25px;line-height:1.2;color:var(--brand)}
-    .subtitle{margin:6px 0 0;color:var(--muted);font-size:13px}
-    .meta{font-size:12px;color:var(--muted);text-align:right;line-height:1.55}
-    .badge{display:inline-block;padding:4px 10px;border-radius:999px;font-weight:700;font-size:11px;letter-spacing:.02em}
-    .badge.ok{background:#dcfce7;color:var(--ok)} .badge.bad{background:#fee2e2;color:var(--bad)}
-    .filters{display:flex;gap:8px;flex-wrap:wrap}
-    .chip{background:#f8fafc;border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:12px;color:#1e293b}
-    .metrics{display:grid;grid-template-columns:repeat(4,minmax(160px,1fr));gap:12px}
-    .metric{background:linear-gradient(180deg,#ffffff,#f8fafc);border:1px solid var(--line);border-radius:12px;padding:12px}
-    .metric .label{font-size:12px;color:var(--muted)}
-    .metric .value{margin-top:6px;font-size:25px;font-weight:800;line-height:1}
-    .metric .hint{margin-top:4px;font-size:11px;color:#64748b}
-    .section-title{font-size:16px;margin:0 0 10px;color:#0f172a}
-    .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px;background:#fff;max-height:520px}
-    table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px;line-height:1.45}
-    th,td{padding:9px 10px;border-bottom:1px solid #e8edf4;text-align:left;white-space:nowrap;vertical-align:middle}
-    thead th{position:sticky;top:0;background:#f1f5f9;color:#0f172a;font-weight:700;z-index:1}
-    tbody tr:nth-child(even){background:#fbfdff}
-    .pill{display:inline-block;padding:2px 9px;border-radius:999px;font-weight:700;font-size:11px}
-    .pill.good{background:#dcfce7;color:#065f46}.pill.mid{background:#fef3c7;color:#92400e}.pill.low{background:#fee2e2;color:#991b1b}
-    .mono{font-variant-numeric:tabular-nums}
-    .summary-note{font-size:12px;color:#64748b;margin-top:8px}
-    @media (max-width:980px){.metrics{grid-template-columns:repeat(2,minmax(140px,1fr))}.header{flex-direction:column}.meta{text-align:left}}
-    @media print{body{background:#fff;padding:0}.card{box-shadow:none;break-inside:avoid}.table-wrap{max-height:none}}
-    </style></head><body><div class="wrap">';
-    $htmlOutput .= '<div class="card"><div class="header"><div><div class="logo-stack">';
-    if ($pasigWordmark !== '') {
-        $htmlOutput .= '<img src="' . $pasigWordmark . '" alt="Pasig Logo">';
+    // Helper to process uploaded files into base64 data URIs so they embed cleanly in the PDF
+    $processUploadedLogo = function($fileInputName, $fallbackPaths) use ($toDataUri) {
+        if (isset($_FILES[$fileInputName]) && $_FILES[$fileInputName]['error'] === UPLOAD_ERR_OK) {
+            $tmpPath = $_FILES[$fileInputName]['tmp_name'];
+            $mime = mime_content_type($tmpPath);
+            $bin = file_get_contents($tmpPath);
+            if ($bin !== false) {
+                return 'data:' . $mime . ';base64,' . base64_encode($bin);
+            }
+        }
+        return $toDataUri($fallbackPaths);
+    };
+
+    // UPDATED DEFAULT LOGOS
+    $logo1 = $processUploadedLogo('logo1', [__DIR__ . '/../../assets/img/pasig_seal.png']);
+    $logo2 = $processUploadedLogo('logo2', [__DIR__ . '/../../assets/img/pasig_logo.png']);
+    $logo3 = $processUploadedLogo('logo3', [__DIR__ . '/../../assets/img/university_logo.png']);
+
+ $htmlOutput = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><title>PLP Employability Report</title><style>
+    /* Print-Optimized Formal Layout */
+    * { box-sizing: border-box; }
+    
+    /* FIX: Removed body padding and margin:auto to prevent the html2pdf left-side crop bug */
+    body { margin: 0; padding: 0; background: #ffffff; font-family: "Century Gothic", Arial, sans-serif; color: #000000; font-size: 10pt; line-height: 1.4; }
+    .wrap { width: 100%; padding: 20px 30px; } 
+    
+    /* Using display:table for bulletproof PDF generation compatibility */
+    .report-header { display: table; width: 100%; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #000; }
+    .header-logos { display: table-cell; vertical-align: middle; white-space: nowrap; width: 45%; }
+    .header-logos img { display: inline-block; vertical-align: middle; margin-right: 15px; }
+    
+    /* Enforced Standard Logo Sizes */
+    .header-logos img.seal { height: 85px; width: 85px; object-fit: contain; }
+    .header-logos img.wordmark { height: 85px; width: auto; max-width: 180px; object-fit: contain; }
+    
+    .header-text { display: table-cell; text-align: right; vertical-align: middle; width: 55%; }
+    .header-dept { font-size: 16pt; font-weight: bold; margin: 0; color: #000; letter-spacing: 0.5px; }
+    .header-address, .header-contact { font-size: 10pt; color: #333; margin: 4px 0; }
+    .header-univ { background-color: #1e3a8a; color: white; padding: 4px 15px; font-size: 11pt; font-weight: bold; margin-top: 8px; display: inline-block; letter-spacing: 1px; }
+    
+    .section-title { font-size: 12pt; margin: 25px 0 10px 0; text-transform: uppercase; font-weight: bold; background: #f0f0f0; padding: 5px 10px; border: 1px solid #000; }
+    .meta-details { display: table; width: 100%; margin-bottom: 20px; font-size: 9pt; color: #333; }
+    .meta-col { display: table-cell; width: 33.33%; }
+    .meta-right { text-align: right; }
+    .meta-center { text-align: center; }
+    
+    table.data-table { width: 100%; border-collapse: collapse; margin-bottom: 25px; font-size: 9.5pt; }
+    table.data-table th, table.data-table td { border: 1px solid #000000; padding: 6px 8px; text-align: left; vertical-align: middle; }
+    table.data-table th { background-color: #e5e5e5; font-weight: bold; text-align: center; }
+    table.data-table td.center { text-align: center; }
+    
+    .summary-grid { display: table; width: 100%; border: 1px solid #000; margin-bottom: 20px; }
+    .summary-box { display: table-cell; padding: 10px; text-align: center; border-right: 1px solid #000; width: 25%; }
+    .summary-box:last-child { border-right: none; }
+    .summary-box .label { font-size: 9pt; font-weight: bold; text-transform: uppercase; }
+    .summary-box .value { font-size: 16pt; font-weight: bold; margin-top: 5px; }
+    </style></head><body>';
+    
+    // Loading screen overlay shown only when auto-downloading the PDF
+    if ($downloadMode) {
+        $htmlOutput .= '<div id="loading" style="position:fixed; top:0; left:0; width:100%; height:100%; background:white; z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:sans-serif;">
+            <h2 style="color:#1e3a8a;">Generating PDF Document...</h2>
+            <p style="color:#666;">Please wait. Your download will begin automatically.</p>
+        </div>';
     }
-    if ($plpLogo !== '') {
-        $htmlOutput .= '<img src="' . $plpLogo . '" alt="PLP Logo">';
-    }
-    $htmlOutput .= '</div><h1 class="title">PLP Alumni Tracer Employability Report</h1><p class="subtitle">Professional analytics overview for alumni prediction outcomes and program-level performance.</p></div>';
-    $htmlOutput .= '<div class="meta"><div><strong>Generated:</strong> '.$esc($generatedAt).'</div><div><strong>XSD Validation:</strong> <span class="badge '.($isValidXsd ? 'ok' : 'bad').'">'.($isValidXsd ? 'PASS' : 'FAIL').'</span></div><div><strong>Rows:</strong> '.count($recentPredictions).' recent predictions</div></div></div></div>';
-    $htmlOutput .= '<div class="card"><h2 class="section-title">Applied Filters</h2><div class="filters">';
-    $htmlOutput .= '<span class="chip"><strong>Range:</strong> '.$esc($range).'</span>';
-    $htmlOutput .= '<span class="chip"><strong>Program ID:</strong> '.$esc($programId > 0 ? $programId : 'All').'</span>';
-    $htmlOutput .= '<span class="chip"><strong>Start:</strong> '.$esc($startDate !== '' ? $startDate : 'Not set').'</span>';
-    $htmlOutput .= '<span class="chip"><strong>End:</strong> '.$esc($endDate !== '' ? $endDate : 'Not set').'</span>';
+
+    $htmlOutput .= '<div id="pdf-content" class="wrap">';
+    
+    // Header Generation
+    $htmlOutput .= '<div class="report-header"><div class="header-logos">';
+    if ($logo1 !== '') $htmlOutput .= '<img src="' . $logo1 . '" alt="Logo 1" class="seal">';
+    if ($logo2 !== '') $htmlOutput .= '<img src="' . $logo2 . '" alt="Logo 2" class="wordmark">';
+    if ($logo3 !== '') $htmlOutput .= '<img src="' . $logo3 . '" alt="Logo 3" class="seal">';
+    $htmlOutput .= '</div><div class="header-text">';
+    $htmlOutput .= '<h2 class="header-dept">'.$esc($deptName).'</h2>';
+    $htmlOutput .= '<p class="header-address">'.$esc($address).'</p>';
+    $htmlOutput .= '<p class="header-contact">'.$esc($contactInfo).'</p>';
+    $htmlOutput .= '<div class="header-univ">'.$esc($univName).'</div>';
     $htmlOutput .= '</div></div>';
-    $htmlOutput .= '<div class="card"><h2 class="section-title">Executive Summary</h2><div class="metrics">';
-    $htmlOutput .= '<div class="metric"><div class="label">Total Assessments</div><div class="value mono">'.$esc($totalAssessments).'</div><div class="hint">Records included in this report</div></div>';
-    $htmlOutput .= '<div class="metric"><div class="label">Employment Rate</div><div class="value mono">'.$esc($employmentRate).'%</div><div class="hint">'.$esc($totalEmployed).' employed / '.$esc($totalAssessments).' total</div></div>';
-    $htmlOutput .= '<div class="metric"><div class="label">Good Match Count</div><div class="value mono">'.$esc($goodMatchCount).'</div><div class="hint">'.$esc($jobMismatchCount).' marked as mismatch</div></div>';
-    $htmlOutput .= '<div class="metric"><div class="label">Good Match Rate</div><div class="value mono">'.$esc($goodMatchRate).'%</div><div class="hint">Employability recommendation fit</div></div>';
-    $htmlOutput .= '</div><p class="summary-note">This layout prioritizes readability for high-volume records through sticky headers, compact chips, and grouped metrics.</p></div>';
-    $htmlOutput .= '<div class="card"><h2 class="section-title">Program Breakdown</h2><div class="table-wrap"><table><thead><tr><th>Program</th><th>Total</th><th>Employed</th><th>Employment %</th><th>Good Match</th><th>Good Match %</th><th>Avg GPA</th><th>Avg OJT</th><th>Avg Soft Skills</th><th>Avg Hard Skills</th></tr></thead><tbody>';
+    
+    // Meta Information
+    $htmlOutput .= '<div class="meta-details">';
+    $htmlOutput .= '<div class="meta-col"><strong>Report Date:</strong> '.gmdate('Y-m-d H:i', strtotime($generatedAt)).'</div>';
+    $htmlOutput .= '<div class="meta-col meta-center"><strong>Filters:</strong> Range: '.$esc($range).' | Program: '.$esc($programId > 0 ? $programId : 'All').'</div>';
+    $htmlOutput .= '<div class="meta-col meta-right"><strong>Records:</strong> '.count($recentPredictions).' shown</div>';
+    $htmlOutput .= '</div>';
+    
+    // Executive Summary
+    $htmlOutput .= '<h2 class="section-title">Executive Summary</h2>';
+    $htmlOutput .= '<div class="summary-grid">';
+    $htmlOutput .= '<div class="summary-box"><div class="label">Total Assessments</div><div class="value">'.$esc($totalAssessments).'</div></div>';
+    $htmlOutput .= '<div class="summary-box"><div class="label">Employment Rate</div><div class="value">'.$esc($employmentRate).'%</div></div>';
+    $htmlOutput .= '<div class="summary-box"><div class="label">Good Match Count</div><div class="value">'.$esc($goodMatchCount).'</div></div>';
+    $htmlOutput .= '<div class="summary-box"><div class="label">Good Match Rate</div><div class="value">'.$esc($goodMatchRate).'%</div></div>';
+    $htmlOutput .= '</div>';
+    
+    // Program Breakdown Table
+    $htmlOutput .= '<h2 class="section-title">Program Breakdown</h2><table class="data-table"><thead><tr><th>Program Name</th><th>Total</th><th>Employed</th><th>Emp. Rate</th><th>Good Match</th><th>Match Rate</th><th>Avg GPA</th><th>Avg OJT</th><th>Soft Skills</th><th>Hard Skills</th></tr></thead><tbody>';
     foreach ($programBreakdown as $program) {
         $t = (int) ($program['total_assessments'] ?? 0);
         $e = (int) ($program['employed_count'] ?? 0);
         $g = (int) ($program['good_match_count'] ?? 0);
-        $htmlOutput .= '<tr><td>'.$esc($program['program_name'] ?? '').'</td><td class="mono">'.$t.'</td><td class="mono">'.$e.'</td><td class="mono">'.($t ? round(($e/$t)*100,2) : 0).'%</td><td class="mono">'.$g.'</td><td class="mono">'.($t ? round(($g/$t)*100,2) : 0).'%</td><td class="mono">'.$esc($program['avg_gpa'] ?? 0).'</td><td class="mono">'.$esc($program['avg_ojt_grade'] ?? 0).'</td><td class="mono">'.$esc($program['avg_soft_skills'] ?? 0).'</td><td class="mono">'.$esc($program['avg_hard_skills'] ?? 0).'</td></tr>';
+        $htmlOutput .= '<tr><td>'.$esc($program['program_name'] ?? '').'</td><td class="center">'.$t.'</td><td class="center">'.$e.'</td><td class="center">'.($t ? round(($e/$t)*100,2) : 0).'%</td><td class="center">'.$g.'</td><td class="center">'.($t ? round(($g/$t)*100,2) : 0).'%</td><td class="center">'.$esc($program['avg_gpa'] ?? 0).'</td><td class="center">'.$esc($program['avg_ojt_grade'] ?? 0).'</td><td class="center">'.$esc($program['avg_soft_skills'] ?? 0).'</td><td class="center">'.$esc($program['avg_hard_skills'] ?? 0).'</td></tr>';
     }
-    $htmlOutput .= '</tbody></table></div></div>';
-    $htmlOutput .= '<div class="card"><h2 class="section-title">Recent Predictions (Latest 50)</h2><div class="table-wrap"><table><thead><tr><th>ID</th><th>Name</th><th>Program</th><th>Grad Year</th><th>Employment Status</th><th>Employability</th><th>Predicted Level</th><th>Recommended Profession</th><th>GPA</th><th>OJT</th><th>Soft Avg</th><th>Hard Avg</th><th>Created At</th></tr></thead><tbody>';
+    $htmlOutput .= '</tbody></table>';
+    
+    // Recent Predictions Table
+    $htmlOutput .= '<h2 class="section-title">Prediction Roster (Latest 50)</h2><table class="data-table"><thead><tr><th>No.</th><th>Student Name</th><th>Program</th><th>Grad Year</th><th>Emp. Status</th><th>Employability Match</th><th>Recommendation</th><th>Match %</th></tr></thead><tbody>';
     foreach ($recentPredictions as $item) {
         $fit = round((((float) ($item['soft_skills_avg'] ?? 0) + (float) ($item['hard_skills_avg'] ?? 0)) / 2), 0);
-        $pred = $fit >= 70 ? 'High' : ($fit >= 50 ? 'Medium' : 'Low');
-        $predClass = $fit >= 70 ? 'good' : ($fit >= 50 ? 'mid' : 'low');
-        $statusClass = strcasecmp((string) ($item['employability_status'] ?? ''), 'Good Match') === 0 ? 'good' : 'low';
-        $htmlOutput .= '<tr><td class="mono">'.$esc($item['id'] ?? '').'</td><td>'.$esc($item['name'] ?? '').'</td><td>'.$esc($item['program_name'] ?? '').'</td><td class="mono">'.$esc($item['grad_year'] ?? '').'</td><td>'.$esc($item['employment_status'] ?? '').'</td><td><span class="pill '.$statusClass.'">'.$esc($item['employability_status'] ?? '').'</span></td><td><span class="pill '.$predClass.'">'.$pred.'</span></td><td>'.$esc($item['recommended_profession'] ?? '').'</td><td class="mono">'.$esc($item['gpa'] ?? 0).'</td><td class="mono">'.$esc($item['ojt_grade'] ?? 0).'</td><td class="mono">'.$esc($item['soft_skills_avg'] ?? 0).'</td><td class="mono">'.$esc($item['hard_skills_avg'] ?? 0).'</td><td class="mono">'.$esc($item['created_at'] ?? '').'</td></tr>';
+        $htmlOutput .= '<tr><td class="center">'.$esc($item['id'] ?? '').'</td><td><strong>'.$esc($item['name'] ?? '').'</strong></td><td>'.$esc($item['program_name'] ?? '').'</td><td class="center">'.$esc($item['grad_year'] ?? '').'</td><td class="center">'.$esc($item['employment_status'] ?? '').'</td><td class="center">'.$esc($item['employability_status'] ?? '').'</td><td>'.$esc($item['recommended_profession'] ?? '').'</td><td class="center"><strong>'.$fit.'%</strong></td></tr>';
     }
-    $htmlOutput .= '</tbody></table></div></div></div></body></html>';
-    header('Content-Type: text/html; charset=UTF-8');
+    $htmlOutput .= '</tbody></table></div>'; // End pdf-content
+    
+    // Inject html2pdf script if in download mode
     if ($downloadMode) {
-        header('Content-Disposition: attachment; filename="plp_employability_report_' . gmdate('Ymd_His') . '.html"');
-    } else {
-        header('Content-Disposition: inline; filename="plp_employability_report_' . gmdate('Ymd_His') . '.html"');
+        $htmlOutput .= '<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>';
+        $htmlOutput .= '<script>
+            window.onload = function() {
+                var element = document.getElementById("pdf-content");
+                
+                /* FIX: scrollX and scrollY reset the viewport, format "legal" prevents horizontal squishing */
+                var opt = {
+                   margin:       0.3,
+                   filename:     "plp_employability_report_' . gmdate('Ymd_His') . '.pdf",
+                   image:        { type: "jpeg", quality: 0.98 },
+                   html2canvas:  { scale: 2, useCORS: true, scrollX: 0, scrollY: 0 }, 
+                   jsPDF:        { unit: "in", format: "legal", orientation: "landscape" }, 
+                   pagebreak:    { mode: "avoid-all" } 
+                };
+                
+                html2pdf().set(opt).from(element).save().then(function() {
+                    document.getElementById("loading").innerHTML = "<h2 style=\'color:#0d5c34;\'>Download Complete!</h2><p style=\'color:#666;\'>You can safely close this tab.</p>";
+                });
+            };
+        </script>';
     }
+
+    $htmlOutput .= '</body></html>';
+
+    // Output raw HTML instead of an attachment to allow the JS PDF generator to run
+    header('Content-Type: text/html; charset=UTF-8');
     echo $htmlOutput;
     exit;
 }

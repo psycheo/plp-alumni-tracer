@@ -1,7 +1,7 @@
 <?php
 session_start();
 require_once __DIR__ . '/../includes/auth.php';
-require_alumni();
+require_alumni(); 
 require '../includes/db.php';
 
 if (empty($_SESSION['user_id'])) {
@@ -230,7 +230,6 @@ $programs = $conn->query('SELECT * FROM programs ORDER BY name ASC');
                         <?php if ($official_program_id): ?>
                             <input type="hidden" name="program_id" id="progInput" value="<?= (int) $official_program_id ?>" data-program-name="<?= htmlspecialchars($official_program_name ?? '') ?>">
                             <div class="readonly-field"><?= htmlspecialchars($official_program_name ?? '') ?></div>
-                            <small>From your official record (set by admin). Not editable here.</small>
                         <?php else: ?>
                             <select name="program_id" id="progInput" required>
                                 <option value="">Select your program...</option>
