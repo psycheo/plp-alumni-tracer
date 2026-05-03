@@ -76,6 +76,23 @@ if ($programId > 0) {
 }
 $whereSql = empty($whereParts) ? '' : ('WHERE ' . implode(' AND ', $whereParts));
 
+// --- Pagination Setup & Count ---
+$limit = 30;
+$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+
+$totalRows = 0;
+$countStmt = $conn->prepare("SELECT COUNT(a.id) FROM alumni_assessments a $whereSql");
+if ($countStmt) {
+    if ($bindTypes !== '') $countStmt->bind_param($bindTypes, ...$bindParams);
+    $countStmt->execute();
+    $countStmt->bind_result($totalRows);
+    $countStmt->fetch();
+    $countStmt->close();
+}
+$totalPages = max(1, ceil($totalRows / $limit));
+if ($page > $totalPages) $page = $totalPages;
+$offset = ($page - 1) * $limit;
+
 $latestRows = [];
 $stmt = null;
 if ($assessmentUserCol !== null) {
@@ -102,13 +119,16 @@ if ($assessmentUserCol !== null) {
     LEFT JOIN users u ON u.id = a.{$assessmentUserCol}
     $whereSql
     ORDER BY a.id DESC
-    LIMIT 100
+    LIMIT ? OFFSET ?
 ");
 }
 if ($stmt) {
-    if ($bindTypes !== '' && !empty($bindParams)) {
-        $stmt->bind_param($bindTypes, ...$bindParams);
-    }
+    // Append Limit and Offset  
+    $mainBindTypes = $bindTypes . 'ii';
+    $mainBindParams = $bindParams;
+    $mainBindParams[] = $limit;
+    $mainBindParams[] = $offset;
+    $stmt->bind_param($mainBindTypes, ...$mainBindParams);
     $stmt->execute();
     $res = $stmt->get_result();
     if ($res) {
@@ -247,6 +267,20 @@ foreach ($latestRows as $r) {
         </div>
         
         <div class="admin-card table-card">
+            <!-- Pagination UI -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <p style="font-size: 0.85rem; color: #4b5563; margin: 0;">
+                    Displaying <?= count($latestRows) ?> data(s), page <?= $page ?> of <?= $totalPages ?> (Total: <?= $totalRows ?>)
+                </p>
+                <div style="display: flex; gap: 5px;">
+                    <?php if ($page > 1): ?>
+                        <a href="?<?= htmlspecialchars($filterQuery) ?>&page=<?= $page - 1 ?>" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.8rem; text-decoration: none;">&laquo; Previous</a>
+                    <?php endif; ?>
+                    <?php if ($page < $totalPages): ?>
+                        <a href="?<?= htmlspecialchars($filterQuery) ?>&page=<?= $page + 1 ?>" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.8rem; text-decoration: none;">Next &raquo;</a>
+                    <?php endif; ?>
+                </div>
+            </div>
             <div style="overflow-x: auto;">
                 <table class="admin-table" style="font-size: 0.8rem; width: 100%;">
                     <thead>
