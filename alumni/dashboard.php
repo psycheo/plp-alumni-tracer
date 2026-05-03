@@ -4,8 +4,9 @@ require_once __DIR__ . '/../includes/auth.php';
 require_alumni();
 require '../includes/db.php';
 
-    // Get user data from session
-    $user_name = isset($_SESSION['full_name']) ? $_SESSION['full_name'] : 'Alumni';
+    $full_name = isset($_SESSION['full_name']) ? trim($_SESSION['full_name']) : 'Alumni';
+    $name_parts = explode(' ', $full_name);
+    $user_name = $name_parts[0]; 
     $student_id = isset($_SESSION['student_id']) ? $_SESSION['student_id'] : '';
     $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 0;
     $audit_logs_rows = [];
@@ -39,16 +40,27 @@ require '../includes/db.php';
         return null;
     };
 
+    // THIS IS THE CRITICAL PART THAT WENT MISSING!
     $assess_user_col = $dashboard_pick_col('alumni_assessments', ['user_id', 'student_id', 'alumni_id']);
     $feedback_user_col = $dashboard_pick_col('feedbacks', ['user_id', 'student_id', 'alumni_id']);
     $reply_user_col = $dashboard_pick_col('feedback_replies', ['user_id', 'student_id', 'alumni_id']);
+
+    // Helper variables to prevent MySQL casting bugs
+    $assess_val = ($assess_user_col === 'student_id') ? $student_id : $user_id;
+    $assess_type = ($assess_user_col === 'student_id') ? "s" : "i";
+
+    $fb_val = ($feedback_user_col === 'student_id') ? $student_id : $user_id;
+    $fb_type = ($feedback_user_col === 'student_id') ? "s" : "i";
+
+    $reply_val = ($reply_user_col === 'student_id') ? $student_id : $user_id;
+    $reply_type = ($reply_user_col === 'student_id') ? "s" : "i";
 
     // 1. Get user's assessment count
     $assessment_count = 0;
     if ($assess_user_col !== null) {
         $stmt = $conn->prepare("SELECT COUNT(*) as count FROM alumni_assessments WHERE {$assess_user_col} = ?");
         if ($stmt) {
-            $stmt->bind_param("i", $user_id);
+            $stmt->bind_param($assess_type, $assess_val);
             $stmt->execute();
             if ($result = $stmt->get_result()->fetch_assoc()) {
                 $assessment_count = (int) $result['count'];
@@ -62,7 +74,7 @@ require '../includes/db.php';
     if ($feedback_user_col !== null) {
         $fb_stmt = $conn->prepare("SELECT COUNT(*) as count FROM feedbacks WHERE {$feedback_user_col} = ?");
         if ($fb_stmt) {
-            $fb_stmt->bind_param("i", $user_id);
+            $fb_stmt->bind_param($fb_type, $fb_val);
             $fb_stmt->execute();
             if ($row = $fb_stmt->get_result()->fetch_assoc()) { $feedback_count = (int) $row['count']; }
             $fb_stmt->close();
@@ -75,7 +87,7 @@ require '../includes/db.php';
     if ($reply_user_col !== null) {
         $notif_stmt = $conn->prepare("SELECT COUNT(*) as count FROM feedback_replies WHERE {$reply_user_col} = ? AND is_seen = 0");
         if ($notif_stmt) {
-            $notif_stmt->bind_param('i', $user_id);
+            $notif_stmt->bind_param($reply_type, $reply_val);
             $notif_stmt->execute();
             if ($row = $notif_stmt->get_result()->fetch_assoc()) {
                 $unread_count = (int) $row['count'];
@@ -85,12 +97,11 @@ require '../includes/db.php';
 
         $notif_list_stmt = $conn->prepare("SELECT reply_text, created_at FROM feedback_replies WHERE {$reply_user_col} = ? AND is_seen = 0 ORDER BY created_at DESC LIMIT 5");
         if ($notif_list_stmt) {
-            $notif_list_stmt->bind_param('i', $user_id);
+            $notif_list_stmt->bind_param($reply_type, $reply_val);
             $notif_list_stmt->execute();
             $notif_list_stmt = $notif_list_stmt->get_result();
         }
     }
-
 
     // 4. The Unified Audit Log
     $audit_parts = [];
@@ -98,18 +109,18 @@ require '../includes/db.php';
     $audit_params = [];
     if ($assess_user_col !== null) {
         $audit_parts[] = "SELECT 'assessment' AS type, created_at AS log_date, 'Career Assessment Taken' AS title, CONCAT('Result: ', recommended_profession) AS description FROM alumni_assessments WHERE {$assess_user_col} = ?";
-        $audit_types .= 'i';
-        $audit_params[] = $user_id;
+        $audit_types .= $assess_type;
+        $audit_params[] = $assess_val;
     }
     if ($feedback_user_col !== null) {
         $audit_parts[] = "SELECT 'feedback' AS type, created_at AS log_date, 'Feedback Submitted' AS title, CONCAT('You rated the portal ', rating, '/5 stars.') AS description FROM feedbacks WHERE {$feedback_user_col} = ?";
-        $audit_types .= 'i';
-        $audit_params[] = $user_id;
+        $audit_types .= $fb_type;
+        $audit_params[] = $fb_val;
     }
     if ($reply_user_col !== null) {
         $audit_parts[] = "SELECT 'reply' AS type, created_at AS log_date, 'Admin Response Received' AS title, 'An admin has replied to your feedback.' AS description FROM feedback_replies WHERE {$reply_user_col} = ?";
-        $audit_types .= 'i';
-        $audit_params[] = $user_id;
+        $audit_types .= $reply_type;
+        $audit_params[] = $reply_val;
     }
     if (!empty($audit_parts)) {
         $audit_sql = implode(' UNION ALL ', $audit_parts) . ' ORDER BY log_date DESC LIMIT 50';

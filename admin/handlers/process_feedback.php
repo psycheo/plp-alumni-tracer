@@ -58,7 +58,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['send_reply'])) {
         echo "ERROR: " . $conn->error;
         exit;
     }
-    $stmt->bind_param("iis", $feedback_id, $alumni_id, $reply_text);
+    $stmt->bind_param("iss", $feedback_id, $alumni_id, $reply_text);
     
     if ($stmt->execute()) {
         $conn->query("UPDATE feedbacks SET status = 'Resolved' WHERE id = $feedback_id");

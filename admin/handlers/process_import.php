@@ -123,8 +123,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['json_data'])) {
         $grad_year       = $row['GRAD YEAR'] ?? $row['GRADUATION YEAR'] ?? $row['YEAR GRADUATED'] ?? null;
         $avg_grade       = $row['AVG GRADE'] ?? $row['AVERAGE GRADE'] ?? $row['GPA'] ?? null;
         $ojt_grade       = $row['OJT GRADE'] ?? $row['OJT'] ?? null;
-        $avg_prof_grade  = $row['AVG PROF GRADE'] ?? $row['AVG PROFESSIONAL GRADE'] ?? null;
-        $avg_elec_grade  = $row['AVG ELEC GRADE'] ?? $row['AVG ELECTIVE GRADE'] ?? null;
+        
+        $avg_prof_grade  = $row['AVG PROF GRADE'] ?? $row['AVG PROFESSIONAL GRADE'] ?? $row['AVG PROF G'] ?? null;
+        $avg_elec_grade  = $row['AVG ELEC GRADE'] ?? $row['AVG ELECTIVE GRADE'] ?? $row['AVG ELEC G'] ?? null;
+        
         $soft_skills_avg = $row['SOFT SKILLS AVG'] ?? $row['SOFT SKILLS AVERAGE'] ?? null;
         $hard_skills_avg = $row['HARD SKILLS AVG'] ?? $row['HARD SKILLS AVERAGE'] ?? null;
 

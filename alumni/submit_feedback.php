@@ -16,48 +16,28 @@ if ($rating < 1 || $rating > 5 || $message === '') {
     exit;
 }
 
-$priority = ['user_id', 'student_id', 'alumni_id'];
-$found = [];
-$res = $conn->query(
-    "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'feedbacks' AND COLUMN_NAME IN ('user_id','student_id','alumni_id')"
-);
-if ($res) {
-    while ($row = $res->fetch_assoc()) {
-        $found[$row['COLUMN_NAME']] = true;
-    }
-}
+// Ensure the student_id exists in the session
+$sid = (string) ($_SESSION['student_id'] ?? '');
 
-$fkCol = null;
-foreach ($priority as $p) {
-    if (!empty($found[$p])) {
-        $fkCol = $p;
-        break;
-    }
-}
-
-if ($fkCol === null) {
-    echo 'Database error';
+if (empty($sid)) {
+    echo 'Error: Session student_id is missing.';
     exit;
 }
 
-$sql = "INSERT INTO feedbacks (`{$fkCol}`, rating, message) VALUES (?, ?, ?)";
+// Directly insert using student_id
+$sql = "INSERT INTO feedbacks (student_id, rating, message) VALUES (?, ?, ?)";
 $stmt = $conn->prepare($sql);
+
 if (!$stmt) {
-    echo 'Database error';
+    echo 'Database error: ' . $conn->error;
     exit;
 }
 
-if ($fkCol === 'student_id') {
-    $sid = (string) ($_SESSION['student_id'] ?? '');
-    $stmt->bind_param('sis', $sid, $rating, $message);
-} else {
-    $uid = (int) ($_SESSION['user_id'] ?? 0);
-    $stmt->bind_param('iis', $uid, $rating, $message);
-}
+$stmt->bind_param('sis', $sid, $rating, $message);
 
 if ($stmt->execute()) {
-    echo 'Success';
+    echo 'SUCCESS';
 } else {
-    echo 'Database error';
+    echo 'Database error: ' . $stmt->error;
 }
 $stmt->close();

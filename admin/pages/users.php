@@ -314,11 +314,42 @@ if ($prog_result = $conn->query("SELECT id, name FROM programs ORDER BY name ASC
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
+                        
+        .filter-container { 
+            display: grid; 
+            grid-template-columns: 2fr 1fr 1fr; 
+            gap: 20px; 
+            align-items: start; 
+            margin-bottom: 15px; 
+        }
         
-        .filter-container { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; align-items: start; margin-bottom: 20px; }
-        .filter-group { display: flex; flex-direction: column; }
-        .filter-group label { font-size: 0.75rem; font-weight: 600; color: #4b5563; margin-bottom: 5px; }
-        .filter-group input, .filter-group select { width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; outline: none; font-size: 0.85rem; color: #374151; }
+        .filter-group { 
+            display: flex; 
+            flex-direction: column; 
+        }
+        
+        .filter-group label { 
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem; 
+            font-weight: 600; 
+            color: #4b5563; 
+            margin-bottom: 8px; 
+        }
+        
+        .filter-group input, 
+        .filter-group select { 
+            width: 100%; 
+            padding: 10px 12px; 
+            border: 1px solid #d1d5db; 
+            border-radius: 6px; 
+            outline: none; 
+            font-size: 0.85rem; 
+            color: #374151; 
+            box-sizing: border-box;
+        }
+
         .table-container { overflow-x: auto; }
         .loading-indicator { text-align: center; padding: 40px; color: #6b7280; }
         .no-results { text-align: center; padding: 40px; color: #6b7280; }

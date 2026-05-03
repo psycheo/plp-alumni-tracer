@@ -5,46 +5,16 @@ require_admin();
 
 require '../../includes/db.php';
 
-$colExists = static function ($table, $column) use ($conn) {
-    static $cache = [];
-    $key = $table . '.' . $column;
-    if (isset($cache[$key])) {
-        return $cache[$key];
-    }
-    $stmt = $conn->prepare("SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ? LIMIT 1");
-    if (!$stmt) {
-        $cache[$key] = false;
-        return false;
-    }
-    $stmt->bind_param('ss', $table, $column);
-    $stmt->execute();
-    $cache[$key] = $stmt->get_result()->fetch_row() ? true : false;
-    $stmt->close();
-    return $cache[$key];
-};
-
-$pickCol = static function ($table, $candidates) use ($colExists) {
-    foreach ($candidates as $candidate) {
-        if ($colExists($table, $candidate)) {
-            return $candidate;
-        }
-    }
-    return null;
-};
-
-$feedbackUserCol = $pickCol('feedbacks', ['user_id', 'student_id', 'alumni_id']);
-
 // 1. Fetch only "Unresolved" feedbacks
-$sql = "SELECT f.*, u.full_name, u.id AS user_id
-        FROM feedbacks f 
-        JOIN users u ON f.{$feedbackUserCol} = u.id 
-        WHERE f.status = 'Unresolved' 
-        ORDER BY f.created_at DESC";
-$feedbacks = null;
-if ($feedbackUserCol !== null) {
-    $feedbacks = $conn->query($sql);
-}
+$sql = "SELECT feedbacks.*, users.full_name, users.student_id AS actual_student_id
+        FROM feedbacks 
+        JOIN users ON feedbacks.student_id = users.student_id 
+        WHERE feedbacks.status = 'Unresolved' 
+        AND feedbacks.student_id IS NOT NULL 
+        AND feedbacks.student_id != ''
+        ORDER BY feedbacks.created_at DESC";
 
+$feedbacks = $conn->query($sql);
 // 2. Fetch stats for the cards
 $total_reviews = $conn->query("SELECT COUNT(*) as total FROM feedbacks")->fetch_assoc()['total'];
 $unresolved_count = $conn->query("SELECT COUNT(*) as total FROM feedbacks WHERE status = 'Unresolved'")->fetch_assoc()['total'];
@@ -141,7 +111,7 @@ $unresolved_count = $conn->query("SELECT COUNT(*) as total FROM feedbacks WHERE 
                             <a href="../handlers/process_feedback.php?read_id=<?php echo $row['id']; ?>" class="btn-action btn-mark">
                                 <i class="fas fa-check"></i> Mark as Read
                             </a>
-                            <button onclick="openReplyModal(<?php echo $row['id']; ?>, <?php echo $row['user_id']; ?>, '<?php echo addslashes($row['full_name']); ?>')" class="btn-action btn-reply">
+                            <button onclick="openReplyModal(<?php echo $row['id']; ?>, '<?php echo $row['actual_student_id']; ?>', '<?php echo addslashes($row['full_name']); ?>')" class="btn-action btn-reply">
                                 <i class="fas fa-reply"></i> Reply
                             </button>
                         </div>
