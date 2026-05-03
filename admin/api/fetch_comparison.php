@@ -9,8 +9,6 @@ require '../../includes/db.php';
 require_once __DIR__ . '/../../includes/assessment_partition.php';
 ob_end_clean(); // Wipe any accidental HTML output before starting JSON
 
-$assessmentLinkCol = assessment_link_column_name($conn);
-
 header('Content-Type: application/json');
 
 $prog_a = $_POST['program_a'] ?? 'none';
@@ -27,7 +25,7 @@ if ($start_year > $end_year) {
 
 $years_range = range($start_year, $end_year);
 
-function getTrendStats($conn, $program_id, $years, $link_col) {
+function getTrendStats($conn, $program_id, $years) {
     // Check for DB preparation errors to prevent silent crashes
     $nameStmt = $conn->prepare("SELECT name FROM programs WHERE id = ?");
     if (!$nameStmt) die(json_encode(['error' => 'Programs Query Error: ' . $conn->error]));
@@ -46,18 +44,20 @@ function getTrendStats($conn, $program_id, $years, $link_col) {
         'top_industries' => []
     ];
 
+    $kb = assessment_respondent_key_sql($conn, 'b');
+    $k1 = assessment_respondent_key_sql($conn, 't1');
+
     foreach ($years as $year) {
         // LATEST ASSESSMENT
-        $lc = '`' . str_replace('`', '``', $link_col) . '`';
         $latestStmt = $conn->prepare("
             SELECT t1.employment_status, t1.industry
             FROM alumni_assessments t1
             INNER JOIN (
-                SELECT {$lc}, MAX(created_at) as latest_date
-                FROM alumni_assessments
-                WHERE program_id = ? AND grad_year = ?
-                GROUP BY {$lc}
-            ) t2 ON t1.{$lc} = t2.{$lc} AND t1.created_at = t2.latest_date
+                SELECT {$kb} AS respondent_key, MAX(b.created_at) as latest_date
+                FROM alumni_assessments b
+                WHERE b.program_id = ? AND b.grad_year = ?
+                GROUP BY {$kb}
+            ) t2 ON {$k1} = t2.respondent_key AND t1.created_at = t2.latest_date
         ");
         if (!$latestStmt) die(json_encode(['error' => 'Latest Assessment Query Error: ' . $conn->error]));
 
@@ -71,7 +71,7 @@ function getTrendStats($conn, $program_id, $years, $link_col) {
 
         while ($row = $latestResult->fetch_assoc()) {
             $total++;
-            if ($row['employment_status'] === 'Employed') {
+            if (assessment_employment_is_employed($row['employment_status'] ?? null)) {
                 $employed++;
                 if (!empty($row['industry'])) {
                     $ind = $row['industry'];
@@ -93,11 +93,11 @@ function getTrendStats($conn, $program_id, $years, $link_col) {
             SELECT AVG(t1.months_to_hire) as avg_months
             FROM alumni_assessments t1
             INNER JOIN (
-                SELECT {$lc}, MIN(created_at) as earliest_date
-                FROM alumni_assessments
-                WHERE program_id = ? AND grad_year = ? AND months_to_hire IS NOT NULL
-                GROUP BY {$lc}
-            ) t2 ON t1.{$lc} = t2.{$lc} AND t1.created_at = t2.earliest_date
+                SELECT {$kb} AS respondent_key, MIN(b.created_at) as earliest_date
+                FROM alumni_assessments b
+                WHERE b.program_id = ? AND b.grad_year = ? AND b.months_to_hire IS NOT NULL
+                GROUP BY {$kb}
+            ) t2 ON {$k1} = t2.respondent_key AND t1.created_at = t2.earliest_date
         ");
         if (!$timeStmt) die(json_encode(['error' => 'Time to Hire Query Error: ' . $conn->error]));
 
@@ -116,8 +116,8 @@ function getTrendStats($conn, $program_id, $years, $link_col) {
     return $data;
 }
 
-$groupA = ($prog_a !== 'none') ? getTrendStats($conn, $prog_a, $years_range, $assessmentLinkCol) : ['is_none' => true];
-$groupB = ($prog_b !== 'none') ? getTrendStats($conn, $prog_b, $years_range, $assessmentLinkCol) : ['is_none' => true];
+$groupA = ($prog_a !== 'none') ? getTrendStats($conn, $prog_a, $years_range) : ['is_none' => true];
+$groupB = ($prog_b !== 'none') ? getTrendStats($conn, $prog_b, $years_range) : ['is_none' => true];
 
 echo json_encode([
     'labels' => $years_range,
