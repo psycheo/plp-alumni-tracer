@@ -499,6 +499,10 @@ body {
     animation: fadeEffect 0.3s;
 }
 
+.tab-content.active {
+    display: block;
+}
+
 @keyframes fadeEffect {
     from {opacity: 0;}
     to {opacity: 1;}

@@ -11,6 +11,7 @@ $res = $_SESSION['prediction_results'];
 
 require_once '../includes/db.php';
 require_once '../includes/career_ml_config.php';
+require_once '../includes/ml_python.php';
 
 $name = htmlspecialchars($res['name']);
 $profession_raw = isset($res['profession']) ? (string) $res['profession'] : '';
@@ -59,24 +60,10 @@ $second_match = null;
 $third_match = null;
 $model_degree_label = '';
 
-$ml_dir = realpath(__DIR__ . '/../ml');
-$predict_py = $ml_dir ? ($ml_dir . DIRECTORY_SEPARATOR . 'predict.py') : null;
+$python_exe = ml_python_executable();
+$predict_py = ml_predict_script_path();
 
-$python_exe = null;
-if ($ml_dir) {
-    $candidates = [
-        $ml_dir . DIRECTORY_SEPARATOR . 'venv' . DIRECTORY_SEPARATOR . 'Scripts' . DIRECTORY_SEPARATOR . 'python.exe',
-        $ml_dir . DIRECTORY_SEPARATOR . 'venv' . DIRECTORY_SEPARATOR . 'bin' . DIRECTORY_SEPARATOR . 'python',
-    ];
-    foreach ($candidates as $c) {
-        if ($c && file_exists($c)) {
-            $python_exe = $c;
-            break;
-        }
-    }
-}
-
-if ($ml_dir && $python_exe && $predict_py && file_exists($predict_py)) {
+if ($python_exe && $predict_py && file_exists($predict_py)) {
     $command = '"' . $python_exe . '" "' . $predict_py . '" ' . escapeshellarg($base64_data) . ' 2>&1';
     $output = shell_exec($command);
     $ai_result = json_decode($output, true);
