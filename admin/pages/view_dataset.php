@@ -178,7 +178,7 @@ try {
                     <h3 style="margin-bottom:12px; font-size:1rem;"><i class="fas fa-info-circle"></i> Upload Guidelines</h3>
                     <ul style="list-style:none; color:#4b5563; font-size:0.85rem; line-height:1.6;">
                         <li><i class="fas fa-check-circle" style="color:#10b981; margin-right:8px;"></i> File must be .csv or .xlsx</li>
-                        <li><i class="fas fa-check-circle" style="color:#10b981; margin-right:8px;"></i> Required Columns: <strong>OJT Grade</strong> & <strong>GPA</strong></li>
+                        <li><i class="fas fa-check-circle" style="color:#10b981; margin-right:8px;"></i> Required Columns: <strong>Name</strong>, <strong>Age</strong>, <strong>Program</strong>, <strong>OJT Grade</strong> & <strong>GPA</strong></li>
                         <li><i class="fas fa-exclamation-circle" style="color:#f59e0b; margin-right:8px;"></i> Uploading will <strong>replace</strong> the current dataset.</li>
                     </ul>
                 </div>
