@@ -129,8 +129,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     <strong>Test Credentials (Click to Copy):</strong>
 
                     <p>Alumni: 
-                        <span class="copy-btn" onclick="navigator.clipboard.writeText('23-00186')">23-00186</span> / 
-                        <span class="copy-btn" onclick="navigator.clipboard.writeText('alumni123')">alumni123</span>
+                        <span class="copy-btn" onclick="navigator.clipboard.writeText('23-00001')">23-00001</span> / 
+                        <span class="copy-btn" onclick="navigator.clipboard.writeText('AlumniTrace123')">AlumniTrace123</span>
                     </p>
                     
                     <p>Admin: 
