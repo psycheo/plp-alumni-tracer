@@ -154,7 +154,7 @@ try {
                         <i class="fas fa-cloud-upload-alt"></i>
                         <h3 id="dropZoneText">Drag & Drop your file here</h3>
                         <p style="margin:10px 0; color:#6b7280;" id="dropZoneOr">or</p>
-                        <input type="file" id="fileInput" name="dataset_file" accept=".csv,.xlsx" style="display:none">
+                        <input type="file" id="fileInput" name="dataset_file" accept=".csv,.xlsx" style="display:none"> <!--//-->
                         <button type="button" class="btn-upload" id="browseBtn" onclick="document.getElementById('fileInput').click();">Browse Files</button>
                         <p id="fileName" style="margin-top:12px; font-size:0.95rem; font-weight:bold; color:#0d5c34; display:none;"></p>
                     </div>
@@ -358,7 +358,7 @@ try {
             dropZoneText.style.display = "block"; dropZoneOr.style.display = "block";
             dropZone.style.padding = "40px";
             cancelBtn.style.display = "none"; uploadBtn.style.display = "none";
-            previewContainer.style.display = "none"; alertBox.style.display = "none";
+            previewContainer.style.display = "none";
             previewThead.innerHTML = ''; previewTbody.innerHTML = '';
         }
 
@@ -387,31 +387,53 @@ try {
             reader.readAsArrayBuffer(file);
         }
 
+
         function processDataset(data, headers) {
-            const requiredColumns = ['ojt grade', 'gpa'];
+            // 1. Require all 5 columns
+            const requiredColumns = ['name', 'age', 'program', 'ojt grade', 'gpa'];
             const normalizedHeaders = headers.map(h => h.trim().toLowerCase().replace(/^\uFEFF/, '')); 
             const missingColumns = requiredColumns.filter(reqCol => !normalizedHeaders.includes(reqCol));
 
             if (missingColumns.length > 0) {
                 const originalCaseMissing = missingColumns.map(col => {
                     if(col === 'ojt grade') return 'OJT Grade';
-                    if(col === 'gpa') return 'GPA'; return col;
+                    if(col === 'gpa') return 'GPA'; 
+                    return col.charAt(0).toUpperCase() + col.slice(1);
                 });
                 showError("Missing required columns: " + originalCaseMissing.join(", "));
                 resetForm(); return;
             }
 
-            const cleanData = data.filter(row => {
-                const firstKey = headers[0]; 
-                return row[firstKey] !== undefined && row[firstKey].toString().trim() !== '';
+            // Map exact header names from the file to avoid case-sensitivity issues
+            const keys = {};
+            requiredColumns.forEach(req => {
+                keys[req] = headers.find(h => h.trim().toLowerCase().replace(/^\uFEFF/, '') === req);
             });
+
+            // 2. Strict row validation
+            const cleanData = data.filter(row => {
+                // A row is only kept if ALL 5 required columns have actual data
+                return requiredColumns.every(req => {
+                    const key = keys[req];
+                    return row[key] !== undefined && row[key].toString().trim() !== '';
+                });
+            });
+
+            if (cleanData.length === 0) {
+                showError("No valid rows found. Ensure Name, Age, Program, OJT Grade, and GPA are filled out.");
+                resetForm(); return;
+            }
 
             parsedDatasetInput.value = JSON.stringify(cleanData);
 
-            // UI Preview (first 10 rows to save space on the combined page)
+            // 3. Filtered UI Preview
             previewThead.innerHTML = ''; previewTbody.innerHTML = '';
             const headerRow = document.createElement('tr');
-            headers.forEach(headerText => {
+            
+            // Only generate table headers for the 5 required columns
+            const previewHeaders = requiredColumns.map(req => keys[req]);
+
+            previewHeaders.forEach(headerText => {
                 const th = document.createElement('th'); th.textContent = headerText; headerRow.appendChild(th);
             });
             previewThead.appendChild(headerRow);
@@ -419,7 +441,7 @@ try {
             const previewData = cleanData.slice(0, 10);
             previewData.forEach(row => {
                 const tr = document.createElement('tr');
-                headers.forEach(header => {
+                previewHeaders.forEach(header => {
                     const td = document.createElement('td');
                     td.textContent = row[header] !== undefined ? row[header] : ''; tr.appendChild(td);
                 });
