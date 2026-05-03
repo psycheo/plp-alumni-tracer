@@ -45,43 +45,86 @@ $usersHasProgramCol = $columnExists('users', 'program_id');
 
 // --- DELETE USER ---
 if (isset($_GET['delete_id'])) {
-    $delete_id = $conn->real_escape_string($_GET['delete_id']);
-    $conn->query("DELETE FROM users WHERE student_id = '$delete_id'");
+    $delete_id = $_GET['delete_id'];
+    
+    // Check if deleting the last admin
+    $check = $conn->prepare("SELECT role FROM users WHERE student_id = ?");
+    $check->bind_param('s', $delete_id);
+    $check->execute();
+    $res = $check->get_result()->fetch_assoc();
+    
+    if ($res && $res['role'] === 'admin') {
+        $admin_count = $conn->query("SELECT COUNT(*) as count FROM users WHERE role = 'admin'")->fetch_assoc()['count'];
+        if ($admin_count <= 1) {
+            echo "<script>alert('Error: Cannot delete the last administrator.'); window.location.href='" . strtok($_SERVER["REQUEST_URI"], '?') . "';</script>";
+            exit();
+        }
+    }
+
+    $stmt = $conn->prepare("DELETE FROM users WHERE student_id = ?");
+    $stmt->bind_param('s', $delete_id);
+    $stmt->execute();
     $_SESSION['success_msg'] = "User successfully deleted.";
     header("Location: " . strtok($_SERVER["REQUEST_URI"], '?'));
     exit();
 }
 
+// --- CHECK ADMIN COUNT ---
+if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['check_admin_count'])) {
+    header('Content-Type: application/json');
+    $count = $conn->query("SELECT COUNT(*) as count FROM users WHERE role = 'admin'")->fetch_assoc()['count'];
+    echo json_encode(['admin_count' => (int)$count]);
+    exit();
+}
+
+
 // --- EDIT USER ---
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_user'])) {
-    $orig_student_id = $conn->real_escape_string($_POST['orig_student_id']);
-    $student_id      = $conn->real_escape_string($_POST['edit_plp_id']);
-    $full_name       = $conn->real_escape_string($_POST['edit_full_name']);
-    $email           = $conn->real_escape_string($_POST['edit_email']);
-    $role            = $conn->real_escape_string($_POST['edit_role']);
+    $orig_student_id   = $_POST['orig_student_id'];
+    $student_id        = $_POST['edit_plp_id'];
+    $full_name         = $_POST['edit_full_name'];
+    $email             = $_POST['edit_email'];
+    $role              = $_POST['edit_role'];
     $edit_new_password = trim($_POST['edit_new_password'] ?? '');
 
     $duplicate_check = false;
-    if ($student_id !== $orig_student_id) {
-        $dup = $conn->prepare('SELECT 1 FROM users WHERE student_id = ? LIMIT 1');
-        if ($dup) {
-            $dup->bind_param('s', $student_id);
-            $dup->execute();
-            if ($dup->get_result()->num_rows > 0) {
+
+    // Check for ID or Email duplicates
+    $dup = $conn->prepare('SELECT 1 FROM users WHERE (student_id = ? OR email = ?) AND student_id != ? LIMIT 1');
+    $dup->bind_param('sss', $student_id, $email, $orig_student_id);
+    $dup->execute();
+    if ($dup->get_result()->num_rows > 0) {
+        $duplicate_check = true;
+        echo "<script>alert('Error: A user with this ID Number or Email already exists.');</script>";
+    }
+    $dup->close();
+
+    // Check if demoting the last admin
+    if (!$duplicate_check && $role !== 'admin') {
+        $check_role = $conn->prepare("SELECT role FROM users WHERE student_id = ?");
+        $check_role->bind_param('s', $orig_student_id);
+        $check_role->execute();
+        $curr_role = $check_role->get_result()->fetch_assoc();
+        
+        if ($curr_role && $curr_role['role'] === 'admin') {
+            $admin_count = $conn->query("SELECT COUNT(*) as count FROM users WHERE role = 'admin'")->fetch_assoc()['count'];
+            if ($admin_count <= 1) {
                 $duplicate_check = true;
-                echo "<script>alert('Error: A user with this ID Number already exists.');</script>";
+                echo "<script>alert('Error: Cannot demote the last administrator.');</script>";
             }
-            $dup->close();
         }
     }
 
     if (!$duplicate_check) {
-        $pw_sql = '';
         if ($edit_new_password !== '') {
-            $hp = $conn->real_escape_string(password_hash($edit_new_password, PASSWORD_DEFAULT));
-            $pw_sql = ", password = '$hp'";
+            $hp = password_hash($edit_new_password, PASSWORD_DEFAULT);
+            $stmt = $conn->prepare("UPDATE users SET student_id=?, full_name=?, email=?, role=?, password=? WHERE student_id=?");
+            $stmt->bind_param('ssssss', $student_id, $full_name, $email, $role, $hp, $orig_student_id);
+        } else {
+            $stmt = $conn->prepare("UPDATE users SET student_id=?, full_name=?, email=?, role=? WHERE student_id=?");
+            $stmt->bind_param('sssss', $student_id, $full_name, $email, $role, $orig_student_id);
         }
-        $conn->query("UPDATE users SET student_id='$student_id', full_name='$full_name', email='$email', role='$role' $pw_sql WHERE student_id='$orig_student_id'");
+        $stmt->execute();
         $_SESSION['success_msg'] = "User details successfully updated.";
         header("Location: " . strtok($_SERVER["REQUEST_URI"], '?'));
         exit();
@@ -90,32 +133,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_user'])) {
 
 // --- ADD SINGLE USER ---
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['plp_id']) && !isset($_POST['edit_user'])) {
-    $student_id = $conn->real_escape_string($_POST['plp_id']);
-    $full_name  = $conn->real_escape_string($_POST['full_name']);
-    $email      = $conn->real_escape_string($_POST['email']);
-    $role       = $conn->real_escape_string($_POST['role']);
+    $student_id   = $_POST['plp_id'];
+    $full_name    = $_POST['full_name'];
+    $email        = $_POST['email'];
+    $role         = $_POST['role'];
     $tempPassword = trim($_POST['temp_password'] ?? '');
+    
     if ($tempPassword === '') {
         $tempPassword = ($role === 'admin') ? 'admin123' : 'alumni123';
     }
     $password = password_hash($tempPassword, PASSWORD_DEFAULT);
 
-    $dup_add = $conn->prepare('SELECT 1 FROM users WHERE student_id = ? LIMIT 1');
-    $dup_add->bind_param('s', $student_id);
+    // Check for ID or Email duplicates
+    $dup_add = $conn->prepare('SELECT 1 FROM users WHERE student_id = ? OR email = ? LIMIT 1');
+    $dup_add->bind_param('ss', $student_id, $email);
     $dup_add->execute();
     if ($dup_add->get_result()->num_rows > 0) {
-        $dup_add->close();
-        echo "<script>alert('Error: A user with this ID Number already exists.');</script>";
+        echo "<script>alert('Error: A user with this ID Number or Email already exists.');</script>";
     } else {
-        $dup_add->close();
-        $sql = "INSERT INTO users (student_id, full_name, email, password, role) 
-                VALUES ('$student_id', '$full_name', '$email', '$password', '$role')";
-        if ($conn->query($sql) === TRUE) {
+        $stmt = $conn->prepare("INSERT INTO users (student_id, full_name, email, password, role) VALUES (?, ?, ?, ?, ?)");
+        $stmt->bind_param('sssss', $student_id, $full_name, $email, $password, $role);
+        if ($stmt->execute()) {
             $_SESSION['success_msg'] = "New user successfully added.";
             header("Location: " . strtok($_SERVER["REQUEST_URI"], '?'));
             exit();
         }
     }
+    $dup_add->close();
 }
 
 // --- SAVE ACADEMIC INFO (AJAX) ---
@@ -264,74 +308,28 @@ if ($prog_result = $conn->query("SELECT id, name FROM programs ORDER BY name ASC
         .import-zone { border: 2px dashed #10b981; padding: 20px; text-align: center; border-radius: 8px; background: #f0fdf4; cursor: pointer; margin-bottom: 10px; transition: background 0.2s; }
         .import-zone.drag-over { background: #d1fae5; border-color: #059669; }
         
-        /* Toast notification - LOWER RIGHT CORNER */
-        .toast-notification { 
-            position: fixed; 
-            bottom: 20px; 
-            right: 20px; 
-            background: #10b981; 
-            color: white; 
-            padding: 15px 25px; 
-            border-radius: 8px; 
-            z-index: 9999; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
-            display: flex; 
-            align-items: center; 
-            gap: 10px; 
-            transition: opacity 0.5s ease, transform 0.5s ease;
-            animation: slideInRight 0.3s ease-out;
-        }
+        .toast-notification { position: fixed; bottom: 20px; right: 20px; background: #10b981; color: white; padding: 15px 25px; border-radius: 8px; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 10px; transition: opacity 0.5s ease, transform 0.5s ease; animation: slideInRight 0.3s ease-out; }
         
         @keyframes slideInRight {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
         
-        .filter-container {
-            display: grid;
-            grid-template-columns: 2fr 1fr 1fr;
-            gap: 12px;
-            align-items: start;
-            margin-bottom: 20px;
-        }
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-        }
-        .filter-group label {
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: #4b5563;
-            margin-bottom: 5px;
-        }
-        .filter-group input, .filter-group select {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            outline: none;
-            font-size: 0.85rem;
-            color: #374151;
-        }
-        .table-container {
-            overflow-x: auto;
-        }
-        .loading-indicator {
-            text-align: center;
-            padding: 40px;
-            color: #6b7280;
-        }
-        .no-results {
-            text-align: center;
-            padding: 40px;
-            color: #6b7280;
-        }
+        .filter-container { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; align-items: start; margin-bottom: 20px; }
+        .filter-group { display: flex; flex-direction: column; }
+        .filter-group label { font-size: 0.75rem; font-weight: 600; color: #4b5563; margin-bottom: 5px; }
+        .filter-group input, .filter-group select { width: 100%; padding: 8px 12px; border: 1px solid #d1d5db; border-radius: 6px; outline: none; font-size: 0.85rem; color: #374151; }
+        .table-container { overflow-x: auto; }
+        .loading-indicator { text-align: center; padding: 40px; color: #6b7280; }
+        .no-results { text-align: center; padding: 40px; color: #6b7280; }
+
+        .modal-content.relative { position: relative; }
+        .side-panel { display: none; background: #fff; padding: 15px 20px; border-radius: 10px; width: max-content; min-width: 280px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); max-height: 90vh; overflow-y: auto; font-size: 0.8rem; }
+        .side-panel h4 { margin-top: 0; margin-bottom: 10px; color: #374151; font-size: 0.9rem; }
+        .side-panel ul { list-style: none; padding: 0; margin: 0; }
+        .side-panel li { margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px solid #f3f4f6; white-space: nowrap; }
+
+        .modal-wrapper { display: flex; align-items: flex-start; gap: 15px; max-width: 95%; }
     </style>
 </head>
 <body>
@@ -485,32 +483,61 @@ if ($prog_result = $conn->query("SELECT id, name FROM programs ORDER BY name ASC
 </div>
 
 <div class="modal-overlay" id="importModal">
-    <div class="modal-content" style="max-width:500px;">
-        <div class="modal-header">
-            <h2>Import Users</h2>
-            <button class="close-btn" onclick="document.getElementById('importModal').style.display='none'">&times;</button>
-        </div>
-
-        <div class="mapping-hint">
-            <strong>Account Columns:</strong> student id, full name, email, password<br>
-            <small><em>*If password is left blank, it defaults to 'alumni123'. Alumni will use their Student ID to log in.</em></small><br><br>
-            <strong>Academic Columns (optional):</strong> program id, avg grade, ojt grade, avg prof grade, avg elec grade, soft skills avg, hard skills avg
-        </div>
-
-        <div class="import-zone" id="dropZone" onclick="document.getElementById('excel_file').click()">
-            <i class="fas fa-cloud-upload-alt" style="font-size:2rem; color:#10b981;"></i>
-            <p id="file-name-text">Click or drag &amp; drop Excel/CSV here</p>
-            <input type="file" id="excel_file" accept=".xlsx,.xls,.csv" style="display:none;">
-            <p class="preview-count" id="previewCount" style="display:none;"></p>
-        </div>
-
-        <form action="../handlers/process_import.php" method="POST">
-            <input type="hidden" name="json_data" id="json_data">
-            <div class="modal-actions">
-                <button type="button" class="btn-cancel" onclick="document.getElementById('importModal').style.display='none'">Cancel</button>
-                <button type="submit" id="processBtn" class="btn-save" disabled style="opacity:0.5;">Process File</button>
+    <!-- Wrap both elements in this new div -->
+    <div class="modal-wrapper">
+        
+        <!-- Remove 'relative' class and add 'margin: 0' to avoid conflicts -->
+        <div class="modal-content" style="max-width:500px; margin: 0;">
+            <div class="modal-header">
+                <h2>Import Users</h2>
+                <button class="close-btn" onclick="document.getElementById('importModal').style.display='none'">&times;</button>
             </div>
-        </form>
+
+            <div class="mapping-hint">
+                <strong>Account Columns:</strong> student id, full name, email, password<br>
+                <small><em>*If password is left blank, it defaults to 'alumni123'. Alumni will use their Student ID to log in.</em></small><br><br>
+                <strong>Academic Columns (optional):</strong> 
+                <span id="toggleProgramList" style="color: #0ea5e9; font-weight: bold; cursor: pointer; text-decoration: underline;">program id</span>, 
+                avg grade, ojt grade, avg prof grade, avg elec grade, soft skills avg, hard skills avg
+            </div>
+
+            <div class="import-zone" id="dropZone" onclick="document.getElementById('excel_file').click()">
+                <i class="fas fa-cloud-upload-alt" style="font-size:2rem; color:#10b981;"></i>
+                <p id="file-name-text">Click or drag &amp; drop Excel/CSV here</p>
+                <input type="file" id="excel_file" accept=".xlsx,.xls,.csv" style="display:none;">
+                <p class="preview-count" id="previewCount" style="display:none;"></p>
+            </div>
+
+            <form action="../handlers/process_import.php" method="POST">
+                <input type="hidden" name="json_data" id="json_data">
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" onclick="document.getElementById('importModal').style.display='none'">Cancel</button>
+                    <button type="submit" id="processBtn" class="btn-save" disabled style="opacity:0.5;">Process File</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- The side panel is now a sibling to modal-content -->
+        <div id="programListSidePanel" class="side-panel">
+            <h4>Program IDs Reference</h4>
+            <ul>
+                <?php 
+                // Create a copy of the array and sort it numerically by ID
+                $sortedPrograms = $programOptions;
+                usort($sortedPrograms, function($a, $b) {
+                    return $a['id'] <=> $b['id'];
+                });
+                
+                foreach ($sortedPrograms as $p): 
+                ?>
+                    <li><strong><?php echo htmlspecialchars($p['id']); ?></strong> = <?php echo htmlspecialchars($p['name']); ?></li>
+                        <?php endforeach; ?>
+                        <?php if(empty($sortedPrograms)): ?>
+                    <li>No programs found in database.</li>
+                <?php endif; ?>
+            </ul>
+        </div>
+        
     </div>
 </div>
 
@@ -623,8 +650,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <i class="fas fa-graduation-cap"></i>
                                 </button>
                                 <a href="?delete_id=${encodeURIComponent(user.student_id)}"
-                                   class="action-btn action-delete"
-                                   onclick="return confirm('Delete this user?');">
+                                    class="action-btn action-delete"
+                                    onclick="handleDelete(event, this.href, '${user.role}')">
                                     <i class="fas fa-trash-alt"></i>
                                 </a>
                             </td>
@@ -829,6 +856,50 @@ document.addEventListener('DOMContentLoaded', () => {
             processBtn.style.opacity = '1';
         };
         reader.readAsArrayBuffer(file);
+    }
+
+    window.handleDelete = function(e, href, role) {
+    e.preventDefault(); // Stop the link from navigating immediately
+    
+    if (role !== 'admin') {
+            // Normal user, just ask for confirmation
+            if (confirm('Delete this user?')) window.location.href = href;
+            return;
+        }
+
+        // If it's an admin, check the database first
+        fetch('users.php?check_admin_count=1')
+            .then(res => res.json())
+            .then(data => {
+                if (data.admin_count <= 1) {
+                    alert('Action denied: You cannot delete the last administrator.');
+                } else {
+                    if (confirm('Delete this administrator?')) {
+                        window.location.href = href;
+                    }
+                }
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                alert('Unable to verify admin count. Please try again.');
+            });
+    };
+
+    // Toggle Program ID Side Panel
+    const toggleBtn = document.getElementById('toggleProgramList');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', function() {
+            const panel = document.getElementById('programListSidePanel');
+            panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
+        });
+    }
+
+    // Hide the panel when the import modal is closed
+    const importModalCloseBtn = document.querySelector('#importModal .close-btn');
+    if (importModalCloseBtn) {
+        importModalCloseBtn.addEventListener('click', () => {
+            document.getElementById('programListSidePanel').style.display = 'none';
+        });
     }
 });
 </script>
