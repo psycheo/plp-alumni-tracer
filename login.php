@@ -124,20 +124,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                     <button type="submit" class="btn-login">Login</button>
                 </form>
-
-                <div class="credentials-box" style="margin-top: 20px; font-size: 0.85rem; color: #666;">
-                    <strong>Test Credentials (Click to Copy):</strong>
-
-                    <p>Alumni: 
-                        <span class="copy-btn" onclick="navigator.clipboard.writeText('23-00001')">23-00001</span> / 
-                        <span class="copy-btn" onclick="navigator.clipboard.writeText('AlumniTrace123')">AlumniTrace123</span>
-                    </p>
-                    
-                    <p>Admin: 
-                        <span class="copy-btn" onclick="navigator.clipboard.writeText('00-ADMIN')">00-ADMIN</span> / 
-                        <span class="copy-btn" onclick="navigator.clipboard.writeText('admin123')">admin123</span>
-                    </p>
-                </div>
             </div>
 
             <div class="login-footer">
