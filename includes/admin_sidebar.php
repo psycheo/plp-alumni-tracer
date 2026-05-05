@@ -43,7 +43,10 @@
         <li>
             <a href="../pages/audit_logs.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'audit_logs.php' ? 'active' : ''; ?>">
                 <i class="fas fa-clipboard-list"></i> Audit Logs
-            <a href="../pages/admin_settings.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'admin_settings.php' ? 'active' : ''; ?>">
+            </a>
+        </li>
+        <li>
+            <a href="../pages/settings.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'settings.php' ? 'active' : ''; ?>">
                 <i class="fas fa-cogs"></i> Settings
             </a>
         </li>

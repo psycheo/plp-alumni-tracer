@@ -13,12 +13,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_settings'])) {
     $success_msg = "Configuration updated successfully!";
 }
 
-// ADDING NEW COLLEGE
-if (isset($_POST['add_college'])) {
+// ADDING NEW PROGRAM
+if (isset($_POST['add_program'])) {
+    $program = trim($conn->real_escape_string($_POST['new_program']));
     $college = trim($conn->real_escape_string($_POST['new_college']));
-    if(!empty($college)) {
-        $conn->query("INSERT IGNORE INTO colleges (college_name) VALUES ('$college')");
-        $success_msg = "New college added to filters!";
+    
+    if(!empty($program) && !empty($college)) {
+        // Graduates and employment_rate will default to NULL as per your updated schema
+        $conn->query("INSERT INTO programs (name, college) VALUES ('$program', '$college')");
+        $success_msg = "New program added successfully!";
     }
 }
 
@@ -27,7 +30,7 @@ $res = $conn->query("SELECT setting_value FROM system_settings WHERE setting_key
 $row = $res->fetch_assoc();
 $current_limit = $row['setting_value'] ?? '30';
 
-$colleges = $conn->query("SELECT * FROM colleges ORDER BY college_name ASC");
+$programs = $conn->query("SELECT * FROM programs ORDER BY name ASC");
 ?>
 
 <!DOCTYPE html>
@@ -82,6 +85,7 @@ $colleges = $conn->query("SELECT * FROM colleges ORDER BY college_name ASC");
             border: 1px solid #ddd;
             border-radius: 8px;
             box-sizing: border-box;
+            margin-bottom: 10px;
         }
 
         /* TOAST MESSAGE LOWER RIGHT */
@@ -106,7 +110,7 @@ $colleges = $conn->query("SELECT * FROM colleges ORDER BY college_name ASC");
             to { transform: translateY(0); opacity: 1; }
         }
 
-        .college-chip {
+        .program-chip {
             display: inline-block;
             background: #f0f4f2;
             color: #004d26;
@@ -127,16 +131,19 @@ $colleges = $conn->query("SELECT * FROM colleges ORDER BY college_name ASC");
         <h1 style="color: #004d26; margin: 0 0 5px 0;">System Settings</h1>
         <p style="color: #666; margin-bottom: 30px;">Update system behaviors and configuration.</p>
 
-        <!-- COLLEGE FILTER -->
+        <!-- PROGRAM SETTINGS -->
         <div class="settings-card">
-            <div class="section-header"><i class="fa-solid fa-filter"></i> College Filter</div>
-            <form method="POST" style="display: flex; gap: 10px;">
-                <input type="text" name="new_college" class="form-input" placeholder="Enter College Name (e.g. CAS, COED)" required>
-                <button type="submit" name="add_college" class="btn-green">Add</button>
+            <div class="section-header"><i class="fa-solid fa-graduation-cap"></i> Program Settings</div>
+            <form method="POST">
+                <input type="text" name="new_program" class="form-input" placeholder="Enter Program Name (e.g. Information Technology)" required>
+                <input type="text" name="new_college" class="form-input" placeholder="Enter College (e.g. College of Computer Studies)" required>
+                <button type="submit" name="add_program" class="btn-green">Add Program</button>
             </form>
-            <div style="margin-top: 15px; max-height: 120px; overflow-y: auto;">
-                <?php while($c = $colleges->fetch_assoc()): ?>
-                    <span class="college-chip"><?= htmlspecialchars($c['college_name']) ?></span>
+            <div style="margin-top: 15px; max-height: 200px; overflow-y: auto;">
+                <?php while($p = $programs->fetch_assoc()): ?>
+                    <span class="program-chip">
+                        <?= htmlspecialchars($p['name']) ?> - <em><?= htmlspecialchars($p['college']) ?></em>
+                    </span>
                 <?php endwhile; ?>
             </div>
         </div>
