@@ -10331,7 +10331,7 @@ INSERT INTO `feedbacks` (`id`, `student_id`, `rating`, `message`, `status`, `cre
 CREATE TABLE `feedback_replies` (
   `id` int(11) NOT NULL,
   `feedback_id` int(11) NOT NULL,
-  `student_id` int(11) NOT NULL,
+  `student_id` varchar(15) NOT NULL,
   `reply_text` text NOT NULL,
   `is_seen` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
