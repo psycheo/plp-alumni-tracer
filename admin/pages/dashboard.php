@@ -145,8 +145,8 @@ $pyReady = ml_python_executable() !== null && file_exists(ml_forecast_script_pat
                         <div id="forecast_note" style="font-size: 0.85rem; color: #64748b; margin-bottom: 10px; min-height: 1.2em;"></div>
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                             <div class="algo-toggles">
-                                <button type="button" class="algo-pill active" data-method="arima">ARIMA</button>
-                                <button type="button" class="algo-pill" data-method="linear_regression">Linear Regression</button>
+                                <button type="button" class="algo-pill active" data-method="linear_regression">Linear Regression</button>
+                                <button type="button" class="algo-pill" data-method="arima">ARIMA</button>
                                 <button type="button" class="algo-pill" data-method="random_forest">Random Forest</button>
                             </div>
                             <div style="font-size: 0.8rem; color: #4b5563;">
@@ -213,7 +213,7 @@ $pyReady = ml_python_executable() !== null && file_exists(ml_forecast_script_pat
 
         function getSelectedMethod() {
             const active = document.querySelector('.algo-pill.active');
-            return active ? active.getAttribute('data-method') : 'arima';
+            return active ? active.getAttribute('data-method') : 'linear_regression';
         }
 
         function renderForecastChart(payload) {

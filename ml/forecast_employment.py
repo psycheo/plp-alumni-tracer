@@ -1,6 +1,8 @@
 """
 Employment rate time-series forecast: ARIMA, OLS linear regression, or RandomForest regressor.
 Invoked from PHP with base64-encoded JSON on argv[1], same pattern as predict.py.
+
+Heavy imports (statsmodels, pandas, sklearn) are lazy so linear regression avoids ~1s+ cold load.
 """
 from __future__ import annotations
 
@@ -11,18 +13,26 @@ import warnings
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
-import pandas as pd
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.linear_model import LinearRegression
 
 warnings.filterwarnings("ignore")
 # Avoid stderr noise breaking PHP shell_exec JSON (2>&1 merges stderr into stdout).
 warnings.filterwarnings("ignore", category=UserWarning, module="statsmodels")
 
-try:
-    from statsmodels.tsa.arima.model import ARIMA as SM_ARIMA
-except ImportError:  # pragma: no cover
-    SM_ARIMA = None  # type: ignore
+_SM_ARIMA = None  # lazy: statsmodels.tsa.arima.model.ARIMA
+
+
+def _get_sm_arima():
+    global _SM_ARIMA
+    if _SM_ARIMA is False:
+        return None
+    if _SM_ARIMA is None:
+        try:
+            from statsmodels.tsa.arima.model import ARIMA as SM_ARIMA
+
+            _SM_ARIMA = SM_ARIMA
+        except ImportError:  # pragma: no cover
+            _SM_ARIMA = False
+    return _SM_ARIMA if _SM_ARIMA is not False else None
 
 
 def _clip_rate(x: float) -> float:
@@ -32,6 +42,8 @@ def _clip_rate(x: float) -> float:
 def _linear_forecast(
     years: List[int], rates: List[float], horizon: int
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    from sklearn.linear_model import LinearRegression
+
     X = np.array(years, dtype=float).reshape(-1, 1)
     y = np.array(rates, dtype=float)
     model = LinearRegression().fit(X, y)
@@ -52,11 +64,14 @@ def _linear_forecast(
 def _rf_forecast(
     years: List[int], rates: List[float], horizon: int
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    from sklearn.ensemble import RandomForestRegressor
+
     X = np.array(years, dtype=float).reshape(-1, 1)
     y = np.array(rates, dtype=float)
     depth = min(4, max(2, len(years)))
+    n_est = min(200, max(25, len(years) * 15))
     rf = RandomForestRegressor(
-        n_estimators=200, max_depth=depth, random_state=42, min_samples_leaf=1
+        n_estimators=n_est, max_depth=depth, random_state=42, min_samples_leaf=1
     )
     rf.fit(X, y)
     fitted = rf.predict(X)
@@ -71,12 +86,10 @@ def _rf_forecast(
     return fitted, forecast, lo, hi
 
 
-def _arima_endog_series(rates: List[float]) -> pd.Series:
-    """
-    statsmodels ARIMA needs an index that supports get_forecast().
-    Raw calendar years in Index/DatetimeIndex without regular freq cause ValueWarnings
-    and broken forecasts when cohort years have gaps. RangeIndex = one step per SQL row.
-    """
+def _arima_endog_series(rates: List[float]):
+    """RangeIndex = one step per SQL row (gaps in calendar years are not misinterpreted as missing periods)."""
+    import pandas as pd
+
     n = len(rates)
     return pd.Series(rates, index=pd.RangeIndex(0, n), dtype=float)
 
@@ -92,6 +105,7 @@ def _arima_forecast(
     lower = np.zeros(horizon, dtype=float)
     upper = np.zeros(horizon, dtype=float)
 
+    SM_ARIMA = _get_sm_arima()
     if SM_ARIMA is None:
         note = "statsmodels not installed; used linear regression"
         f1, fc, lo, hi, _ = _linear_forecast(years, rates, horizon)
@@ -103,11 +117,13 @@ def _arima_forecast(
 
     best_res = None
     best_aic = np.inf
-    orders = [(1, 0, 0), (0, 1, 1), (1, 1, 0), (0, 1, 0), (2, 0, 0), (1, 1, 1)]
+    # Short series: a small order set is enough; each extra fit was dominating latency.
+    orders = [(1, 1, 1), (0, 1, 1), (1, 0, 0)]
+    fit_kw = {"warn_convergence": False, "maxiter": 75}
     for order in orders:
         try:
             m = SM_ARIMA(endog, order=order, trend="c" if order[1] == 0 else "n")
-            res = m.fit(method_kwargs={"warn_convergence": False})
+            res = m.fit(method_kwargs=fit_kw)
             if res.aic < best_aic:
                 best_aic = res.aic
                 best_res = res
