@@ -4,6 +4,14 @@ require_once __DIR__ . '/../../includes/auth.php';
 require_admin();
 require '../../includes/db.php';
 
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['log_download_action'])) {
+    // Log the action silently in the background
+    log_action($conn, 'DOWNLOAD_REPORT', "Exported the Student Employment Prediction Report.");
+    http_response_code(200);
+    exit();
+}
+
 $colExists = static function ($table, $column) use ($conn) {
     static $cache = [];
     $key = $table . '.' . $column;
@@ -374,16 +382,12 @@ foreach ($latestRows as $r) {
                 }
             }
 
-            // AUTO-SUBMIT LOGIC: Submits form whenever an input changes
+            // AUTO-SUBMIT LOGIC
             filterForm.addEventListener('change', function(e) {
-                // If it's the range select and it's changed to custom, don't submit yet 
-                // until they've had a chance to pick dates.
                 if (e.target.id === 'rangeSelect' && e.target.value === 'custom') {
                     toggleDateInputs();
                     return; 
                 }
-                
-                // If custom range is active, only submit if BOTH dates are filled
                 if (rangeSelect.value === 'custom') {
                     if (startDate.value !== '' && endDate.value !== '') {
                         filterForm.submit();
@@ -404,7 +408,6 @@ foreach ($latestRows as $r) {
         
         <form id="downloadForm" action="../export/export_predict_report_xml.php" method="POST" enctype="multipart/form-data" target="_blank">
             
-            <!-- Hidden inputs to preserve your active filters -->
             <input type="hidden" name="format" value="styled">
             <input type="hidden" name="download" value="1">
             <input type="hidden" name="range" value="<?= htmlspecialchars($range) ?>">
@@ -452,7 +455,7 @@ foreach ($latestRows as $r) {
             <!-- Action Buttons aligned with your existing CSS -->
             <div style="display: flex; justify-content: flex-end; gap: 12px; padding-top: 15px; border-top: 1px solid #f3f4f6;">
                 <button type="button" class="btn-cancel" onclick="closeDownloadModal()">Cancel</button>
-                <button type="submit" class="btn-send" onclick="closeDownloadModal()">Confirm Download</button>
+                <button type="submit" class="btn-send">Confirm Download</button>
             </div>
         </form>
     </div>
@@ -466,6 +469,19 @@ foreach ($latestRows as $r) {
     function closeDownloadModal() {
         document.getElementById('downloadModal').style.display = 'none';
     }
+
+    // AUDIT LOG INTERCEPTOR
+    document.getElementById('downloadForm').addEventListener('submit', function() {
+        // Send a silent background request to the top of this PHP file to trigger the audit log
+        fetch('', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'log_download_action=1'
+        }).catch(err => console.error('Audit log error:', err));
+        
+        // Wait a tiny fraction of a second before closing the modal so the file download triggers cleanly
+        setTimeout(closeDownloadModal, 100);
+    });
 </script>
 
 </body>

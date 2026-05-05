@@ -234,6 +234,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['json_data'])) {
         $stmt_acad->close();
     }
 
+    // --- AUDIT LOGGING FOR BULK IMPORT ---
+    if ($success_count > 0) {
+        log_action($conn, 'IMPORT_USERS', "Imported bulk users via Excel/CSV. Total successfully registered/updated: $success_count alumni.");
+    }
+
     $_SESSION['success_msg'] = "Successfully registered/updated $success_count alumni.";
     header("Location: ../pages/users.php");
     exit();

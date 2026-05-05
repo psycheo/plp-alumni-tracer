@@ -2,6 +2,7 @@
 session_start();
 require_once __DIR__ . '/../../includes/auth.php';
 require_admin();
+require '../../includes/db.php'; // <--- ADDED THIS FOR AUDIT LOGGING
 
 // Only allow POST requests
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -18,7 +19,7 @@ try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    // Get count before deleting for the success message
+    // Get count before deleting for the success message and audit log
     $count = $pdo->query("SELECT COUNT(*) FROM ai_training_dataset")->fetchColumn();
 
     // Wipe the entire table
@@ -26,6 +27,11 @@ try {
 
     // Mark the active upload history entry as deleted
     $pdo->exec("UPDATE upload_history SET status = 'deleted' WHERE status = 'active'");
+
+    // --- LOG ACTION TO AUDIT LOGS ---
+    if ($count > 0) {
+        log_action($conn, 'DELETE_DATASET', "Deleted all $count records from the AI training dataset.");
+    }
 
     $_SESSION['delete_message'] = "Success! All $count records have been deleted from the dataset.";
     header("Location: ../pages/view_dataset.php");

@@ -40,6 +40,11 @@
                 <i class="fas fa-comments"></i> Feedbacks
             </a>
         </li>
+        <li>
+            <a href="../pages/audit_logs.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'audit_logs.php' ? 'active' : ''; ?>">
+                <i class="fas fa-clipboard-list"></i> Audit Logs
+            </a>
+        </li>
     </ul>
 
     <div class="sidebar-footer" style="padding-left: 0; padding-right: 0;">

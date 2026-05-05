@@ -2,14 +2,12 @@
 session_start();
 require_once __DIR__ . '/../../includes/auth.php';
 require_admin();
+require '../../includes/db.php'; // 
 
-// ==========================================
-// 1. UPDATE THESE DATABASE DETAILS
-// ==========================================
 $host = 'localhost';
-$dbname = 'plp_tracer'; // <--- CHANGE THIS
-$username = 'root';             // <--- CHANGE THIS
-$password = '';                 // <--- CHANGE THIS
+$dbname = 'plp_tracer'; //
+$username = 'root';             
+$password = '';                 
 
 try {
     $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password);
@@ -32,24 +30,12 @@ try {
         $sql = "INSERT INTO ai_training_dataset (name, age, program, ojt_grade, gpa) VALUES (:name, :age, :program, :ojt_grade, :gpa)";
         $stmt = $pdo->prepare($sql);
 
+        // 4. INSERT ROW BY ROW
         $rowCount = 0;
-
-        // 4. LOOP THROUGH DATA AND INSERT
         foreach ($dataset as $row) {
+            // Convert keys to lowercase to handle both 'Name' and 'name'
+            $normalizedRow = array_change_key_case($row, CASE_LOWER);
             
-            // Normalize column headers to lowercase just to be safe
-            $normalizedRow = [];
-            foreach ($row as $key => $val) {
-                $normalizedRow[strtolower(trim($key))] = $val;
-            }
-
-            // ---> SAFETY CHECK <---
-            // Skip the row if 'name' is empty OR if the name is "AVERAGE"
-            if (empty($normalizedRow['name']) || strtolower(trim($normalizedRow['name'])) === 'average') {
-                continue; 
-            }
-
-            // Insert into the database
             $stmt->execute([
                 ':name'      => trim($normalizedRow['name']),
                 ':age'       => (int)trim($normalizedRow['age'] ?? 0),
@@ -75,8 +61,11 @@ try {
             ':row_count' => $rowCount,
         ]);
 
+        // --- NEW: LOG ACTION TO AUDIT LOGS ---
+        log_action($conn, 'UPLOAD_DATASET', "Uploaded new AI training dataset containing $rowCount rows. File: $fileName");
+
         // 6. REDIRECT WITH SUCCESS MESSAGE
-        $_SESSION['success_message'] = "Success! Successfully loaded $rowCount rows into the database. (Both .csv and .xlsx are supported!)";
+        $_SESSION['success_message'] = "Success! Successfully loaded $rowCount rows into the database. (Both .csv and .xlsx are supported)";
         header("Location: ../pages/view_dataset.php");
         exit;
     }

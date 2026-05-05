@@ -64,6 +64,10 @@ if (isset($_GET['delete_id'])) {
     $stmt = $conn->prepare("DELETE FROM users WHERE student_id = ?");
     $stmt->bind_param('s', $delete_id);
     $stmt->execute();
+    
+    // FOR AUDIT LOGGING:
+    log_action($conn, 'DELETE_USER', "Deleted user account with Student ID: $delete_id");
+
     $_SESSION['success_msg'] = "User successfully deleted.";
     header("Location: " . strtok($_SERVER["REQUEST_URI"], '?'));
     exit();
@@ -125,6 +129,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_user'])) {
             $stmt->bind_param('sssss', $student_id, $full_name, $email, $role, $orig_student_id);
         }
         $stmt->execute();
+        
+        // FOR AUDIT LOGGING:
+        log_action($conn, 'EDIT_USER', "Updated details for Student ID: $orig_student_id");
+
         $_SESSION['success_msg'] = "User details successfully updated.";
         header("Location: " . strtok($_SERVER["REQUEST_URI"], '?'));
         exit();
@@ -154,6 +162,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['plp_id']) && !isset($_
         $stmt = $conn->prepare("INSERT INTO users (student_id, full_name, email, password, role) VALUES (?, ?, ?, ?, ?)");
         $stmt->bind_param('sssss', $student_id, $full_name, $email, $password, $role);
         if ($stmt->execute()) {
+            // FOR AUDIT LOGGING:
+            log_action($conn, 'ADD_USER', "Manually created new user with Student ID: $student_id");
+            
             $_SESSION['success_msg'] = "New user successfully added.";
             header("Location: " . strtok($_SERVER["REQUEST_URI"], '?'));
             exit();
@@ -196,6 +207,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_academic'])) {
     }
 
     if ($conn->query($sql) === TRUE) {
+        // FOR AUDIT LOGGING:
+        log_action($conn, 'UPDATE_ACADEMIC', "Updated academic records for Student ID: $student_id");
+
         echo json_encode(['success' => true]);
     } else {
         echo json_encode(['success' => false, 'error' => $conn->error]);
