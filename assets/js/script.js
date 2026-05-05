@@ -42,13 +42,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// --- UPDATED NAVIGATION FUNCTION ---
 function navigateTo(destination) {
-    // If the destination is 'analytics', we just show an alert for now
     if (destination === 'analytics') {
-        alert("Analytics dashboard coming soon!");
+        Swal.fire({
+            title: 'Coming Soon!',
+            text: 'Analytics dashboard coming soon!',
+            icon: 'info',
+            confirmButtonColor: '#059669',
+            confirmButtonText: 'OK'
+        });
     } else {
-        // ACTUALLY Redirect to the page (e.g., 'login.php')
         window.location.href = destination;
     }
 }

@@ -1,6 +1,7 @@
 <?php
 /**
  * POST: program_id (0 = all programs), horizon (1–10), method (arima|linear_regression|random_forest).
+ * Default method is linear_regression (fast); ARIMA remains available but is heavier.
  * Builds yearly employment % from latest assessment per graduate per cohort, then runs ml/forecast_employment.py.
  */
 declare(strict_types=1);
@@ -19,10 +20,10 @@ header('Content-Type: application/json; charset=utf-8');
 
 $program_id = isset($_POST['program_id']) ? (int) $_POST['program_id'] : 0;
 $horizon = isset($_POST['horizon']) ? (int) $_POST['horizon'] : 3;
-$method = isset($_POST['method']) ? strtolower(trim((string) $_POST['method'])) : 'arima';
+$method = isset($_POST['method']) ? strtolower(trim((string) $_POST['method'])) : 'linear_regression';
 
 if (!in_array($method, ['arima', 'linear_regression', 'random_forest'], true)) {
-    $method = 'arima';
+    $method = 'linear_regression';
 }
 
 $kb = assessment_respondent_key_sql($conn, 'b');
@@ -60,55 +61,68 @@ while ($row = $yrRes->fetch_assoc()) {
 $stmtY->close();
 
 $rates = [];
-foreach ($years as $gy) {
-    if ($program_id > 0) {
-        $sql = "
-            SELECT t1.employment_status
-            FROM alumni_assessments t1
-            INNER JOIN (
-                SELECT {$kb} AS respondent_key, MAX(b.created_at) AS latest_date
-                FROM alumni_assessments b
-                WHERE b.program_id = ? AND b.grad_year = ?
-                GROUP BY {$kb}
-            ) t2 ON {$k1} = t2.respondent_key AND t1.created_at = t2.latest_date
-        ";
-        $st = $conn->prepare($sql);
-        if (!$st) {
-            echo json_encode(['ok' => false, 'error' => 'Prepare failed: ' . $conn->error]);
-            exit;
-        }
-        $st->bind_param('ii', $program_id, $gy);
-    } else {
-        $sql = "
-            SELECT t1.employment_status
-            FROM alumni_assessments t1
-            INNER JOIN (
-                SELECT {$kb} AS respondent_key, MAX(b.created_at) AS latest_date
-                FROM alumni_assessments b
-                WHERE b.grad_year = ?
-                GROUP BY {$kb}
-            ) t2 ON {$k1} = t2.respondent_key AND t1.created_at = t2.latest_date
-        ";
-        $st = $conn->prepare($sql);
-        if (!$st) {
-            echo json_encode(['ok' => false, 'error' => 'Prepare failed: ' . $conn->error]);
-            exit;
-        }
-        $st->bind_param('i', $gy);
+// One aggregation query for all cohort years (avoids N round-trips + repeated joins).
+if ($program_id > 0) {
+    $sqlAgg = "
+        SELECT t1.grad_year AS gy,
+            SUM(CASE WHEN LOWER(TRIM(COALESCE(t1.employment_status, ''))) = 'employed' THEN 1 ELSE 0 END) AS employed,
+            COUNT(*) AS total
+        FROM alumni_assessments t1
+        INNER JOIN (
+            SELECT b.grad_year AS gy2, {$kb} AS respondent_key, MAX(b.created_at) AS latest_date
+            FROM alumni_assessments b
+            WHERE b.grad_year IS NOT NULL AND b.program_id = ?
+            GROUP BY b.grad_year, {$kb}
+        ) t2 ON t1.grad_year = t2.gy2 AND {$k1} = t2.respondent_key AND t1.created_at = t2.latest_date
+        WHERE t1.program_id = ?
+        GROUP BY t1.grad_year
+        ORDER BY t1.grad_year ASC
+    ";
+    $stAgg = $conn->prepare($sqlAgg);
+    if (!$stAgg) {
+        echo json_encode(['ok' => false, 'error' => 'Prepare failed: ' . $conn->error]);
+        exit;
     }
+    $stAgg->bind_param('ii', $program_id, $program_id);
+} else {
+    $sqlAgg = "
+        SELECT t1.grad_year AS gy,
+            SUM(CASE WHEN LOWER(TRIM(COALESCE(t1.employment_status, ''))) = 'employed' THEN 1 ELSE 0 END) AS employed,
+            COUNT(*) AS total
+        FROM alumni_assessments t1
+        INNER JOIN (
+            SELECT b.grad_year AS gy2, {$kb} AS respondent_key, MAX(b.created_at) AS latest_date
+            FROM alumni_assessments b
+            WHERE b.grad_year IS NOT NULL
+            GROUP BY b.grad_year, {$kb}
+        ) t2 ON t1.grad_year = t2.gy2 AND {$k1} = t2.respondent_key AND t1.created_at = t2.latest_date
+        GROUP BY t1.grad_year
+        ORDER BY t1.grad_year ASC
+    ";
+    $stAgg = $conn->prepare($sqlAgg);
+    if (!$stAgg) {
+        echo json_encode(['ok' => false, 'error' => 'Prepare failed: ' . $conn->error]);
+        exit;
+    }
+}
 
-    $st->execute();
-    $res = $st->get_result();
-    $total = 0;
-    $employed = 0;
-    while ($row = $res->fetch_assoc()) {
-        $total++;
-        if (assessment_employment_is_employed($row['employment_status'] ?? null)) {
-            $employed++;
-        }
+$stAgg->execute();
+$resAgg = $stAgg->get_result();
+$byYear = [];
+while ($row = $resAgg->fetch_assoc()) {
+    $byYear[(int) $row['gy']] = [
+        'employed' => (int) $row['employed'],
+        'total' => (int) $row['total'],
+    ];
+}
+$stAgg->close();
+
+foreach ($years as $gy) {
+    if (!empty($byYear[$gy]) && $byYear[$gy]['total'] > 0) {
+        $rates[] = round(($byYear[$gy]['employed'] / $byYear[$gy]['total']) * 100, 1);
+    } else {
+        $rates[] = 0.0;
     }
-    $st->close();
-    $rates[] = $total > 0 ? round(($employed / $total) * 100, 1) : 0.0;
 }
 
 if (count($years) < 2) {

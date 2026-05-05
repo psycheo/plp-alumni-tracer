@@ -225,14 +225,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'employability_status' => "'" . $employability_status_esc . "'",
         'recommended_profession' => "'" . $recommended_profession_esc . "'",
     ];
+
+    // CORRECTED CODE: Fetch the actual student_id from the session
+    $student_id_val = isset($_SESSION['student_id']) ? $conn->real_escape_string($_SESSION['student_id']) : '';
+
     foreach (['user_id', 'student_id', 'alumni_id'] as $user_fk_col) {
         if ($col_exists('alumni_assessments', $user_fk_col)) {
-            $insert_map[$user_fk_col] = (string) $user_id;
+            // If the table uses student_id, insert the alphanumeric student_id with quotes
+            if ($user_fk_col === 'student_id') {
+                $insert_map[$user_fk_col] = "'" . $student_id_val . "'";
+            } else {
+                // Otherwise fallback to the numeric user_id
+                $insert_map[$user_fk_col] = (string) $user_id;
+            }
             break;
         }
     }
 
-    $insert_cols = [];
+$insert_cols = [];
     $insert_vals = [];
     foreach ($insert_map as $col => $val) {
         if ($col_exists('alumni_assessments', $col)) {

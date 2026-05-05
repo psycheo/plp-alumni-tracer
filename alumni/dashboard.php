@@ -84,7 +84,7 @@ require '../includes/db.php';
     // 3. Count AND Fetch unread replies for the notification bell
     $unread_count = 0;
     $notif_list_stmt = null;
-    if ($reply_user_col !== null) {
+    if ($reply_user_col !== null && !empty($reply_val)) {
         $notif_stmt = $conn->prepare("SELECT COUNT(*) as count FROM feedback_replies WHERE {$reply_user_col} = ? AND is_seen = 0");
         if ($notif_stmt) {
             $notif_stmt->bind_param($reply_type, $reply_val);

@@ -51,7 +51,14 @@ foreach (['user_id', 'student_id', 'alumni_id'] as $candidate) {
 $has_months_to_hire = $col_exists('alumni_assessments', 'months_to_hire');
 
 if ($assessment_user_col !== null && $has_months_to_hire) {
-    $check_hired = $conn->prepare("SELECT id FROM alumni_assessments WHERE {$assessment_user_col} = ? AND months_to_hire IS NOT NULL LIMIT 1");
+    // Join the users table if the target column is student_id to match the integer $uid correctly
+    if ($assessment_user_col === 'student_id') {
+        $query = "SELECT a.id FROM alumni_assessments a JOIN users u ON a.student_id = u.student_id WHERE u.id = ? AND a.months_to_hire IS NOT NULL LIMIT 1";
+    } else {
+        $query = "SELECT id FROM alumni_assessments WHERE {$assessment_user_col} = ? AND months_to_hire IS NOT NULL LIMIT 1";
+    }
+    
+    $check_hired = $conn->prepare($query);
     if ($check_hired) {
         $check_hired->bind_param('i', $uid);
         $check_hired->execute();

@@ -11,9 +11,17 @@ while ($row = $prog_query->fetch_assoc()) {
 }
 
 $years = [];
-$year_query = $conn->query("SELECT DISTINCT grad_year FROM alumni_assessments ORDER BY grad_year ASC");
-while ($row = $year_query->fetch_assoc()) {
-    $years[] = $row['grad_year'];
+$year_query = $conn->query("SELECT DISTINCT grad_year FROM alumni_assessments WHERE grad_year IS NOT NULL ORDER BY grad_year ASC");
+if ($year_query) {
+    while ($row = $year_query->fetch_assoc()) {
+        $years[] = (int) $row['grad_year'];
+    }
+}
+if ($years === []) {
+    $cy = (int) date('Y');
+    for ($y = $cy - 10; $y <= $cy; $y++) {
+        $years[] = $y;
+    }
 }
 ?>
 
@@ -33,7 +41,14 @@ while ($row = $year_query->fetch_assoc()) {
         .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px; }
         .metric-card { background: #fff; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb; }
         .metric-card h3 { font-size: 1.05rem; color: #1f2937; margin-bottom: 15px; }
-        .chart-container { width: 100%; height: 250px; background: #f8fafc; display: flex; align-items: center; justify-content: center; color: #94a3b8; border-radius: 6px; }
+        /* Chart.js needs a positioned box with explicit height; flex-center parents often yield 0 canvas height */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            height: 250px;
+            background: #f8fafc;
+            border-radius: 6px;
+        }
         .industry-list { max-height: 250px; overflow-y: auto; padding-right: 5px; }
     </style>
 </head>
@@ -74,8 +89,8 @@ while ($row = $year_query->fetch_assoc()) {
                 <div style="flex: 1;">
                     <label style="display: block; font-size: 0.85rem; color: #4b5563; margin-bottom: 5px;">Start Year</label>
                     <select id="start_year" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px;">
-                        <?php foreach ($years as $year): ?>
-                            <option value="<?= htmlspecialchars($year) ?>"><?= htmlspecialchars($year) ?></option>
+                        <?php foreach ($years as $idx => $year): ?>
+                            <option value="<?= (int) $year ?>" <?= $idx === 0 ? 'selected' : '' ?>><?= (int) $year ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -83,8 +98,9 @@ while ($row = $year_query->fetch_assoc()) {
                 <div style="flex: 1;">
                     <label style="display: block; font-size: 0.85rem; color: #4b5563; margin-bottom: 5px;">End Year</label>
                     <select id="end_year" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px;">
-                        <?php foreach (array_reverse($years) as $year): ?>
-                            <option value="<?= htmlspecialchars($year) ?>"><?= htmlspecialchars($year) ?></option>
+                        <?php $yearsRev = array_reverse($years); ?>
+                        <?php foreach ($yearsRev as $idx => $year): ?>
+                            <option value="<?= (int) $year ?>" <?= $idx === 0 ? 'selected' : '' ?>><?= (int) $year ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
@@ -110,7 +126,7 @@ while ($row = $year_query->fetch_assoc()) {
             </div>
 
             <div class="metric-card" style="border-top: 4px solid #8b5cf6;">
-                <h3>Top Industry Over Time</h3>
+                <h3 id="sectorPanelTitle">Top industry or role over time</h3>
                 <div id="top_industry_container" class="industry-list" style="font-size: 0.9rem; color: #4b5563;">
                     <p>Select programs to compare historical shifts.</p>
                 </div>
@@ -192,20 +208,44 @@ while ($row = $year_query->fetch_assoc()) {
             formData.append('start_year', startYear);
             formData.append('end_year', endYear);
 
-            fetch('../api/fetch_comparison.php', { method: 'POST', body: formData })
-                .then(response => response.json())
+            fetch('../api/fetch_comparison.php', {
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin',
+                headers: { 'Accept': 'application/json' }
+            })
+                .then(async response => {
+                    const text = await response.text();
+                    let payload;
+                    try {
+                        payload = JSON.parse(text);
+                    } catch (e) {
+                        throw new Error('Server did not return JSON (check login or PHP errors). First bytes: ' + text.slice(0, 120));
+                    }
+                    if (!response.ok && payload.error) {
+                        throw new Error(payload.error || ('HTTP ' + response.status));
+                    }
+                    return payload;
+                })
                 .then(data => {
-                    const labels = data.labels;
+                    if (data.error && !Array.isArray(data.labels)) {
+                        throw new Error(typeof data.error === 'string' ? data.error : 'API error');
+                    }
+                    if (!data.groupA || !data.groupB || !Array.isArray(data.labels)) {
+                        throw new Error('Unexpected API response (missing labels or groups).');
+                    }
+
+                    const labels = data.labels.map(String);
 
                     // Helper to toggle Chart datasets
                     const handleDataset = (dataset, groupData, dataKey) => {
-                        if (groupData.is_none) {
+                        if (!groupData || groupData.is_none) {
                             dataset.hidden = true;
                             dataset.data = [];
                         } else {
                             dataset.hidden = false;
-                            dataset.label = groupData.name;
-                            dataset.data = groupData[dataKey];
+                            dataset.label = groupData.name || dataset.label;
+                            dataset.data = Array.isArray(groupData[dataKey]) ? groupData[dataKey] : [];
                         }
                     };
 
@@ -223,19 +263,26 @@ while ($row = $year_query->fetch_assoc()) {
                     handleDataset(timeChart.data.datasets[0], data.groupA, 'times');
                     handleDataset(timeChart.data.datasets[1], data.groupB, 'times');
                     timeChart.update();
+
+                    const sectorPanelTitle = document.getElementById('sectorPanelTitle');
+                    if (sectorPanelTitle && typeof data.sector_label === 'string' && data.sector_label.length) {
+                        sectorPanelTitle.textContent = 'Top ' + data.sector_label.toLowerCase() + ' over time';
+                    }
                     
                     // Update Top Industry UI dynamically
                     let industryHTML = '<div style="display: flex; gap: 10px; width: 100%;">';
                     if (!data.groupA.is_none) {
+                        const tiA = Array.isArray(data.groupA.top_industries) ? data.groupA.top_industries.join('<br>') : '';
                         industryHTML += `<div style="flex: 1; padding: 10px; background: #eff6ff; border-left: 3px solid #3b82f6; border-radius: 4px;">
                                             <strong style="color: #1e3a8a; display: block; margin-bottom: 8px;">${data.groupA.name}</strong>
-                                            ${data.groupA.top_industries.join('<br>')}
+                                            ${tiA}
                                         </div>`;
                     }
                     if (!data.groupB.is_none) {
+                        const tiB = Array.isArray(data.groupB.top_industries) ? data.groupB.top_industries.join('<br>') : '';
                         industryHTML += `<div style="flex: 1; padding: 10px; background: #ecfdf5; border-left: 3px solid #10b981; border-radius: 4px;">
                                             <strong style="color: #064e3b; display: block; margin-bottom: 8px;">${data.groupB.name}</strong>
-                                            ${data.groupB.top_industries.join('<br>')}
+                                            ${tiB}
                                         </div>`;
                     }
                     if (data.groupA.is_none && data.groupB.is_none) {
@@ -245,36 +292,35 @@ while ($row = $year_query->fetch_assoc()) {
                     }
                     document.getElementById('top_industry_container').innerHTML = industryHTML;
 
-                    // Helper to safely average an array
-                    const getAverage = arr => arr.length ? (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1) : 0;
-
-                    // Update Summary Tables dynamically
                     const cardA = document.getElementById('card_a');
-                    if (!data.groupA.is_none) {
-                        cardA.style.display = 'block';
-                        document.getElementById('title_a').textContent = `${data.groupA.name} (${startYear} - ${endYear})`;
-                        document.getElementById('total_a').textContent = data.groupA.graduates.reduce((a, b) => a + b, 0);
-                        document.getElementById('rate_a').textContent = getAverage(data.groupA.rates) + '%';
-                        document.getElementById('time_a').textContent = getAverage(data.groupA.times) + ' months';
-                    } else {
-                        cardA.style.display = 'none';
-                    }
-
                     const cardB = document.getElementById('card_b');
-                    if (!data.groupB.is_none) {
-                        cardB.style.display = 'block';
-                        document.getElementById('title_b').textContent = `${data.groupB.name} (${startYear} - ${endYear})`;
-                        document.getElementById('total_b').textContent = data.groupB.graduates.reduce((a, b) => a + b, 0);
-                        document.getElementById('rate_b').textContent = getAverage(data.groupB.rates) + '%';
-                        document.getElementById('time_b').textContent = getAverage(data.groupB.times) + ' months';
-                    } else {
-                        cardB.style.display = 'none';
+                    if (cardA && cardB) {
+                        const getAverage = arr => arr.length ? (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(1) : 0;
+                        if (!data.groupA.is_none) {
+                            cardA.style.display = 'block';
+                            document.getElementById('title_a').textContent = `${data.groupA.name} (${startYear} - ${endYear})`;
+                            document.getElementById('total_a').textContent = data.groupA.graduates.reduce((a, b) => a + b, 0);
+                            document.getElementById('rate_a').textContent = getAverage(data.groupA.rates) + '%';
+                            document.getElementById('time_a').textContent = getAverage(data.groupA.times) + ' months';
+                        } else {
+                            cardA.style.display = 'none';
+                        }
+                        if (!data.groupB.is_none) {
+                            cardB.style.display = 'block';
+                            document.getElementById('title_b').textContent = `${data.groupB.name} (${startYear} - ${endYear})`;
+                            document.getElementById('total_b').textContent = data.groupB.graduates.reduce((a, b) => a + b, 0);
+                            document.getElementById('rate_b').textContent = getAverage(data.groupB.rates) + '%';
+                            document.getElementById('time_b').textContent = getAverage(data.groupB.times) + ' months';
+                        } else {
+                            cardB.style.display = 'none';
+                        }
                     }
 
                     btn.innerHTML = originalText;
                 })
                 .catch(error => {
                     console.error('Error fetching data:', error);
+                    alert(error.message || String(error));
                     btn.innerHTML = originalText;
                 });
         });
