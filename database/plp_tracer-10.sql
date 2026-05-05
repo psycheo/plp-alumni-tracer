@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 05, 2026 at 06:43 PM
+-- Generation Time: May 05, 2026 at 08:16 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -10077,7 +10077,24 @@ INSERT INTO `alumni_assessments` (`id`, `name`, `program_id`, `grad_year`, `empl
 (9898, 'Sample Alumni', 2, 2016, 'Unemployed', '', 'NULL', NULL, '', '', 0, 5.00, 60.00, 100.00, 82.67, '', 'Job Mismatch', 'Software Engineer', '2026-04-24 07:22:51', '1'),
 (9899, 'Sample Alumni', 2, 2025, 'Unemployed', '', 'NULL', NULL, '', '', 0, 5.00, 60.00, 86.67, 80.00, '', 'Job Mismatch', 'QA / Test Engineer', '2026-04-24 07:43:40', '1'),
 (9900, 'Kelly Rowland M. Lola', 1, 2025, 'Unemployed', '', 'NULL', NULL, '', '', 0, 1.25, 98.00, 100.00, 85.14, '', 'Good Match', 'Web Developer', '2026-05-05 05:38:48', '21'),
-(9901, 'Kelly Rowland M. Lola', 1, 2025, 'Unemployed', '', 'NULL', NULL, '', '', 0, 1.25, 98.00, 80.00, 67.21, '', 'Good Match', 'Web Developer', '2026-05-05 06:08:45', '23-00159');
+(9901, 'Kelly Rowland M. Lola', 1, 2025, 'Unemployed', '', 'NULL', NULL, '', '', 0, 1.25, 98.00, 80.00, 67.21, '', 'Good Match', 'Web Developer', '2026-05-05 06:08:45', '23-00159'),
+(9902, 'Anthony M. Loterte', 1, 2025, 'Employed', 'S.y.s', 'Admin', '6', 'Sys Admin', '40k-60k', 2, 1.75, 90.00, 87.00, 93.95, '', 'Good Match', 'Cybersecurity Analyst', '2026-05-05 16:57:26', '23-00152'),
+(9903, 'Anthony M. Loterte', 1, 2025, 'Employed', 'Appdev', 'Development', NULL, 'App Developer', 'Above 60k', 5, 1.75, 90.00, 87.00, 81.64, '', 'Good Match', 'Software Engineer', '2026-05-05 17:06:15', '23-00152');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `audit_logs`
+--
+
+CREATE TABLE `audit_logs` (
+  `id` int(11) NOT NULL,
+  `admin_id` int(11) NOT NULL,
+  `admin_name` varchar(100) NOT NULL,
+  `action` varchar(50) NOT NULL,
+  `details` text NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 -- --------------------------------------------------------
 
@@ -10342,7 +10359,7 @@ CREATE TABLE `feedback_replies` (
 --
 
 INSERT INTO `feedback_replies` (`id`, `feedback_id`, `student_id`, `reply_text`, `is_seen`, `created_at`) VALUES
-(4, 22, 23, 'Thank you for this feedback!', 0, '2026-05-03 12:14:03');
+(4, 22, '23', 'Thank you for this feedback!', 0, '2026-05-03 12:14:03');
 
 -- --------------------------------------------------------
 
@@ -10550,7 +10567,7 @@ INSERT INTO `users` (`id`, `student_id`, `full_name`, `email`, `password`, `role
 (19, '23-00220', 'Carl Aj G. Junio', 'junio_carlaj@plpasig.edu.ph', '$2y$10$xvPgqDilsSZv4gFt3EzuYO89UrazydtRX6pMGqikYVdwu.zbva4F6', 'alumni', 2025, '2026-05-03 12:04:19', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (20, '23-00161', 'Ron Michael C. Legaspi', 'legaspi_ronmichael@plpasig.edu.ph', '$2y$10$.UCp7RftZWk4pb0.JMnWNeAiiPelxK6Rk3AXtbKBqZRrF8qJnlJau', 'alumni', 2025, '2026-05-03 12:04:19', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (21, '23-00159', 'Kelly Rowland M. Lola', 'lola_kellyrowland@plpasig.edu.ph', '$2y$10$.WaIWyv1dGcIiRk1YZxJWOZtsn1ShrHyhn8cO3WhYxwe.4j5Co0EC', 'alumni', 2025, '2026-05-03 12:04:19', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(22, '23-00152', 'Anthony M. Loterte', 'loterte_anthony@plpasig.edu.ph', '$2y$10$WmKncL7wPtaEm9khLVND2edSgddv8lrSAiF3wPM6ckMGMqBqCsdP6', 'alumni', 2025, '2026-05-03 12:04:19', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(22, '23-00152', 'Anthony M. Loterte', 'loterte_anthony@plpasig.edu.ph', '$2y$10$0BQSX43dzSSyH2uo4fXAHe0tUoJ9wtRsp2afmLmbd7HZMA.nXiKCa', 'alumni', 2025, '2026-05-03 12:04:19', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (23, '23-01095', 'Maverick S. Mabingnay', 'mabingnay_maverick@plpasig.edu.ph', '$2y$10$tsdYgyFHiklQjPIV5oEMVexHcjgVpU7ByIeCdRYGsS9.Zzb4gHC/K', 'alumni', 2025, '2026-05-03 12:04:20', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (24, '23-00245', 'Eugene Joezer B. Manlangit', 'manlangit_eugenejoezer@plpasig.edu.ph', '$2y$10$Baytoqe59uvSQiG3xrsxpuhyNFmktJqfx9Qf9BPhwdvyQEa6i.R.C', 'alumni', 2025, '2026-05-03 12:04:20', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (25, '23-00255', 'Prince Emir L. Manlogon', 'manlogon_princeemir@plpasig.edu.ph', '$2y$10$8VR99MM41xsMmcHvD9zEdOoVFLCsRM7n8l4aTtxsxzVguXxE4djzC', 'alumni', 2025, '2026-05-03 12:04:20', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
@@ -10594,6 +10611,12 @@ ALTER TABLE `alumni_assessments`
   ADD PRIMARY KEY (`id`),
   ADD KEY `alumni_assessments_ibfk_program` (`program_id`),
   ADD KEY `alumni_assessments_ibfk_user` (`student_id`);
+
+--
+-- Indexes for table `audit_logs`
+--
+ALTER TABLE `audit_logs`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `companies_cache`
@@ -10669,7 +10692,13 @@ ALTER TABLE `alumni_academic_info`
 -- AUTO_INCREMENT for table `alumni_assessments`
 --
 ALTER TABLE `alumni_assessments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9902;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9904;
+
+--
+-- AUTO_INCREMENT for table `audit_logs`
+--
+ALTER TABLE `audit_logs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `companies_cache`
