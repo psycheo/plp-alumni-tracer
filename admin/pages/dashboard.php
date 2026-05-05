@@ -341,7 +341,10 @@ $pyReady = ml_python_executable() !== null && file_exists(ml_forecast_script_pat
             pill.addEventListener('click', function () {
                 document.querySelectorAll('.algo-pill').forEach(function (p) { p.classList.remove('active'); });
                 pill.classList.add('active');
-                runForecast();
+                const noteEl = document.getElementById('forecast_note');
+                const errEl = document.getElementById('forecast_error');
+                errEl.style.display = 'none';
+                noteEl.textContent = 'Model selected: ' + (getSelectedMethod() || '').replace(/_/g, ' ') + '. Press Run forecast.';
             });
         });
 
@@ -349,7 +352,7 @@ $pyReady = ml_python_executable() !== null && file_exists(ml_forecast_script_pat
 
         document.addEventListener('DOMContentLoaded', function () {
             <?php if ($pyReady): ?>
-            runForecast();
+            document.getElementById('forecast_note').textContent = 'Select options, then press Run forecast.';
             <?php else: ?>
             document.getElementById('forecast_note').textContent = 'Install Python dependencies to run forecasts.';
             <?php endif; ?>
