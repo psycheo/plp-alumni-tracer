@@ -40,6 +40,11 @@
                 <i class="fas fa-comments"></i> Feedbacks
             </a>
         </li>
+        <li>
+            <a href="../pages/admin_settings.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'admin_settings.php' ? 'active' : ''; ?>">
+                <i class="fas fa-cogs"></i> Settings
+            </a>
+        </li>
     </ul>
 
     <div class="sidebar-footer" style="padding-left: 0; padding-right: 0;">
