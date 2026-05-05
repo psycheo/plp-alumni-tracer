@@ -1,7 +1,36 @@
 <?php
 session_start();
 require_once __DIR__ . '/../../includes/auth.php';
+require_once __DIR__ . '/../../includes/db.php';
 require_admin();
+
+// 1. Fetch cached data on load
+$companiesPayload = [];
+$cachedHtml = '';
+$result = $conn->query("SELECT * FROM companies_cache ORDER BY name ASC");
+
+if ($result && $result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
+        $companiesPayload[] = ['name' => $row['name'], 'location' => $row['location']];
+        
+        $cachedHtml .= '
+        <div class="company-card">
+            <div class="company-header">
+                <div class="company-logo"><i class="fas ' . htmlspecialchars($row['icon']) . '"></i></div>
+                <div>
+                    <h3 style="font-size: 1.1rem; color: #1f2937;">' . htmlspecialchars($row['name']) . '</h3>
+                    <p style="font-size: 0.85rem; color: #6b7280;"><i class="fas fa-map-marker-alt"></i> ' . htmlspecialchars($row['location']) . '</p>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; border-top: 1px solid #f3f4f6; padding-top: 15px;">
+                <span style="font-size: 0.85rem; color: #4b5563;">' . htmlspecialchars($row['industry']) . '</span>
+                <span class="hiring-badge" style="background: #e0e7ff; color: #4338ca;"><i class="fas fa-database"></i> Cached</span>
+            </div>
+        </div>';
+    }
+} else {
+    $cachedHtml = '<p style="grid-column: 1 / -1; text-align: center; color: #6b7280;">No cached companies found. Click "Update Map Cache".</p>';
+}
 ?>
 
 <!DOCTYPE html>
@@ -35,7 +64,7 @@ require_admin();
     <main class="admin-main">
         <div class="page-title">
             <h1>Company Directory</h1>
-            <p>Places come from OpenStreetMap (Overpass, Metro Manila). Jobs are searched in the <strong>Philippines</strong> on Careerjet using each place’s name and city—aligned with your map results, not a foreign market.</p>
+            <p>Places come from OpenStreetMap (Overpass, Metro Manila). Jobs are searched in the <strong>Philippines</strong> on Careerjet using each place’s name and city.</p>
         </div>
 
         <div class="admin-card" style="padding: 20px;">
@@ -47,25 +76,24 @@ require_admin();
                     <option value="Calabarzon">Calabarzon</option>
                     <option value="Cebu">Cebu</option>
                 </select>
-                <button class="btn-upload" onclick="searchAllSources()"><i class="fas fa-search"></i> Search all sources</button>
+                <button class="btn-upload" onclick="searchJobs()"><i class="fas fa-search"></i> Search Jobs</button>
+                <button class="btn-upload" style="background: #3b82f6;" onclick="updateCache(this)"><i class="fas fa-sync"></i> Update Map Cache</button>
             </div>
 
             <div class="loaders-row">
-                <div id="api-loading-map" style="display: none; text-align: center; padding: 24px; color: #6b7280; border: 1px dashed #e5e7eb; border-radius: 8px;">
-                    <i class="fas fa-spinner fa-spin fa-2x"></i>
-                    <p style="margin-top: 10px; font-size: 0.9rem;">Loading map (Overpass)…</p>
-                </div>
-                <div id="api-loading-jobs" style="display: none; text-align: center; padding: 24px; color: #6b7280; border: 1px dashed #e5e7eb; border-radius: 8px;">
+                <div id="api-loading-jobs" style="display: none; text-align: center; padding: 24px; color: #6b7280; border: 1px dashed #e5e7eb; border-radius: 8px; grid-column: 1 / -1;">
                     <i class="fas fa-spinner fa-spin fa-2x"></i>
                     <p style="margin-top: 10px; font-size: 0.9rem;">Loading PH jobs (Careerjet)…</p>
                 </div>
             </div>
 
-            <h3 class="api-section-title"><i class="fas fa-map"></i> Places (OpenStreetMap / Overpass)</h3>
-            <div class="company-grid" id="api-companies-grid"></div>
+            <h3 class="api-section-title"><i class="fas fa-map"></i> Places</h3>
+            <div class="company-grid" id="api-companies-grid">
+                <?= $cachedHtml ?>
+            </div>
 
             <h3 class="api-section-title" style="margin-top: 28px;"><i class="fas fa-briefcase"></i> Job listings (Philippines · Careerjet)</h3>
-            <p style="font-size: 0.85rem; color: #6b7280; margin: -4px 0 12px;">Searches Careerjet (Philippines, <code>en_PH</code>) for jobs matching each place above (name + city), plus your keyword below to narrow results.</p>
+            <p style="font-size: 0.85rem; color: #6b7280; margin: -4px 0 12px;">Searches Careerjet (Philippines, <code>en_PH</code>) for jobs matching each place above.</p>
             <div class="company-grid" id="api-ph-jobs-grid"></div>
         </div>
     </main>
@@ -77,8 +105,36 @@ require_admin();
             return div.innerHTML;
         }
 
-        function searchAllSources() {
-            fetchCompaniesAPI();
+        // 2. Dump PHP array into JS so the job API can still use it
+        const cachedCompanies = <?= json_encode($companiesPayload) ?>;
+
+        function searchJobs() {
+            const keywordEl = document.getElementById('searchKeyword');
+            const extraKw = keywordEl && keywordEl.value.trim() ? keywordEl.value.trim() : '';
+            fetchPhJobsFromOverpass(cachedCompanies, extraKw);
+        }
+
+        // 3. New Update Cache Function
+        async function updateCache(btn) {
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('../api/update_companies_cache.php');
+                const data = await res.json();
+                
+                if (data.ok) {
+                    location.reload(); 
+                } else {
+                    alert('Error: ' + data.error);
+                    btn.innerHTML = '<i class="fas fa-sync"></i> Update Map Cache';
+                    btn.disabled = false;
+                }
+            } catch (e) {
+                alert('Network error while updating cache.');
+                btn.innerHTML = '<i class="fas fa-sync"></i> Update Map Cache';
+                btn.disabled = false;
+            }
         }
 
         async function fetchPhJobsFromOverpass(companiesPayload, extraKeywords) {
@@ -112,7 +168,7 @@ require_admin();
 
                 const jobs = data.results || [];
                 if (jobs.length === 0) {
-                    grid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: #6b7280;">No Careerjet listings matched these places. Try another keyword or fewer filters.</p>';
+                    grid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: #6b7280;">No Careerjet listings matched these places.</p>';
                     return;
                 }
 
@@ -149,155 +205,7 @@ require_admin();
             } catch (e) {
                 console.error(e);
                 loader.style.display = 'none';
-                grid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: #b91c1c;">Error loading Careerjet. Add includes/careerjet_credentials.php with your Publisher API key.</p>';
-            }
-        }
-
-        async function fetchCompaniesAPI() {
-            const grid = document.getElementById('api-companies-grid');
-            const loader = document.getElementById('api-loading-map');
-            const jobsLoader = document.getElementById('api-loading-jobs');
-            const keywordEl = document.getElementById('searchKeyword');
-            const extraKw = keywordEl && keywordEl.value.trim() ? keywordEl.value.trim() : '';
-
-            const maxResults = 50;
-
-            grid.innerHTML = '';
-            document.getElementById('api-ph-jobs-grid').innerHTML = '';
-            loader.style.display = 'block';
-            jobsLoader.style.display = 'none';
-
-            // Tighter bounding box specifically for Metro Manila to prevent 504 Timeouts
-            // Format is: (south, west, north, east)
-            const query = `
-            [out:json][timeout:80];
-            (
-            // IT, CS, & ECE (Tech & Telecom)
-            node["office"="it"](14.33, 120.89, 14.79, 121.14);
-            node["office"="telecommunication"](14.33, 120.89, 14.79, 121.14);
-
-            // Business, Accountancy, Entrepreneurship
-            node["office"="company"](14.33, 120.89, 14.79, 121.14);
-            node["office"="financial"](14.33, 120.89, 14.79, 121.14);
-            node["office"="accountant"](14.33, 120.89, 14.79, 121.14);
-            node["amenity"="bank"](14.33, 120.89, 14.79, 121.14);
-
-            // Hospitality Management
-            node["tourism"="hotel"](14.33, 120.89, 14.79, 121.14);
-
-            // Nursing (Hospitals & Clinics)
-            node["amenity"="hospital"](14.33, 120.89, 14.79, 121.14);
-            node["amenity"="clinic"](14.33, 120.89, 14.79, 121.14);
-
-            // Education
-            node["amenity"="university"](14.33, 120.89, 14.79, 121.14);
-            node["amenity"="college"](14.33, 120.89, 14.79, 121.14);
-            node["amenity"="school"](14.33, 120.89, 14.79, 121.14);
-            );
-            out body;
-            `;
-
-            try {
-                const response = await fetch('https://overpass-api.de/api/interpreter', {
-                    method: 'POST',
-                    body: query
-                });
-
-                // 1. Check if the response is actually OK before trying to read JSON
-                if (!response.ok) {
-                    // If we get a 504, 429 (Rate Limit), etc.
-                    throw new Error(`API Server Error: ${response.status} ${response.statusText}`);
-                }
-
-                // 2. Only parse JSON if the response was successful
-                const result = await response.json();
-                
-                loader.style.display = 'none';
-
-                const companies = result.elements || [];
-                const namedCompanies = companies.filter(c => c.tags && c.tags.name);
-
-                if (namedCompanies.length === 0) {
-                    grid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: #6b7280;">No companies found matching your criteria.</p>';
-                    document.getElementById('api-ph-jobs-grid').innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: #6b7280;">No Overpass places to match — Philippines jobs not queried.</p>';
-                    return;
-                }
-
-                const companiesPayload = [];
-                namedCompanies.slice(0, maxResults).forEach(company => {
-                    const tags = company.tags;
-                    const name = tags.name;
-                    
-                    let rawLocation = tags['addr:city'] || tags['addr:municipality'] || tags['addr:suburb'];
-                    let location = 'Metro Manila'; // Default fallback
-                    
-                    if (rawLocation) {
-                        if (rawLocation.toLowerCase().includes('city') || rawLocation.toLowerCase().includes('pateros')) {
-                            location = rawLocation;
-                        } else {
-                            location = `${rawLocation} City`;
-                        }
-                    }
-
-                    companiesPayload.push({ name: name, location: location });
-                    
-                    let industry = 'Business';
-                    let icon = 'fa-building';
-                    
-                    if (tags.office === 'it' || tags.office === 'telecommunication') {
-                        industry = 'IT & Tech';
-                        icon = 'fa-laptop-code';
-                    } else if (tags.amenity === 'hospital' || tags.amenity === 'clinic') {
-                        industry = 'Healthcare & Nursing';
-                        icon = 'fa-hospital-user';
-                    } else if (tags.amenity === 'university' || tags.amenity === 'college' || tags.amenity === 'school') {
-                        industry = 'Education';
-                        icon = 'fa-graduation-cap';
-                    } else if (tags.tourism === 'hotel') {
-                        industry = 'Hospitality';
-                        icon = 'fa-hotel';
-                    } else if (tags.office === 'financial' || tags.office === 'accountant' || tags.amenity === 'bank') {
-                        industry = 'Finance & Accountancy';
-                        icon = 'fa-chart-pie';
-                    } else if (tags.office === 'company' || tags.office === 'commercial') {
-                        industry = 'Corporate / Business';
-                        icon = 'fa-briefcase';
-                    }
-
-                    const card = document.createElement('div');
-                    card.className = 'company-card';
-                    card.innerHTML = `
-                        <div class="company-header">
-                            <div class="company-logo"><i class="fas ${icon}"></i></div>
-                            <div>
-                                <h3 style="font-size: 1.1rem; color: #1f2937;">${escapeHtml(name)}</h3>
-                                <p style="font-size: 0.85rem; color: #6b7280;"><i class="fas fa-map-marker-alt"></i> ${escapeHtml(location)}</p>
-                            </div>
-                        </div>
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; border-top: 1px solid #f3f4f6; padding-top: 15px;">
-                            <span style="font-size: 0.85rem; color: #4b5563;">${escapeHtml(industry)}</span>
-                            <span class="hiring-badge" style="background: #e0e7ff; color: #4338ca;"><i class="fas fa-map-pin"></i> OSM</span>
-                        </div>
-                    `;
-                    grid.appendChild(card);
-                });
-
-                await fetchPhJobsFromOverpass(companiesPayload, extraKw);
-
-            } catch (error) {
-                loader.style.display = 'none';
-                jobsLoader.style.display = 'none';
-                console.error("Fetch Error:", error);
-                
-                // Print a user-friendly error to the UI instead of failing silently
-                grid.innerHTML = `
-                    <div style="grid-column: 1 / -1; text-align: center; color: #b91c1c; background: #fee2e2; padding: 20px; border-radius: 8px;">
-                        <i class="fas fa-exclamation-triangle fa-2x" style="margin-bottom: 10px;"></i>
-                        <p><strong>Failed to fetch data from the Map API.</strong></p>
-                        <p style="font-size: 0.9rem; margin-top: 5px;">The public server might be overloaded. Please try again in a few moments.</p>
-                        <p style="font-size: 0.8rem; color: #7f1d1d; margin-top: 10px;">Technical Details: ${error.message}</p>
-                    </div>
-                `;
+                grid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: #b91c1c;">Error loading Careerjet.</p>';
             }
         }
     </script>
