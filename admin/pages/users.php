@@ -274,12 +274,23 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['fetch_users'])) {
         }
     }
     
-    // Return structured JSON
-    echo json_encode([
+    // Return structured JSON safely
+    $json = json_encode([
         'users' => $users,
         'totalPages' => $totalPages,
         'currentPage' => $page
-    ]);
+    ], JSON_INVALID_UTF8_SUBSTITUTE);
+
+    // If json_encode still fails, prevent an empty string crash by sending an empty array
+    if ($json === false) {
+        echo json_encode([
+            'users' => [],
+            'totalPages' => $totalPages,
+            'currentPage' => $page
+        ]);
+    } else {
+        echo $json;
+    }
     exit();
 }
 
@@ -853,22 +864,23 @@ document.addEventListener('DOMContentLoaded', () => {
         
         let html = '';
         users.forEach(user => {
-            const badgeClass = user.role === 'admin' ? 'role-admin' : 'role-alumni';
-            const createdDate = new Date(user.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            const role = user.role || 'alumni'; 
+            const badgeClass = role === 'admin' ? 'role-admin' : 'role-alumni';
+            const createdDate = user.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Unknown';
             
             html += `
                 <tr>
                     <td><strong>${escapeHtml(user.student_id)}</strong></td>
                     <td style="text-transform:uppercase;">${escapeHtml(user.full_name)}</td>
                     <td>${escapeHtml(user.email)}</td>
-                    <td style="text-align: center;"><span class="role-badge ${badgeClass}">${user.role.charAt(0).toUpperCase() + user.role.slice(1)}</span></td>
+                    <td style="text-align: center;"><span class="role-badge ${badgeClass}">${role.charAt(0).toUpperCase() + role.slice(1)}</span></td>
                     <td style="text-align: center;">${createdDate}</td>
                     <td style="text-align: center;">
                         <button class="action-btn action-edit" title="Edit Account"
                             data-id="${escapeHtml(user.student_id)}"
                             data-name="${escapeHtml(user.full_name)}"
                             data-email="${escapeHtml(user.email)}"
-                            data-role="${user.role}">
+                            data-role="${role}">
                             <i class="fas fa-edit"></i>
                         </button>
                         <button class="action-btn action-academic" title="Academic Information"
@@ -878,7 +890,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </button>
                         <a href="?delete_id=${encodeURIComponent(user.student_id)}"
                             class="action-btn action-delete" title="Delete Account"
-                            onclick="handleDelete(event, this.href, '${user.role}')">
+                            onclick="handleDelete(event, this.href, '${role}')">
                             <i class="fas fa-trash-alt"></i>
                         </a>
                     </td>
@@ -920,8 +932,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        if (str === null || str === undefined) return '';
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
     
     function attachButtonHandlers() {
