@@ -98,7 +98,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
 
             <div class="login-card">
-                <h2>Welcome Back</h2>
+                <h2>Welcome PLPian!</h2>
 
                 <?php if(!empty($error)): ?>
                     <div class="error-msg"><?php echo $error; ?></div>
