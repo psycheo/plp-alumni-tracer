@@ -268,16 +268,28 @@ foreach ($latestRows as $r) {
         
         <div class="admin-card table-card">
             <!-- Pagination UI -->
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 25px; border-bottom: 1px solid #e5e7eb; background: #f9fafb;">
-                <p style="font-size: 0.85rem; color: #4b5563; margin: 0; font-weight: 500;">
-                    Displaying <?= count($latestRows) ?> records, page <?= $page ?> of <?= $totalPages ?> (Total: <?= number_format($totalRows) ?>)
-                </p>
-                <div style="display: flex; gap: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 25px; border-bottom: 1px solid #e5e7eb; background: #fff;">
+                <div style="flex: 1; font-size: 0.85rem; color: #4b5563;">
+                    Displaying <?= count($latestRows) ?> items
+                </div>
+                <div style="flex: 1; text-align: center; font-size: 0.85rem; color: #1f2937; font-weight: 500;">
+                    Page <?= $page ?> of <?= $totalPages ?>
+                </div>
+                <div style="flex: 1; display: flex; justify-content: flex-end; gap: 20px; font-size: 0.9rem;">
                     <?php if ($page > 1): ?>
-                        <a href="?<?= htmlspecialchars($filterQuery) ?>&page=<?= $page - 1 ?>" class="btn btn-secondary" style="padding: 6px 14px; font-size: 0.8rem; text-decoration: none; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">&laquo; Previous</a>
+                        <a href="?<?= htmlspecialchars($filterQuery) ?>&page=1" style="color: #6b7280; text-decoration: none;"><i class="fas fa-angle-double-left"></i></a>
+                        <a href="?<?= htmlspecialchars($filterQuery) ?>&page=<?= $page - 1 ?>" style="color: #6b7280; text-decoration: none;"><i class="fas fa-angle-left"></i></a>
+                    <?php else: ?>
+                        <span style="color: #d1d5db; cursor: not-allowed;"><i class="fas fa-angle-double-left"></i></span>
+                        <span style="color: #d1d5db; cursor: not-allowed;"><i class="fas fa-angle-left"></i></span>
                     <?php endif; ?>
+
                     <?php if ($page < $totalPages): ?>
-                        <a href="?<?= htmlspecialchars($filterQuery) ?>&page=<?= $page + 1 ?>" class="btn btn-secondary" style="padding: 6px 14px; font-size: 0.8rem; text-decoration: none; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">Next &raquo;</a>
+                        <a href="?<?= htmlspecialchars($filterQuery) ?>&page=<?= $page + 1 ?>" style="color: #6b7280; text-decoration: none;"><i class="fas fa-angle-right"></i></a>
+                        <a href="?<?= htmlspecialchars($filterQuery) ?>&page=<?= $totalPages ?>" style="color: #6b7280; text-decoration: none;"><i class="fas fa-angle-double-right"></i></a>
+                    <?php else: ?>
+                        <span style="color: #d1d5db; cursor: not-allowed;"><i class="fas fa-angle-right"></i></span>
+                        <span style="color: #d1d5db; cursor: not-allowed;"><i class="fas fa-angle-double-right"></i></span>
                     <?php endif; ?>
                 </div>
             </div>

@@ -42,8 +42,7 @@ if ($result && $result->num_rows > 0) {
     <link rel="stylesheet" href="../../assets/css/admin-style.css?v=4">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .filter-bar { display: flex; gap: 15px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
-        .filter-bar input, .filter-bar select { padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; flex: 1; min-width: 180px; }
+        .filter-bar { display: flex; gap: 15px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; justify-content: flex-start; }
         .api-section-title { font-size: 1rem; color: #374151; margin: 0 0 12px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
         .loaders-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
         @media (max-width: 768px) { .loaders-row { grid-template-columns: 1fr; } }
@@ -55,6 +54,13 @@ if ($result && $result->num_rows > 0) {
         .company-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
         .company-logo { width: 50px; height: 50px; background: #f3f4f6; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: #9ca3af; }
         .hiring-badge { background: #d1fae5; color: #10b981; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+        
+        /* New Pagination Styles */
+        .pagination-container { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; border: 1px solid #374151; margin-top: 20px; background: #fafafa; }
+        .page-info-text { font-size: 0.95rem; color: #1f2937; }
+        .page-btn { background: none; border: none; cursor: pointer; color: #374151; padding: 5px 10px; font-size: 1rem; transition: color 0.2s; }
+        .page-btn:hover:not(:disabled) { color: #3b82f6; }
+        .page-btn:disabled { color: #d1d5db; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -69,14 +75,7 @@ if ($result && $result->num_rows > 0) {
 
         <div class="admin-card" style="padding: 20px;">
             <div class="filter-bar">
-                <input type="text" id="searchKeyword" placeholder="Job or sector keyword (e.g. IT, nurse, accountant)...">
-                <select id="locationFilter">
-                    <option value="">All Locations</option>
-                    <option value="Metro Manila" selected>Metro Manila</option>
-                    <option value="Calabarzon">Calabarzon</option>
-                    <option value="Cebu">Cebu</option>
-                </select>
-                <button class="btn-upload" onclick="searchJobs()"><i class="fas fa-search"></i> Search Jobs</button>
+                <button class="btn-upload" onclick="searchJobs()"><i class="fas fa-search"></i> Load Jobs</button>
                 <button class="btn-upload" style="background: #3b82f6;" onclick="updateCache(this)"><i class="fas fa-sync"></i> Update Map Cache</button>
             </div>
 
@@ -88,12 +87,25 @@ if ($result && $result->num_rows > 0) {
             </div>
 
             <h3 class="api-section-title"><i class="fas fa-map"></i> Places</h3>
+            
+            <!-- Company Grid -->
             <div class="company-grid" id="api-companies-grid">
                 <?= $cachedHtml ?>
             </div>
 
-            <h3 class="api-section-title" style="margin-top: 28px;"><i class="fas fa-briefcase"></i> Job listings (Philippines · Careerjet)</h3>
-            <p style="font-size: 0.85rem; color: #6b7280; margin: -4px 0 12px;">Searches Careerjet (Philippines, <code>en_PH</code>) for jobs matching each place above.</p>
+            <!-- New Pagination Bar -->
+            <div class="pagination-container" id="pagination-wrapper" style="display: none;">
+                <div id="page-info" class="page-info-text">Displaying 0 items</div>
+                <div id="page-number" class="page-info-text" style="font-weight: 500;">Page 1 of 1</div>
+                <div style="display: flex; gap: 8px;">
+                    <button id="btn-first" class="page-btn" onclick="goToPage('first')"><i class="fas fa-angle-double-left"></i></button>
+                    <button id="btn-prev" class="page-btn" onclick="goToPage('prev')"><i class="fas fa-angle-left"></i></button>
+                    <button id="btn-next" class="page-btn" onclick="goToPage('next')"><i class="fas fa-angle-right"></i></button>
+                    <button id="btn-last" class="page-btn" onclick="goToPage('last')"><i class="fas fa-angle-double-right"></i></button>
+                </div>
+            </div>
+
+            <h3 class="api-section-title" style="margin-top: 35px;"><i class="fas fa-briefcase"></i> Job listings (Philippines · Careerjet)</h3>
             <div class="company-grid" id="api-ph-jobs-grid"></div>
         </div>
     </main>
@@ -105,16 +117,64 @@ if ($result && $result->num_rows > 0) {
             return div.innerHTML;
         }
 
-        // 2. Dump PHP array into JS so the job API can still use it
         const cachedCompanies = <?= json_encode($companiesPayload) ?>;
 
-        function searchJobs() {
-            const keywordEl = document.getElementById('searchKeyword');
-            const extraKw = keywordEl && keywordEl.value.trim() ? keywordEl.value.trim() : '';
-            fetchPhJobsFromOverpass(cachedCompanies, extraKw);
+        // --- Pagination Logic ---
+        const cardsPerPage = 8;
+        let currentPage = 1;
+        let totalCards = 0;
+        let totalPages = 0;
+        let allCards = [];
+
+        function initPagination() {
+            allCards = Array.from(document.querySelectorAll('#api-companies-grid .company-card'));
+            totalCards = allCards.length;
+
+            if (totalCards > 0) {
+                document.getElementById('pagination-wrapper').style.display = 'flex';
+                totalPages = Math.ceil(totalCards / cardsPerPage);
+                renderPage();
+            }
         }
 
-        // 3. New Update Cache Function
+        function renderPage() {
+            const startIndex = (currentPage - 1) * cardsPerPage;
+            const endIndex = startIndex + cardsPerPage;
+
+            allCards.forEach((card, index) => {
+                if (index >= startIndex && index < endIndex) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            const currentDisplayed = Math.min(cardsPerPage, totalCards - startIndex);
+            document.getElementById('page-info').innerText = `Displaying ${currentDisplayed} items`;
+            document.getElementById('page-number').innerText = `Page ${currentPage} of ${totalPages}`;
+
+            document.getElementById('btn-first').disabled = currentPage === 1;
+            document.getElementById('btn-prev').disabled = currentPage === 1;
+            document.getElementById('btn-next').disabled = currentPage === totalPages;
+            document.getElementById('btn-last').disabled = currentPage === totalPages;
+        }
+
+        function goToPage(action) {
+            if (action === 'first') currentPage = 1;
+            if (action === 'prev' && currentPage > 1) currentPage--;
+            if (action === 'next' && currentPage < totalPages) currentPage++;
+            if (action === 'last') currentPage = totalPages;
+            renderPage();
+        }
+
+        // Initialize pagination as soon as the page loads
+        document.addEventListener('DOMContentLoaded', initPagination);
+        // ------------------------
+
+        function searchJobs() {
+            fetchPhJobsFromOverpass(cachedCompanies, '');
+        }
+
         async function updateCache(btn) {
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
             btn.disabled = true;
@@ -153,10 +213,7 @@ if ($result && $result->num_rows > 0) {
                 const res = await fetch('../api/api_ph_jobs.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        companies: companiesPayload,
-                        extra_keywords: extraKeywords || ''
-                    })
+                    body: JSON.stringify({ companies: companiesPayload, extra_keywords: extraKeywords })
                 });
                 const data = await res.json();
                 loader.style.display = 'none';
