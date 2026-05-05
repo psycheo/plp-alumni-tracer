@@ -141,19 +141,6 @@ $colleges = $conn->query("SELECT * FROM colleges ORDER BY college_name ASC");
             </div>
         </div>
 
-        <!-- REPORTS CONFIG -->
-        <div class="settings-card">
-            <div class="section-header"><i class="fa-solid fa-file-invoice"></i> Reports Configuration</div>
-            <form method="POST">
-                <label style="font-weight: 600; display: block; margin-bottom: 10px;">Default records shown per report:</label>
-                <input type="number" name="report_limit" class="form-input" value="<?= $current_limit ?>" min="1">
-                <p style="font-size: 12px; color: #888; margin-top: 10px;">Current default: 30 rows.</p>
-                
-                <button type="submit" name="save_settings" class="btn-green" style="width: 100%; margin-top: 20px; padding: 15px;">
-                    Save All Changes
-                </button>
-            </form>
-        </div>
     </div>
 
     <!-- SUCCESS TOAST -->
