@@ -47,8 +47,8 @@ $usersHasProgramCol = $columnExists('users', 'program_id');
 if (isset($_GET['delete_id'])) {
     $delete_id = $_GET['delete_id'];
     
-    // Check if deleting the last admin
-    $check = $conn->prepare("SELECT role FROM users WHERE student_id = ?");
+    // 1. Fetch user info before deleting to check role and get internal DB ID
+    $check = $conn->prepare("SELECT id, role FROM users WHERE student_id = ?");
     $check->bind_param('s', $delete_id);
     $check->execute();
     $res = $check->get_result()->fetch_assoc();
@@ -61,10 +61,34 @@ if (isset($_GET['delete_id'])) {
         }
     }
 
-    $stmt = $conn->prepare("DELETE FROM users WHERE student_id = ?");
-    $stmt->bind_param('s', $delete_id);
-    $stmt->execute();
-    $_SESSION['success_msg'] = "User successfully deleted.";
+    if ($res) {
+        $internal_id = (int)$res['id'];
+
+        // 2. Cascade Delete: Remove from alumni_academic_info
+        $stmt_acad = $conn->prepare("DELETE FROM alumni_academic_info WHERE student_id = ?");
+        if ($stmt_acad) {
+            $stmt_acad->bind_param('s', $delete_id);
+            $stmt_acad->execute();
+        }
+
+        // 3. Cascade Delete: Remove from alumni_assessments (fixes ghost entries!)
+        $stmt_assess = $conn->prepare("DELETE FROM alumni_assessments WHERE student_id = ?");
+        if ($stmt_assess) {
+            $stmt_assess->bind_param('s', $delete_id);
+            $stmt_assess->execute();
+        }
+
+        // 4. Cascade Delete: Remove feedbacks and replies mapped to the user's internal ID
+        $conn->query("DELETE FROM feedbacks WHERE user_id = $internal_id");
+        $conn->query("DELETE FROM feedback_replies WHERE alumni_id = $internal_id");
+
+        // 5. Finally, delete the actual user account
+        $stmt = $conn->prepare("DELETE FROM users WHERE student_id = ?");
+        $stmt->bind_param('s', $delete_id);
+        $stmt->execute();
+    }
+
+    $_SESSION['success_msg'] = "User and all associated database records cleanly deleted.";
     header("Location: " . strtok($_SERVER["REQUEST_URI"], '?'));
     exit();
 }

@@ -268,16 +268,16 @@ foreach ($latestRows as $r) {
         
         <div class="admin-card table-card">
             <!-- Pagination UI -->
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <p style="font-size: 0.85rem; color: #4b5563; margin: 0;">
-                    Displaying <?= count($latestRows) ?> data(s), page <?= $page ?> of <?= $totalPages ?> (Total: <?= $totalRows ?>)
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 25px; border-bottom: 1px solid #e5e7eb; background: #f9fafb;">
+                <p style="font-size: 0.85rem; color: #4b5563; margin: 0; font-weight: 500;">
+                    Displaying <?= count($latestRows) ?> records, page <?= $page ?> of <?= $totalPages ?> (Total: <?= number_format($totalRows) ?>)
                 </p>
-                <div style="display: flex; gap: 5px;">
+                <div style="display: flex; gap: 8px;">
                     <?php if ($page > 1): ?>
-                        <a href="?<?= htmlspecialchars($filterQuery) ?>&page=<?= $page - 1 ?>" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.8rem; text-decoration: none;">&laquo; Previous</a>
+                        <a href="?<?= htmlspecialchars($filterQuery) ?>&page=<?= $page - 1 ?>" class="btn btn-secondary" style="padding: 6px 14px; font-size: 0.8rem; text-decoration: none; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">&laquo; Previous</a>
                     <?php endif; ?>
                     <?php if ($page < $totalPages): ?>
-                        <a href="?<?= htmlspecialchars($filterQuery) ?>&page=<?= $page + 1 ?>" class="btn btn-secondary" style="padding: 5px 10px; font-size: 0.8rem; text-decoration: none;">Next &raquo;</a>
+                        <a href="?<?= htmlspecialchars($filterQuery) ?>&page=<?= $page + 1 ?>" class="btn btn-secondary" style="padding: 6px 14px; font-size: 0.8rem; text-decoration: none; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">Next &raquo;</a>
                     <?php endif; ?>
                 </div>
             </div>
