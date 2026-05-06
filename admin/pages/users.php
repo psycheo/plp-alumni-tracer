@@ -351,7 +351,6 @@ if ($prog_result = $conn->query("SELECT id, name FROM programs ORDER BY name ASC
     <link rel="stylesheet" href="../../assets/css/admin-style.css?v=4">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
     <style>
         .role-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
         .role-admin  { background: #fee2e2; color: #ef4444; }
@@ -755,25 +754,32 @@ if ($prog_result = $conn->query("SELECT id, name FROM programs ORDER BY name ASC
                     </p>
                 </div>
 
-                <div class="import-upload-area" id="dropZone" onclick="document.getElementById('excel_file').click()">
-                    <i class="fas fa-cloud-upload-alt"></i>
-                    <h3>Upload your spreadsheet</h3>
-                    <p id="file-name-text">Drag and drop your .xlsx or .csv file here, or click to browse</p>
-                    <button type="button" class="btn-browse">Browse Files</button>
-                    <input type="file" id="excel_file" accept=".xlsx,.xls,.csv" style="display:none;">
-                    <p class="preview-count" id="previewCount" style="display:none; color: #0d5c34; font-weight: 600; margin-top: 15px; font-size: 0.9rem; background: #ecfdf5; padding: 8px; border-radius: 6px;"></p>
-                </div>
+<form action="../handlers/process_import.php" method="POST" enctype="multipart/form-data" onsubmit="document.getElementById('loadingOverlay').classList.add('active');">
+    
+    <!-- Upload Area acts as the button -->
+    <div class="import-upload-area" onclick="document.getElementById('excel_file').click()">
+        <i class="fas fa-cloud-upload-alt"></i>
+        <h3>Upload your spreadsheet</h3>
+        <p id="file-name-text">Click to browse your .csv file</p>
+        <button type="button" class="btn-browse">Browse Files</button>
+        
+        <!-- The file input is now INSIDE the form -->
+        <input type="file" name="excel_file" id="excel_file" accept=".csv" style="display:none;" 
+               onchange="
+                   document.getElementById('file-name-text').innerText = 'Selected: ' + this.files[0].name; 
+                   document.getElementById('processBtn').disabled = false; 
+                   document.getElementById('processBtn').style.opacity = '1';
+               ">
+    </div>
 
-                <form action="../handlers/process_import.php" method="POST">
-                    <input type="hidden" name="json_data" id="json_data">
-                    <div class="modal-actions" style="margin-top: 0; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-                        <button type="button" class="btn-cancel" onclick="document.getElementById('importModal').style.display='none'">Cancel</button>
-                        <button type="submit" id="processBtn" class="btn-save" disabled style="opacity:0.5; display: flex; align-items: center; gap: 8px;">
-                            <i class="fas fa-check"></i> Process Data
-                        </button>
-                    </div>
-                </form>
-            </div>
+    <div class="modal-actions" style="margin-top: 0; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+        <button type="button" class="btn-cancel" onclick="document.getElementById('importModal').style.display='none'">Cancel</button>
+        <!-- Button starts disabled, enabled by the onchange event above -->
+        <button type="submit" id="processBtn" class="btn-save" disabled style="opacity:0.5; display: flex; align-items: center; gap: 8px;">
+            <i class="fas fa-upload"></i> Upload & Process
+        </button>
+    </div>
+</form>
         </div>
 
         <div id="programListSidePanel" class="side-panel">
@@ -1107,47 +1113,6 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast('<?php echo addslashes($_SESSION['success_msg']); ?>');
         <?php unset($_SESSION['success_msg']); ?>
     <?php endif; ?>
-    
-    const dropZone = document.getElementById('dropZone');
-    const fileInput = document.getElementById('excel_file');
-    const processBtn = document.getElementById('processBtn');
-    
-    if(dropZone) {
-        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
-        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
-        dropZone.addEventListener('drop', e => {
-            e.preventDefault();
-            dropZone.classList.remove('drag-over');
-            const file = e.dataTransfer.files[0];
-            if (file) processFile(file);
-        });
-    }
-    
-    if(fileInput) {
-        fileInput.onchange = function () {
-            if (this.files[0]) processFile(this.files[0]);
-        };
-    }
-    
-    function processFile(file) {
-        document.getElementById('file-name-text').innerText = 'Selected: ' + file.name;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: 'array' });
-            const sheet = workbook.Sheets[workbook.SheetNames[0]];
-            const jsonData = XLSX.utils.sheet_to_json(sheet, { defval: '' });
-            
-            const count = document.getElementById('previewCount');
-            count.style.display = 'block';
-            count.textContent = `✓ ${jsonData.length} row(s) ready to import`;
-            
-            document.getElementById('json_data').value = JSON.stringify(jsonData);
-            processBtn.disabled = false;
-            processBtn.style.opacity = '1';
-        };
-        reader.readAsArrayBuffer(file);
-    }
 
     // SWEETALERT2 DELETE CONFIRMATION
     window.handleDelete = function(e, href, role) {

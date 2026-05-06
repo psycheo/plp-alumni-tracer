@@ -41,11 +41,35 @@ $table_exists = function ($table) use ($conn) {
     return $cache[$table];
 };
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['json_data'])) {
-    $data = json_decode($_POST['json_data'], true);
+// Increase timeout to prevent the server from killing the script during large uploads
+set_time_limit(300);
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['excel_file'])) {
     
+    $fileTmpPath = $_FILES['excel_file']['tmp_name'];
+    
+    if (!is_uploaded_file($fileTmpPath)) {
+        $_SESSION['error_msg'] = "Failed to upload file.";
+        header("Location: ../pages/users.php");
+        exit();
+    }
+
+    $data = [];
+    // Open the CSV file directly on the server
+    if (($handle = fopen($fileTmpPath, "r")) !== FALSE) {
+        $headers = fgetcsv($handle, 1000, ","); // Get the first row as headers
+        
+        while (($row = fgetcsv($handle, 1000, ",")) !== FALSE) {
+            // Combine headers with row values to match your previous format
+            if (count($headers) == count($row)) {
+                $data[] = array_combine($headers, $row);
+            }
+        }
+        fclose($handle);
+    }
+
     if (empty($data)) {
-        $_SESSION['error_msg'] = "No data found in file.";
+        $_SESSION['error_msg'] = "No data found in file or invalid CSV format.";
         header("Location: ../pages/users.php");
         exit();
     }

@@ -88,12 +88,10 @@ if ($result && $result->num_rows > 0) {
     <title>Audit Logs - PLP Admin</title>
     <link rel="stylesheet" href="../../assets/css/admin-style.css?v=5">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
-        .action-delete { background: #fee2e2; color: #ef4444; }
-        .action-add { background: #d1fae5; color: #059669; }
-        .action-edit { background: #fef3c7; color: #d97706; }
-        .action-default { background: #e0f2fe; color: #0284c7; }
+<style>
+        /* =========================================
+           1. ORIGINAL LAYOUT & BUTTON STYLES (RESTORED)
+           ========================================= */
         .table-container { overflow-x: auto; }
         .no-results { text-align: center; padding: 40px; color: #6b7280; }
         
@@ -109,11 +107,100 @@ if ($result && $result->num_rows > 0) {
 
         /* Maintenance Buttons */
         .maintenance-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .btn-export { background-color: #2563eb; color: white; padding: 10px 18px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.9rem; transition: 0.2s; }
+        .btn-export { background-color: #2563eb; color: white; padding: 10px 18px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 0.9rem; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; }
         .btn-export:hover { background-color: #1d4ed8; }
-        .btn-purge { background-color: #dc2626; color: white; padding: 10px 18px; border: none; border-radius: 6px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: 0.2s; }
+        .btn-purge { background-color: #dc2626; color: white; padding: 10px 18px; border: none; border-radius: 6px; font-weight: 600; font-size: 0.9rem; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; }
         .btn-purge:hover { background-color: #b91c1c; }
         .success-alert { background: #d1fae5; color: #065f46; padding: 12px 20px; border-radius: 6px; margin-bottom: 20px; font-weight: 600; border-left: 4px solid #059669; }
+
+        /* =========================================
+           2. REFINED TABLE STYLES
+           ========================================= */
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            white-space: nowrap; 
+        }
+
+        .admin-table th {
+            text-align: left; 
+            background-color: #f9fafb; 
+            color: #4b5563;
+            font-weight: 600;
+            text-transform: uppercase; 
+            font-size: 0.7rem;
+            letter-spacing: 0.05em;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05); 
+        }
+
+        .admin-table th, .admin-table td {
+            padding: 12px 16px; 
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.85rem; 
+        }
+
+        .admin-table td {
+            text-align: left;
+        }
+
+        .admin-table tbody tr:nth-child(even) {
+            background-color: #fafaf9; 
+        }
+
+        .admin-table tbody tr {
+            transition: background-color 0.15s ease;
+        }
+
+        .admin-table tbody tr:hover {
+            background-color: #f3f4f6; 
+        }
+
+        .font-mono {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.8rem;
+            color: #4b5563;
+            letter-spacing: -0.02em;
+        }
+
+        .admin-card.table-card {
+            padding: 0; 
+            overflow: hidden; 
+        }
+
+        .admin-card.table-card .admin-table th:first-child,
+        .admin-card.table-card .admin-table td:first-child {
+            padding-left: 25px;
+        }
+
+        .admin-card.table-card .admin-table th:last-child,
+        .admin-card.table-card .admin-table td:last-child {
+            padding-right: 25px;
+        }
+
+        .admin-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* =========================================
+           3. REFINED BADGE STYLES
+           ========================================= */
+        .badge { 
+            padding: 4px 10px; 
+            border-radius: 12px; 
+            font-size: 0.7rem; 
+            font-weight: 600; 
+            display: inline-block; 
+            text-align: center; 
+            letter-spacing: 0.02em; 
+        }
+
+        .badge-add { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+        .badge-delete { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+        .badge-edit { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+        .badge-default { background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb; }
     </style>
 </head>
 <body>
@@ -204,13 +291,15 @@ if ($result && $result->num_rows > 0) {
                                 $formatted_date = $date->format('M d, Y h:i A');
 
                                 $action = strtoupper($log['action']);
-                                $badge_class = 'action-default';
-                                if (str_contains($action, 'DELETE') || str_contains($action, 'PURGE')) $badge_class = 'action-delete';
-                                elseif (str_contains($action, 'ADD') || str_contains($action, 'IMPORT') || str_contains($action, 'UPLOAD')) $badge_class = 'action-add';
-                                elseif (str_contains($action, 'EDIT') || str_contains($action, 'UPDATE')) $badge_class = 'action-edit';
+                                // UPDATE 1: Changed 'action-...' to 'badge-...' to match the new CSS
+                                $badge_class = 'badge-default';
+                                if (str_contains($action, 'DELETE') || str_contains($action, 'PURGE')) $badge_class = 'badge-delete';
+                                elseif (str_contains($action, 'ADD') || str_contains($action, 'IMPORT') || str_contains($action, 'UPLOAD')) $badge_class = 'badge-add';
+                                elseif (str_contains($action, 'EDIT') || str_contains($action, 'UPDATE')) $badge_class = 'badge-edit';
                             ?>
                             <tr class="log-row">
-                                <td><?php echo $formatted_date; ?></td>
+                                <!-- UPDATE 2: Added class="font-mono" for better scannability -->
+                                <td class="font-mono"><?php echo $formatted_date; ?></td>
                                 <td class="admin-col"><strong><?php echo htmlspecialchars($log['admin_name']); ?></strong></td>
                                 <td style="text-align: center;">
                                     <span class="badge <?php echo $badge_class; ?>">
