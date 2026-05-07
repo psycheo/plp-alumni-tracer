@@ -17,7 +17,7 @@
         </li>
         <li>
             <a href="../pages/predict_report.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'predict_report.php' ? 'active' : ''; ?>">
-                <i class="fas fa-file-invoice"></i> Predict & Report
+                <i class="fas fa-file-invoice"></i> Reports
             </a>
         </li>
         <li>

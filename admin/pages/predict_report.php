@@ -124,7 +124,7 @@ if ($assessmentUserCol !== null) {
         u.avg_elective_grade
     FROM alumni_assessments a
     LEFT JOIN programs p ON p.id = a.program_id
-    LEFT JOIN users u ON u.id = a.{$assessmentUserCol}
+    LEFT JOIN users u ON u.student_id = a.{$assessmentUserCol}
     $whereSql
     ORDER BY a.id DESC
     LIMIT ? OFFSET ?
@@ -150,15 +150,26 @@ if ($stmt) {
 $highCount = 0;
 $midCount = 0;
 $lowCount = 0;
-foreach ($latestRows as $r) {
-    $fit = ((float) $r['soft_skills_avg'] + (float) $r['hard_skills_avg']) / 2;
-    if ($fit >= 75) {
-        $highCount++;
-    } elseif ($fit >= 50) {
-        $midCount++;
-    } else {
-        $lowCount++;
+
+$statsStmt = $conn->prepare("
+    SELECT 
+        SUM(IF(((soft_skills_avg + hard_skills_avg) / 2) >= 75, 1, 0)) as hc,
+        SUM(IF(((soft_skills_avg + hard_skills_avg) / 2) >= 50 AND ((soft_skills_avg + hard_skills_avg) / 2) < 75, 1, 0)) as mc,
+        SUM(IF(((soft_skills_avg + hard_skills_avg) / 2) < 50, 1, 0)) as lc
+    FROM alumni_assessments a 
+    $whereSql
+");
+
+if ($statsStmt) {
+    if ($bindTypes !== '') $statsStmt->bind_param($bindTypes, ...$bindParams);
+    $statsStmt->execute();
+    $statsStmt->bind_result($hc, $mc, $lc);
+    if ($statsStmt->fetch()) {
+        $highCount = (int)$hc;
+        $midCount = (int)$mc;
+        $lowCount = (int)$lc;
     }
+    $statsStmt->close();
 }
 ?>
 
@@ -171,8 +182,9 @@ foreach ($latestRows as $r) {
     <link rel="stylesheet" href="../../assets/css/admin-style.css?v=4">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .badge { padding: 5px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; color: white; display: inline-block; width: 100px; text-align: center; }
+        .badge { padding: 5px 10px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; color: white; display: inline-block; width: 130px; text-align: center; }
         .bg-green { background: #10b981; }
+        .bg-yellow { background: #f59e0b; }
         .bg-red { background: #ef4444; }
         .progress-bar-container { width: 100%; background: #e5e7eb; border-radius: 4px; height: 8px; margin-top: 5px;}
         .progress-bar { height: 100%; border-radius: 4px; }
@@ -301,7 +313,7 @@ foreach ($latestRows as $r) {
                     <?php endif; ?>
                 </div>
             </div>
-            <div style="overflow-x: auto;">
+            <div id="tableScrollContainer" style="overflow-x: auto;">
                 <table class="admin-table" style="font-size: 0.8rem; width: 100%;">
                     <thead>
                         <tr>
@@ -326,10 +338,23 @@ foreach ($latestRows as $r) {
                                 <?php
                                     $fit = round((((float) $row['soft_skills_avg'] + (float) $row['hard_skills_avg']) / 2), 0);
                                     $fit = max(0, min(100, (int) $fit));
-                                    $isGood = strcasecmp((string) ($row['employability_status'] ?? ''), 'Good Match') === 0;
-                                    $badgeClass = $isGood ? 'bg-green' : 'bg-red';
+                                    
+                                    // Translate DB terms to the new Status terms and assign colors
+                                    $dbStatus = (string) ($row['employability_status'] ?? '');
+                                    if (strcasecmp($dbStatus, 'Good Match') === 0) {
+                                        $displayStatus = 'Highly Employable';
+                                        $badgeClass = 'bg-green';
+                                    } elseif (strcasecmp($dbStatus, 'Moderate Match') === 0) {
+                                        $displayStatus = 'Moderately Employable';
+                                        $badgeClass = 'bg-yellow';
+                                    } else {
+                                        $displayStatus = 'Less Employable';
+                                        $badgeClass = 'bg-red';
+                                    }
+                                    
                                     $barClass = $fit >= 50 ? 'bg-green' : 'bg-red';
-                                    $predRate = $fit >= 70 ? 'High' : ($fit >= 50 ? 'Medium' : 'Low');
+                                    $predRate = $fit >= 75 ? 'Highly Employable' : ($fit >= 50 ? 'Moderately Employable' : 'Less Employable');
+                                    
                                     $age = '';
                                     if (!empty($row['grad_year']) && is_numeric($row['grad_year'])) {
                                         $age = max(21, (int) date('Y') - (int) $row['grad_year'] + 22);
@@ -345,7 +370,7 @@ foreach ($latestRows as $r) {
                                     <td><?= htmlspecialchars(number_format((float) ($row['soft_skills_avg'] ?? 0), 2)) ?></td>
                                     <td><?= htmlspecialchars(number_format((float) ($row['hard_skills_avg'] ?? 0), 2)) ?></td>
                                     <td><?= htmlspecialchars((string) ($row['grad_year'] ?? '')) ?></td>
-                                    <td><span class="badge <?= $badgeClass ?>"><?= htmlspecialchars((string) ($row['employability_status'] ?? 'Unknown')) ?></span></td>
+                                    <td><span class="badge <?= $badgeClass ?>"><?= htmlspecialchars($displayStatus) ?></span></td>
                                     <td style="min-width: 130px;">
                                         <div style="display: flex; align-items: center; gap: 8px;">
                                             <span style="font-weight: 600; width: 30px;"><?= (int) $fit ?>%</span>
@@ -368,50 +393,87 @@ foreach ($latestRows as $r) {
     </main>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const filterForm = document.getElementById('filterForm');
-            const rangeSelect = document.getElementById('rangeSelect');
-            const startDate = document.getElementById('startDate');
-            const endDate = document.getElementById('endDate');
+    document.addEventListener('DOMContentLoaded', function() {
+        const filterForm = document.getElementById('filterForm');
+        const rangeSelect = document.getElementById('rangeSelect');
+        const startDate = document.getElementById('startDate');
+        const endDate = document.getElementById('endDate');
 
-            function toggleDateInputs() {
-                if (rangeSelect.value === 'custom') {
-                    startDate.disabled = false;
-                    endDate.disabled = false;
-                    startDate.style.backgroundColor = '#ffffff';
-                    endDate.style.backgroundColor = '#ffffff';
-                    startDate.style.cursor = 'text';
-                    endDate.style.cursor = 'text';
-                } else {
-                    startDate.disabled = true;
-                    endDate.disabled = true;
-                    startDate.value = ''; 
-                    endDate.value = '';
-                    startDate.style.backgroundColor = '#f3f4f6';
-                    endDate.style.backgroundColor = '#f3f4f6';
-                    startDate.style.cursor = 'not-allowed';
-                    endDate.style.cursor = 'not-allowed';
-                }
+        function toggleDateInputs() {
+            if (rangeSelect.value === 'custom') {
+                startDate.disabled = false;
+                endDate.disabled = false;
+                startDate.style.backgroundColor = '#ffffff';
+                endDate.style.backgroundColor = '#ffffff';
+                startDate.style.cursor = 'text';
+                endDate.style.cursor = 'text';
+            } else {
+                startDate.disabled = true;
+                endDate.disabled = true;
+                startDate.value = ''; 
+                endDate.value = '';
+                startDate.style.backgroundColor = '#f3f4f6';
+                endDate.style.backgroundColor = '#f3f4f6';
+                startDate.style.cursor = 'not-allowed';
+                endDate.style.cursor = 'not-allowed';
             }
+        }
 
-            // AUTO-SUBMIT LOGIC
-            filterForm.addEventListener('change', function(e) {
-                if (e.target.id === 'rangeSelect' && e.target.value === 'custom') {
-                    toggleDateInputs();
-                    return; 
-                }
-                if (rangeSelect.value === 'custom') {
-                    if (startDate.value !== '' && endDate.value !== '') {
-                        filterForm.submit();
-                    }
-                } else {
+        // AUTO-SUBMIT LOGIC
+        filterForm.addEventListener('change', function(e) {
+            if (e.target.id === 'rangeSelect' && e.target.value === 'custom') {
+                toggleDateInputs();
+                return; 
+            }
+            if (rangeSelect.value === 'custom') {
+                if (startDate.value !== '' && endDate.value !== '') {
                     filterForm.submit();
                 }
-            });
-
-            toggleDateInputs();
+            } else {
+                filterForm.submit();
+            }
         });
-    </script>
+
+        toggleDateInputs();
+
+        // --------------------------------------------------------
+        // DRAG-TO-SCROLL FUNCTIONALITY FOR THE TABLE
+        // --------------------------------------------------------
+        const slider = document.getElementById('tableScrollContainer');
+        if (slider) {
+            let isDown = false;
+            let startX;
+            let scrollLeft;
+
+            slider.style.cursor = 'grab';
+
+            slider.addEventListener('mousedown', (e) => {
+                isDown = true;
+                slider.style.cursor = 'grabbing';
+                startX = e.pageX - slider.offsetLeft;
+                scrollLeft = slider.scrollLeft;
+            });
+            
+            slider.addEventListener('mouseleave', () => {
+                isDown = false;
+                slider.style.cursor = 'grab';
+            });
+            
+            slider.addEventListener('mouseup', () => {
+                isDown = false;
+                slider.style.cursor = 'grab';
+            });
+            
+            slider.addEventListener('mousemove', (e) => {
+                if(!isDown) return;
+                e.preventDefault();
+                const x = e.pageX - slider.offsetLeft;
+                const walk = (x - startX) * 2; // Multiply by 2 to scroll faster
+                slider.scrollLeft = scrollLeft - walk;
+            });
+        }
+    });
+</script>
 
 <!-- Report Header Configuration Modal -->
 <div id="downloadModal" class="modal">
