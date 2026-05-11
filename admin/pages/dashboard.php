@@ -48,8 +48,8 @@ $pyReady = ml_python_executable() !== null && file_exists(ml_forecast_script_pat
     <main class="admin-main">
         <div class="page-title" style="display: flex; justify-content: space-between; align-items: center;">
             <div>
-                <h1>Command Center</h1>
-                <p>Overview and employment-rate forecasts (ARIMA, linear regression, random forest)</p>
+                <h1>Dashboard</h1>
+                <p>Overview of alumni activity and employment trends.</p>
             </div>
             <a href="view_dataset.php" class="btn-upload" style="text-decoration: none; display: inline-flex; align-items: center;">
                 <i class="fas fa-database" style="margin-right: 8px;"></i> Manage Dataset
@@ -92,15 +92,15 @@ $pyReady = ml_python_executable() !== null && file_exists(ml_forecast_script_pat
                     <i class="fas fa-code-branch fa-lg"></i>
                 </div>
                 <div>
-                    <p style="color: #6b7280; font-size: 0.85rem; margin-bottom: 2px;">Forecast engine</p>
-                    <h3 style="font-size: 1.1rem; color: #1f2937;"><?= $pyReady ? 'Python ready' : 'Setup venv' ?></h3>
+                    <p style="color: #6b7280; font-size: 0.85rem; margin-bottom: 2px;">Forecast status</p>
+                    <h3 style="font-size: 1.1rem; color: #1f2937;"><?= $pyReady ? 'Ready' : 'Not configured' ?></h3>
                 </div>
             </div>
         </div>
 
         <?php if (!$pyReady): ?>
         <div class="admin-card" style="margin-bottom: 20px; border-left: 4px solid #f59e0b; padding: 15px 20px;">
-            <strong>Forecasting needs Python.</strong> From the project folder run:
+            <strong>Forecasting requires the Python setup.</strong> From the project folder run:
             <code style="display:block;margin-top:8px;font-size:0.85rem;">cd ml &amp;&amp; python -m venv venv &amp;&amp; venv\Scripts\pip install -r requirements.txt</code>
             (On Linux/macOS use <code>venv/bin/pip</code>.)
         </div>
@@ -121,7 +121,7 @@ $pyReady = ml_python_executable() !== null && file_exists(ml_forecast_script_pat
                     <div class="forecast-controls" style="background: #f8fafc; padding: 15px 20px; border-bottom: 1px solid #e5e7eb; display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
                         <div class="form-group" style="flex: 1; min-width: 180px; margin-bottom: 0;">
                             <label style="font-size: 0.8rem; font-weight: 600; color: #4b5563;">Source</label>
-                            <div style="font-size: 0.85rem; color: #64748b; padding: 8px 0;">Latest assessment per student per cohort (<code>alumni_assessments</code>)</div>
+                            <div style="font-size: 0.85rem; color: #64748b; padding: 8px 0;">Latest assessment records per student cohort</div>
                         </div>
                         <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
                             <label for="forecast_program" style="font-size: 0.8rem; font-weight: 600; color: #4b5563;">Target program</label>
@@ -151,7 +151,7 @@ $pyReady = ml_python_executable() !== null && file_exists(ml_forecast_script_pat
                             </div>
                             <div style="font-size: 0.8rem; color: #4b5563;">
                                 <span style="color:#3b82f6;">■</span> Actual &nbsp;&nbsp;
-                                <span style="color:#ef4444;">■</span> In-sample fit &nbsp;&nbsp;
+                                <span style="color:#ef4444;">■</span> Model fit &nbsp;&nbsp;
                                 <span style="color:#10b981;">■</span> Forecast
                             </div>
                         </div>

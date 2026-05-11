@@ -365,8 +365,8 @@ require '../includes/db.php';
                         <a href="#" class="resource-item">
                             <i class="fas fa-file-alt"></i>
                             <div>
-                                <strong>Resume Builder Guide</strong>
-                                <span>Tips for ATS-friendly formatting</span>
+                                <strong>Resume guide</strong>
+                                <span>Advice for stronger applications</span>
                             </div>
                         </a>
                         <a href="#" class="resource-item">
