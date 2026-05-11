@@ -104,18 +104,6 @@ if ($python_exe && $predict_py && file_exists($predict_py)) {
 $score_color = ($match_score >= 70) ? '#10b981' : (($match_score >= 50) ? '#f59e0b' : '#ef4444');
 $display_ojt = isset($res['ojt_grade']) ? (float) $res['ojt_grade'] : (float) ($user_grades['ojt_grade'] ?? 0);
 
-$status_lower = strtolower((string) $status);
-if (strpos($status_lower, 'good') !== false) {
-    $band_color = '#059669';
-    $band_bg = '#ecfdf5';
-} elseif (strpos($status_lower, 'moderate') !== false) {
-    $band_color = '#d97706';
-    $band_bg = '#fffbeb';
-} else {
-    $band_color = '#64748b';
-    $band_bg = '#f1f5f9';
-}
-
 // Top skills from program-specific ratings (truthful, not random)
 $specific_skills = isset($res['specific_skills']) && is_array($res['specific_skills']) ? $res['specific_skills'] : [];
 arsort($specific_skills);
@@ -209,15 +197,7 @@ $second_title = ($second_match && isset($second_match['profession'])) ? htmlspec
 
             <div class="results-sidebar" style="display: flex; flex-direction: column; gap: 20px;">
                 
-                <div class="sidebar-chip" style="background: <?= htmlspecialchars($band_bg) ?>; border-color: <?= htmlspecialchars($band_color) ?>40; box-shadow: 0 4px 10px rgba(0,0,0,0.03);">
-                    <i class="fas fa-layer-group" style="color: <?= htmlspecialchars($band_color) ?>;"></i>
-                    <div>
-                        <span style="color: #64748b; font-weight: 500;">Employability band</span>
-                        <strong style="color: <?= htmlspecialchars($band_color) ?>;"><?= htmlspecialchars($status) ?></strong>
-                    </div>
-                </div>
-
-                <div class="other-options-section" style="flex: 1; margin: 0;">
+                    <div class="other-options-section" style="flex: 1; margin: 0;">
                     <h3>Other career options</h3>
                     
                     <div class="option-card" style="margin-bottom: 15px;">
