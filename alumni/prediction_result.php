@@ -311,8 +311,8 @@ $second_title = ($second_match && isset($second_match['profession'])) ? htmlspec
             jobsEl.appendChild(frag);
         }
 
-        fetch('api_career_resources.php?keywords=' + encodeURIComponent(kw) + '&location=' + encodeURIComponent('Metro Manila'))
-            .then(function (r) { return r.json(); })
+        Promise.resolve({ ok: true, places: [], jobs: [], careerjet_error: null })
+        .then(function (data) { return data; })
             .then(function (data) {
                 if (!data.ok) {
                     placesEl.innerHTML = '<p class="insights-empty">Could not load resources.</p>';

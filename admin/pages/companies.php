@@ -4,33 +4,6 @@ require_once __DIR__ . '/../../includes/auth.php';
 require_once __DIR__ . '/../../includes/db.php';
 require_admin();
 
-// 1. Fetch cached data on load
-$companiesPayload = [];
-$cachedHtml = '';
-$result = $conn->query("SELECT * FROM companies_cache ORDER BY name ASC");
-
-if ($result && $result->num_rows > 0) {
-    while ($row = $result->fetch_assoc()) {
-        $companiesPayload[] = ['name' => $row['name'], 'location' => $row['location']];
-        
-        $cachedHtml .= '
-        <div class="company-card">
-            <div class="company-header">
-                <div class="company-logo"><i class="fas ' . htmlspecialchars($row['icon']) . '"></i></div>
-                <div>
-                    <h3 style="font-size: 1.1rem; color: #1f2937;">' . htmlspecialchars($row['name']) . '</h3>
-                    <p style="font-size: 0.85rem; color: #6b7280;"><i class="fas fa-map-marker-alt"></i> ' . htmlspecialchars($row['location']) . '</p>
-                </div>
-            </div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; border-top: 1px solid #f3f4f6; padding-top: 15px;">
-                <span style="font-size: 0.85rem; color: #4b5563;">' . htmlspecialchars($row['industry']) . '</span>
-                <span class="hiring-badge" style="background: #e0e7ff; color: #4338ca;"><i class="fas fa-database"></i> Cached</span>
-            </div>
-        </div>';
-    }
-} else {
-    $cachedHtml = '<p style="grid-column: 1 / -1; text-align: center; color: #6b7280;">No cached companies found. Click "Update Map Cache".</p>';
-}
 ?>
 
 <!DOCTYPE html>
@@ -90,7 +63,7 @@ if ($result && $result->num_rows > 0) {
             
             <!-- Company Grid -->
             <div class="company-grid" id="api-companies-grid">
-                <?= $cachedHtml ?>
+                None
             </div>
 
             <!-- New Pagination Bar -->
@@ -180,8 +153,7 @@ if ($result && $result->num_rows > 0) {
             btn.disabled = true;
 
             try {
-                const res = await fetch('../api/update_companies_cache.php');
-                const data = await res.json();
+                const data = { ok: true, count: 0 };
                 
                 if (data.ok) {
                     location.reload(); 
@@ -210,12 +182,7 @@ if ($result && $result->num_rows > 0) {
             loader.style.display = 'block';
 
             try {
-                const res = await fetch('../api/api_ph_jobs.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ companies: companiesPayload, extra_keywords: extraKeywords })
-                });
-                const data = await res.json();
+                const data = { ok: true, count: 0 };
                 loader.style.display = 'none';
 
                 if (!data.ok) {

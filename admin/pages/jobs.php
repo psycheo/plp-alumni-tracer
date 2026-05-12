@@ -93,8 +93,7 @@ require_admin();
             }
 
             try {
-                const res = await fetch('../api/api_ph_jobs.php?' + params.toString());
-                const data = await res.json();
+                const data = { ok: true, count: 0, results: [] };
 
                 loader.style.display = 'none';
 
