@@ -6,6 +6,7 @@ require_admin();
 require_once __DIR__ . '/../../includes/db.php';
 require_once __DIR__ . '/../../includes/ml_python.php';
 require_once __DIR__ . '/../../includes/tracer_kpi.php';
+require_once __DIR__ . '/../../includes/system_opt.php';
 
 $programs = [];
 $progRes = $conn->query('SELECT id, name FROM programs ORDER BY name ASC');
@@ -28,6 +29,7 @@ if ($r && $row = $r->fetch_assoc()) {
 }
 
 $kpiEmpPct = tracer_employment_kpi_percent($conn);
+$analyticsV2Enabled = opt_feature_enabled($conn, 'analytics_v2_enabled', true);
 
 $pyReady = ml_python_executable() !== null && file_exists(ml_forecast_script_path());
 ?>
@@ -55,6 +57,9 @@ $pyReady = ml_python_executable() !== null && file_exists(ml_forecast_script_pat
                 <i class="fas fa-database" style="margin-right: 8px;"></i> Manage Dataset
             </a>
         </div>
+        <p style="margin-top:-10px;color:#6b7280;font-size:0.82rem;">
+            Analytics source: <strong><?= $analyticsV2Enabled ? 'MySQL + events (v2)' : 'legacy mode' ?></strong>
+        </p>
 
         <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 25px;">
             <div class="admin-card prob-card" style="border-left-color: #10b981; padding: 15px 20px; margin-bottom: 0;">
@@ -327,6 +332,9 @@ $pyReady = ml_python_executable() !== null && file_exists(ml_forecast_script_pat
                     noteEl.textContent = data.note
                         ? ('Note: ' + data.note + ' — method used: ' + (data.method || ''))
                         : ('Model: ' + (data.method || '').replace(/_/g, ' '));
+                    if (typeof data.latency_ms !== 'undefined') {
+                        noteEl.textContent += ' · ' + data.latency_ms + ' ms' + (data.cache_hit ? ' (cache)' : '');
+                    }
                     renderForecastChart(data);
                     fillForecastTable(data.table_rows);
                 })

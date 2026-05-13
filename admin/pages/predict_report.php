@@ -3,7 +3,10 @@ session_start();
 require_once __DIR__ . '/../../includes/auth.php';
 require_admin();
 require '../../includes/db.php';
+require_once __DIR__ . '/../../includes/system_opt.php';
+require_once __DIR__ . '/../../includes/metrics_engine.php';
 
+$perfStart = opt_perf_start();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['log_download_action'])) {
     // Log the action silently in the background
@@ -72,10 +75,10 @@ if ($range === 'last30') {
 } elseif ($range === 'last6months') {
     $whereParts[] = "a.created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)";
 } elseif ($range === 'custom' && $startDate !== '' && $endDate !== '') {
-    $whereParts[] = "DATE(a.created_at) BETWEEN ? AND ?";
+    $whereParts[] = "a.created_at >= ? AND a.created_at < ?";
     $bindTypes .= 'ss';
     $bindParams[] = $startDate;
-    $bindParams[] = $endDate;
+    $bindParams[] = date('Y-m-d', strtotime($endDate . ' +1 day'));
 }
 if ($programId > 0) {
     $whereParts[] = "a.program_id = ?";
@@ -147,30 +150,18 @@ if ($stmt) {
     $stmt->close();
 }
 
-$highCount = 0;
-$midCount = 0;
-$lowCount = 0;
-
-$statsStmt = $conn->prepare("
-    SELECT 
-        SUM(IF(((soft_skills_avg + hard_skills_avg) / 2) >= 75, 1, 0)) as hc,
-        SUM(IF(((soft_skills_avg + hard_skills_avg) / 2) >= 50 AND ((soft_skills_avg + hard_skills_avg) / 2) < 75, 1, 0)) as mc,
-        SUM(IF(((soft_skills_avg + hard_skills_avg) / 2) < 50, 1, 0)) as lc
-    FROM alumni_assessments a 
-    $whereSql
-");
-
-if ($statsStmt) {
-    if ($bindTypes !== '') $statsStmt->bind_param($bindTypes, ...$bindParams);
-    $statsStmt->execute();
-    $statsStmt->bind_result($hc, $mc, $lc);
-    if ($statsStmt->fetch()) {
-        $highCount = (int)$hc;
-        $midCount = (int)$mc;
-        $lowCount = (int)$lc;
-    }
-    $statsStmt->close();
-}
+$metricStart = ($range === 'custom' && $startDate !== '') ? $startDate : null;
+$metricEnd = ($range === 'custom' && $endDate !== '') ? $endDate : null;
+$bands = metrics_probability_bands($conn, $programId, $metricStart, $metricEnd);
+$highCount = (int) ($bands['high'] ?? 0);
+$midCount = (int) ($bands['mid'] ?? 0);
+$lowCount = (int) ($bands['low'] ?? 0);
+opt_perf_log('predict_report', $perfStart, [
+    'range' => $range,
+    'program_id' => $programId,
+    'rows' => count($latestRows),
+    'page' => $page,
+]);
 ?>
 
 <!DOCTYPE html>

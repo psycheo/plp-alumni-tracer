@@ -14,6 +14,7 @@ ob_start();
 require_once __DIR__ . '/../../includes/db.php';
 require_once __DIR__ . '/../../includes/assessment_partition.php';
 require_once __DIR__ . '/../../includes/ml_python.php';
+require_once __DIR__ . '/../../includes/system_opt.php';
 ob_end_clean();
 
 header('Content-Type: application/json; charset=utf-8');
@@ -21,6 +22,7 @@ header('Content-Type: application/json; charset=utf-8');
 $program_id = isset($_POST['program_id']) ? (int) $_POST['program_id'] : 0;
 $horizon = isset($_POST['horizon']) ? (int) $_POST['horizon'] : 3;
 $method = isset($_POST['method']) ? strtolower(trim((string) $_POST['method'])) : 'linear_regression';
+$perfStart = opt_perf_start();
 
 if (!in_array($method, ['arima', 'linear_regression', 'random_forest'], true)) {
     $method = 'linear_regression';
@@ -149,6 +151,21 @@ $payload = [
     'horizon' => $horizon,
     'method' => $method,
 ];
+
+$payloadHash = sha1(json_encode($payload) ?: '');
+$cached = opt_cache_get('forecast_employment', $payloadHash, 900);
+if (is_array($cached) && isset($cached['ok']) && $cached['ok'] === true) {
+    $cached['cache_hit'] = true;
+    $cached['latency_ms'] = round((microtime(true) - $perfStart) * 1000, 2);
+    opt_perf_log('forecast_employment', $perfStart, [
+        'cache_hit' => true,
+        'program_id' => $program_id,
+        'method' => $method,
+        'horizon' => $horizon,
+    ]);
+    echo json_encode($cached);
+    exit;
+}
 $json = json_encode($payload);
 if ($json === false) {
     echo json_encode(['ok' => false, 'error' => 'Failed to encode forecast payload.']);
@@ -176,4 +193,16 @@ if (!is_array($data)) {
     exit;
 }
 
+$data['cache_hit'] = false;
+$data['latency_ms'] = round((microtime(true) - $perfStart) * 1000, 2);
+if (isset($data['ok']) && $data['ok'] === true) {
+    opt_cache_set('forecast_employment', $payloadHash, $data);
+}
+opt_perf_log('forecast_employment', $perfStart, [
+    'cache_hit' => false,
+    'program_id' => $program_id,
+    'method' => $method,
+    'horizon' => $horizon,
+    'years_count' => count($years),
+]);
 echo json_encode($data);

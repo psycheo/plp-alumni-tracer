@@ -9,20 +9,25 @@ if (isset($_SESSION['role']) && $_SESSION['role'] === 'admin') {
     require_alumni_api();
 }
 require_once dirname(__DIR__) . '/includes/db.php'; 
+require_once dirname(__DIR__) . '/includes/ml_python.php';
+require_once dirname(__DIR__) . '/includes/system_opt.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
 // Get the alumni profile data/keywords from the frontend
 $keywords = isset($_GET['keywords']) ? trim((string) $_GET['keywords']) : 'professional';
-
-// Point specifically to the Python executable INSIDE venv
-$python_exe = dirname(__DIR__) . '/venv/Scripts/python.exe';
-$script_path = dirname(__DIR__) . '/ml/ml_recommendation.py';
-
-// If venv is missing, fallback to global python
-if (!file_exists($python_exe)) {
-    $python_exe = 'python';
+$perfStart = opt_perf_start();
+$cacheKey = sha1(strtolower($keywords));
+$cached = opt_cache_get('career_resources', $cacheKey, 600);
+if (is_array($cached) && isset($cached['ok']) && $cached['ok'] === true) {
+    $cached['cache_hit'] = true;
+    $cached['latency_ms'] = round((microtime(true) - $perfStart) * 1000, 2);
+    echo json_encode($cached);
+    exit;
 }
+
+$python_exe = ml_python_executable() ?: 'python';
+$script_path = dirname(__DIR__) . '/ml/ml_recommendation.py';
 
 // Safely execute the Python script and pass the keywords
 $command = escapeshellcmd($python_exe . ' ' . $script_path . ' ' . escapeshellarg($keywords));
@@ -33,20 +38,23 @@ if ($output) {
     $jobs = isset($ml_data['jobs']) ? $ml_data['jobs'] : [];
 
     $companies = [];
-    $kw_safe = '%' . $conn->real_escape_string($keywords) . '%';
-    $comp_result = $conn->query("
-        SELECT c.name, c.industry, c.location, c.description,
-              COUNT(j.id) as job_count
+    $kw_like = '%' . $keywords . '%';
+    $stmt = $conn->prepare("
+        SELECT c.name, c.industry, c.location, c.description, COUNT(j.id) as job_count
         FROM ml_companies_dataset c
         LEFT JOIN ml_jobs_dataset j ON j.company_id = c.id
-        WHERE c.industry LIKE '$kw_safe' OR c.name LIKE '$kw_safe'
+        WHERE c.industry LIKE ? OR c.name LIKE ?
         GROUP BY c.id
         LIMIT 5
     ");
-    if ($comp_result) {
+    if ($stmt) {
+        $stmt->bind_param('ss', $kw_like, $kw_like);
+        $stmt->execute();
+        $comp_result = $stmt->get_result();
         while ($row = $comp_result->fetch_assoc()) {
             $companies[] = $row;
         }
+        $stmt->close();
     }
     // If no industry match, just return all companies as fallback
     if (empty($companies)) {
@@ -59,18 +67,25 @@ if ($output) {
     }
 
     // Format output to match what your frontend JS expects
-    echo json_encode([
+    $response = [
       'ok' => true,
-      'places' => $companies,   // <-- was [], now has company data
+      'places' => $companies,
       'jobs' => $jobs,
       'places_source' => 'ml_dataset',
       'jobs_source' => 'ml_model',
-      'careerjet_error' => null
-  ]);
+      'careerjet_error' => null,
+      'cache_hit' => false,
+      'latency_ms' => round((microtime(true) - $perfStart) * 1000, 2),
+    ];
+    opt_cache_set('career_resources', $cacheKey, $response);
+    opt_perf_log('career_resources', $perfStart, ['keywords' => $keywords, 'jobs' => count($jobs)]);
+    echo json_encode($response);
 } else {
     echo json_encode([
         'ok' => false, 
-        'error' => 'Failed to execute Python ML model.'
+        'error' => 'Failed to execute Python ML model.',
+        'cache_hit' => false,
+        'latency_ms' => round((microtime(true) - $perfStart) * 1000, 2),
     ]);
 }
 ?>

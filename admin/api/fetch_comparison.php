@@ -7,6 +7,7 @@ require_admin_api();
 ob_start();
 require '../../includes/db.php';
 require_once __DIR__ . '/../../includes/assessment_partition.php';
+require_once __DIR__ . '/../../includes/system_opt.php';
 ob_end_clean(); // Wipe any accidental HTML output before starting JSON
 
 header('Content-Type: application/json');
@@ -15,6 +16,7 @@ $prog_a = $_POST['program_a'] ?? 'none';
 $prog_b = $_POST['program_b'] ?? 'none';
 $start_year = (int)($_POST['start_year'] ?? date('Y'));
 $end_year = (int)($_POST['end_year'] ?? date('Y'));
+$perfStart = opt_perf_start();
 
 // Ensure chronological order (Start to End)
 if ($start_year > $end_year) {
@@ -306,5 +308,14 @@ echo json_encode([
     'groupB' => $groupB,
     'sector_field' => $sectorColumn,
     'sector_label' => sector_field_display_label($sectorColumn),
+    'meta' => [
+        'latency_ms' => round((microtime(true) - $perfStart) * 1000, 2),
+    ],
+]);
+opt_perf_log('fetch_comparison', $perfStart, [
+    'program_a' => $prog_a,
+    'program_b' => $prog_b,
+    'start_year' => $start_year,
+    'end_year' => $end_year,
 ]);
 ?>

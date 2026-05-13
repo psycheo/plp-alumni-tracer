@@ -1,0 +1,4 @@
+{"ts":"2026-05-13T11:32:33+02:00","scope":"users_fetch","elapsed_ms":11.55,"meta":{"page":1,"search":false,"role_filter":"","program_filter":"","rows":10}}
+{"ts":"2026-05-13T11:34:16+02:00","scope":"predict_report","elapsed_ms":86.39,"meta":{"range":"all","program_id":0,"rows":30,"page":1}}
+{"ts":"2026-05-13T11:35:36+02:00","scope":"predict_report","elapsed_ms":73.15,"meta":{"range":"all","program_id":0,"rows":30,"page":1}}
+{"ts":"2026-05-13T11:35:44+02:00","scope":"users_fetch","elapsed_ms":2.54,"meta":{"page":1,"search":false,"role_filter":"","program_filter":"","rows":10}}

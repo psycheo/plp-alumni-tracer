@@ -12,6 +12,7 @@ $res = $_SESSION['prediction_results'];
 require_once '../includes/db.php';
 require_once '../includes/career_ml_config.php';
 require_once '../includes/ml_python.php';
+require_once '../includes/system_opt.php';
 
 $name = htmlspecialchars($res['name']);
 $profession_raw = isset($res['profession']) ? (string) $res['profession'] : '';
@@ -62,11 +63,19 @@ $model_degree_label = '';
 
 $python_exe = ml_python_executable();
 $predict_py = ml_predict_script_path();
+$predictPerf = opt_perf_start();
+$predictionHash = sha1($base64_data);
+$cachedPrediction = opt_cache_get('predict_result', $predictionHash, 86400);
 
-if ($python_exe && $predict_py && file_exists($predict_py)) {
+if (is_array($cachedPrediction)) {
+    $ai_result = $cachedPrediction;
+} elseif ($python_exe && $predict_py && file_exists($predict_py)) {
     $command = '"' . $python_exe . '" "' . $predict_py . '" ' . escapeshellarg($base64_data) . ' 2>&1';
     $output = shell_exec($command);
     $ai_result = json_decode($output, true);
+    if (is_array($ai_result) && empty($ai_result['error'])) {
+        opt_cache_set('predict_result', $predictionHash, $ai_result);
+    }
 
     if (is_array($ai_result) && empty($ai_result['error'])) {
         if (isset($ai_result['probability_percent'])) {
@@ -100,6 +109,11 @@ if ($python_exe && $predict_py && file_exists($predict_py)) {
         }
     }
 }
+opt_perf_log('prediction_result', $predictPerf, [
+    'cache_hit' => is_array($cachedPrediction),
+    'has_result' => is_array($ai_result),
+    'assessment_id' => $res['assessment_id'] ?? null,
+]);
 
 $score_color = ($match_score >= 70) ? '#10b981' : (($match_score >= 50) ? '#f59e0b' : '#ef4444');
 $display_ojt = isset($res['ojt_grade']) ? (float) $res['ojt_grade'] : (float) ($user_grades['ojt_grade'] ?? 0);

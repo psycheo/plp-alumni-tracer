@@ -4,6 +4,7 @@ require_once __DIR__ . '/../../includes/auth.php';
 require_admin();
 
 require '../../includes/db.php';
+require_once __DIR__ . '/../../includes/system_opt.php';
 
 $tableExists = static function ($table) use ($conn) {
     static $cache = [];
@@ -265,6 +266,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['get_academic'])) {
 // --- AJAX endpoint for live filtering & pagination ---
 if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['fetch_users'])) {
     header('Content-Type: application/json');
+    $perfStart = opt_perf_start();
     
     $search = isset($_GET['search']) ? $conn->real_escape_string($_GET['search']) : '';
     $role_filter = isset($_GET['role_filter']) ? $conn->real_escape_string($_GET['role_filter']) : '';
@@ -328,11 +330,24 @@ if ($_SERVER["REQUEST_METHOD"] == "GET" && isset($_GET['fetch_users'])) {
         echo json_encode([
             'users' => [],
             'totalPages' => $totalPages,
-            'currentPage' => $page
+            'currentPage' => $page,
+            'meta' => ['latency_ms' => round((microtime(true) - $perfStart) * 1000, 2)]
         ]);
     } else {
-        echo $json;
+        $payload = json_decode($json, true);
+        if (!is_array($payload)) {
+            $payload = ['users' => [], 'totalPages' => 0, 'currentPage' => $page];
+        }
+        $payload['meta'] = ['latency_ms' => round((microtime(true) - $perfStart) * 1000, 2)];
+        echo json_encode($payload, JSON_INVALID_UTF8_SUBSTITUTE);
     }
+    opt_perf_log('users_fetch', $perfStart, [
+        'page' => $page,
+        'search' => $search !== '',
+        'role_filter' => $role_filter,
+        'program_filter' => $program_filter,
+        'rows' => count($users),
+    ]);
     exit();
 }
 
@@ -355,11 +370,12 @@ if ($prog_result = $conn->query("SELECT id, name FROM programs ORDER BY name ASC
         .role-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
         .role-admin  { background: #fee2e2; color: #ef4444; }
         .role-alumni { background: #e0f2fe; color: #0284c7; }
-        .action-btn      { background: none; border: none; cursor: pointer; font-size: 1.1rem; margin: 0 5px; display: inline-block; }
+        .action-btn      { background: none; border: none; cursor: pointer; font-size: 1.1rem; margin: 0 5px; display: inline-block; pointer-events: auto !important; }
         .action-edit     { color: #f59e0b; }
         .action-delete   { color: #ef4444; }
         .action-academic { color: #0ea5e9; }
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17,24,39,0.6); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(17,24,39,0.6); z-index: 1000; justify-content: center; align-items: center; pointer-events: none; }
+        .modal-overlay[style*="display: flex"] { pointer-events: auto; }
         .modal-content { background: #fff; padding: 25px 30px; border-radius: 10px; width: 100%; max-width: 580px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); max-height: 90vh; overflow-y: auto; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
         .modal-header h2 { font-size: 1.25rem; font-weight: 700; margin: 0; }
@@ -390,8 +406,8 @@ if ($prog_result = $conn->query("SELECT id, name FROM programs ORDER BY name ASC
         .swal-plp-cancel:hover { background-color: #e5e7eb !important; }
 
         /* --- LOADING OVERLAY --- */
-        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
-        .loading-overlay.active { opacity: 1; visibility: visible; }
+        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; visibility: hidden; pointer-events: none; transition: all 0.3s ease; }
+        .loading-overlay.active { opacity: 1; visibility: visible; pointer-events: auto; }
         .ai-spinner { width: 60px; height: 60px; border: 5px solid #e2e8f0; border-top-color: #0d5c34; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(13, 92, 52, 0.2); }
         @keyframes spin { 100% { transform: rotate(360deg); } }
         .loading-overlay h3 { color: #0f172a; font-size: 1.5rem; margin-bottom: 8px; margin-top: 0; }
@@ -583,10 +599,10 @@ if ($prog_result = $conn->query("SELECT id, name FROM programs ORDER BY name ASC
             <p>Manage alumni accounts and administrative access.</p>
         </div>
         <div style="display:flex; gap:10px;">
-            <button class="btn-upload" id="openImportModal" style="background:#059669; color:white; border:none; padding:10px 20px; border-radius:6px; cursor:pointer;">
+            <button type="button" class="btn-upload" id="openImportModal" onclick="window.openImportModalInline && window.openImportModalInline(); return false;" style="padding:10px 20px;">
                 <i class="fas fa-file-import"></i> Upload File
             </button>
-            <button class="btn-upload" id="openAddUserModal">
+            <button type="button" class="btn-upload" id="openAddUserModal" onclick="window.openAddUserModalInline && window.openAddUserModalInline(); return false;">
                 <i class="fas fa-plus"></i> Add New User
             </button>
         </div>
@@ -924,16 +940,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td style="text-align: center;"><span class="role-badge ${badgeClass}">${role.charAt(0).toUpperCase() + role.slice(1)}</span></td>
                     <td style="text-align: center;">${createdDate}</td>
                     <td style="text-align: center;">
-                        <button class="action-btn action-edit" title="Edit Account"
+                        <button type="button" class="action-btn action-edit" title="Edit Account"
                             data-id="${escapeHtml(user.student_id)}"
                             data-name="${escapeHtml(user.full_name)}"
                             data-email="${escapeHtml(user.email)}"
-                            data-role="${role}">
+                            data-role="${role}"
+                            onclick="window.openEditModalFromInline && window.openEditModalFromInline(this); return false;">
                             <i class="fas fa-edit"></i>
                         </button>
-                        <button class="action-btn action-academic" title="Academic Information"
+                        <button type="button" class="action-btn action-academic" title="Academic Information"
                             data-id="${escapeHtml(user.student_id)}"
-                            data-name="${escapeHtml(user.full_name).toUpperCase()}">
+                            data-name="${escapeHtml(user.full_name).toUpperCase()}"
+                            onclick="window.openAcademicModalFromInline && window.openAcademicModalFromInline(this); return false;">
                             <i class="fas fa-graduation-cap"></i>
                         </button>
                         <a href="?delete_id=${encodeURIComponent(user.student_id)}"
@@ -946,8 +964,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
         });
         tableBody.innerHTML = html;
-        
-        attachButtonHandlers();
+
         renderPagination(data.totalPages, data.currentPage);
     }
 
@@ -984,56 +1001,75 @@ document.addEventListener('DOMContentLoaded', () => {
         return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
     
-    function attachButtonHandlers() {
-        document.querySelectorAll('.action-edit').forEach(btn => {
-            btn.onclick = function(e) {
-                e.preventDefault();
-                document.getElementById('orig_student_id').value = this.dataset.id;
-                document.getElementById('edit_plp_id').value = this.dataset.id;
-                document.getElementById('edit_full_name').value = this.dataset.name;
-                document.getElementById('edit_email').value = this.dataset.email;
-                document.getElementById('edit_role').value = this.dataset.role;
-                const ep = document.getElementById('edit_new_password');
-                if (ep) ep.value = '';
-                document.getElementById('editUserModal').style.display = 'flex';
-            };
-        });
-        
-        document.querySelectorAll('.action-academic').forEach(btn => {
-            btn.onclick = function(e) {
-                e.preventDefault();
-                const studentId = this.dataset.id;
-                const name = this.dataset.name;
-                
-                document.getElementById('acad_student_id').value = studentId;
-                document.getElementById('acad_full_name').value = name;
-                document.getElementById('acad_program').value = '';
-                document.getElementById('avg_grade').value = '';
-                document.getElementById('ojt_grade').value = '';
-                document.getElementById('avg_prof_grade').value = '';
-                document.getElementById('avg_elec_grade').value = '';
-                document.getElementById('soft_skills_avg').value = '';
-                document.getElementById('hard_skills_avg').value = '';
-                
-                fetch(`users.php?get_academic=1&student_id=${encodeURIComponent(studentId)}`)
-                    .then(r => r.json())
-                    .then(data => {
-                        if (data) {
-                            document.getElementById('acad_program').value = data.program_id || '';
-                            document.getElementById('avg_grade').value = data.avg_grade || '';
-                            document.getElementById('ojt_grade').value = data.ojt_grade || '';
-                            document.getElementById('avg_prof_grade').value = data.avg_prof_grade || '';
-                            document.getElementById('avg_elec_grade').value = data.avg_elec_grade || '';
-                            document.getElementById('soft_skills_avg').value = data.soft_skills_avg || '';
-                            document.getElementById('hard_skills_avg').value = data.hard_skills_avg || '';
-                        }
-                    })
-                    .catch(err => console.error("Error fetching data:", err));
-                
-                document.getElementById('academicModal').style.display = 'flex';
-            };
+    function closeAllModals() {
+        ['academicModal', 'importModal', 'addUserModal', 'editUserModal'].forEach((id) => {
+            const modal = document.getElementById(id);
+            if (modal) modal.style.display = 'none';
         });
     }
+
+    function openEditModalFromButton(btn) {
+        closeAllModals();
+        document.getElementById('orig_student_id').value = btn.dataset.id || '';
+        document.getElementById('edit_plp_id').value = btn.dataset.id || '';
+        document.getElementById('edit_full_name').value = btn.dataset.name || '';
+        document.getElementById('edit_email').value = btn.dataset.email || '';
+        document.getElementById('edit_role').value = btn.dataset.role || 'alumni';
+        const ep = document.getElementById('edit_new_password');
+        if (ep) ep.value = '';
+        document.getElementById('editUserModal').style.display = 'flex';
+    }
+
+    function openAcademicModalFromButton(btn) {
+        closeAllModals();
+        const studentId = btn.dataset.id || '';
+        const name = btn.dataset.name || '';
+
+        document.getElementById('acad_student_id').value = studentId;
+        document.getElementById('acad_full_name').value = name;
+        document.getElementById('acad_program').value = '';
+        document.getElementById('avg_grade').value = '';
+        document.getElementById('ojt_grade').value = '';
+        document.getElementById('avg_prof_grade').value = '';
+        document.getElementById('avg_elec_grade').value = '';
+        document.getElementById('soft_skills_avg').value = '';
+        document.getElementById('hard_skills_avg').value = '';
+
+        fetch(`users.php?get_academic=1&student_id=${encodeURIComponent(studentId)}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data) {
+                    document.getElementById('acad_program').value = data.program_id || '';
+                    document.getElementById('avg_grade').value = data.avg_grade || '';
+                    document.getElementById('ojt_grade').value = data.ojt_grade || '';
+                    document.getElementById('avg_prof_grade').value = data.avg_prof_grade || '';
+                    document.getElementById('avg_elec_grade').value = data.avg_elec_grade || '';
+                    document.getElementById('soft_skills_avg').value = data.soft_skills_avg || '';
+                    document.getElementById('hard_skills_avg').value = data.hard_skills_avg || '';
+                }
+            })
+            .catch(err => console.error("Error fetching data:", err));
+
+        document.getElementById('academicModal').style.display = 'flex';
+    }
+
+    window.openEditModalFromInline = openEditModalFromButton;
+    window.openAcademicModalFromInline = openAcademicModalFromButton;
+
+    tableBody.addEventListener('click', (e) => {
+        const editBtn = e.target.closest('.action-edit');
+        if (editBtn) {
+            e.preventDefault();
+            openEditModalFromButton(editBtn);
+            return;
+        }
+
+        const academicBtn = e.target.closest('.action-academic');
+        if (academicBtn) {
+            e.preventDefault();
+            openAcademicModalFromButton(academicBtn);
+        }
+    });
 
     searchInput.addEventListener('input', () => {
         clearTimeout(debounceTimer);
@@ -1045,7 +1081,8 @@ document.addEventListener('DOMContentLoaded', () => {
     
     fetchUsers(1);
     
-    document.getElementById('openAddUserModal').onclick = () => {
+    const openAddUserModalFn = () => {
+        closeAllModals();
         const roleSelect = document.getElementById('add_role');
         const tempPasswordInput = document.getElementById('temp_password');
         if (roleSelect && tempPasswordInput) {
@@ -1054,8 +1091,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         document.getElementById('addUserModal').style.display = 'flex';
     };
-    
-    document.getElementById('openImportModal').onclick = () => document.getElementById('importModal').style.display = 'flex';
+    document.getElementById('openAddUserModal').onclick = openAddUserModalFn;
+    window.openAddUserModalInline = openAddUserModalFn;
+
+    const openImportModalFn = () => {
+        closeAllModals();
+        document.getElementById('importModal').style.display = 'flex';
+    };
+    document.getElementById('openImportModal').onclick = openImportModalFn;
+    window.openImportModalInline = openImportModalFn;
 
     const addRoleSelect = document.getElementById('add_role');
     const tempPasswordInput = document.getElementById('temp_password');

@@ -4,6 +4,7 @@ require_once __DIR__ . '/../../includes/auth.php';
 require_admin();
 
 require '../../includes/db.php';
+require_once __DIR__ . '/../../includes/system_opt.php';
 
 function stmt_fetch_assoc(mysqli $conn, string $sql, string $types = '', array $params = []): array
 {
@@ -43,6 +44,7 @@ function stmt_fetch_all(mysqli $conn, string $sql, string $types = '', array $pa
 }
 
 $downloadMode = isset($_REQUEST['download']) && $_REQUEST['download'] === '1';
+$perfStart = opt_perf_start();
 $format = isset($_REQUEST['format']) ? (string) $_REQUEST['format'] : 'xml';
 $range = isset($_REQUEST['range']) ? (string) $_REQUEST['range'] : 'all';
 $programId = isset($_REQUEST['program_id']) ? (int) $_REQUEST['program_id'] : 0;
@@ -62,10 +64,10 @@ if ($range === 'last30') {
 } elseif ($range === 'last6months') {
     $filterParts[] = "a.created_at >= DATE_SUB(NOW(), INTERVAL 6 MONTH)";
 } elseif ($range === 'custom' && $startDate !== '' && $endDate !== '') {
-    $filterParts[] = "DATE(a.created_at) BETWEEN ? AND ?";
+    $filterParts[] = "a.created_at >= ? AND a.created_at < ?";
     $filterTypes .= 'ss';
-    $filterParams[] = $startDate;
-    $filterParams[] = $endDate;
+    $filterParams[] = $startDate . ' 00:00:00';
+    $filterParams[] = date('Y-m-d H:i:s', strtotime($endDate . ' +1 day'));
 }
 
 if ($programId > 0) {
@@ -80,8 +82,8 @@ $generatedAt = gmdate('c');
 $summarySql = "
     SELECT
         COUNT(*) AS total_assessments,
-        SUM(CASE WHEN a.employment_status = 'Employed' THEN 1 ELSE 0 END) AS total_employed,
-        SUM(CASE WHEN a.employment_status = 'Unemployed' THEN 1 ELSE 0 END) AS total_unemployed,
+        SUM(CASE WHEN LOWER(TRIM(COALESCE(a.employment_status, ''))) = 'employed' THEN 1 ELSE 0 END) AS total_employed,
+        SUM(CASE WHEN LOWER(TRIM(COALESCE(a.employment_status, ''))) <> 'employed' THEN 1 ELSE 0 END) AS total_unemployed,
         SUM(CASE WHEN a.employability_status = 'Good Match' THEN 1 ELSE 0 END) AS good_match_count,
         SUM(CASE WHEN a.employability_status = 'Job Mismatch' THEN 1 ELSE 0 END) AS job_mismatch_count
     FROM alumni_assessments a
@@ -102,7 +104,7 @@ $programSql = "
         p.id AS program_id,
         p.name AS program_name,
         COUNT(a.id) AS total_assessments,
-        SUM(CASE WHEN a.employment_status = 'Employed' THEN 1 ELSE 0 END) AS employed_count,
+        SUM(CASE WHEN LOWER(TRIM(COALESCE(a.employment_status, ''))) = 'employed' THEN 1 ELSE 0 END) AS employed_count,
         SUM(CASE WHEN a.employability_status = 'Good Match' THEN 1 ELSE 0 END) AS good_match_count,
         ROUND(AVG(a.gpa), 2) AS avg_gpa,
         ROUND(AVG(a.ojt_grade), 2) AS avg_ojt_grade,
@@ -402,6 +404,13 @@ if ($format === 'styled') {
     // Output raw HTML instead of an attachment to allow the JS PDF generator to run
     header('Content-Type: text/html; charset=UTF-8');
     echo $htmlOutput;
+    opt_perf_log('export_predict_report', $perfStart, [
+        'format' => $format,
+        'download' => $downloadMode,
+        'program_id' => $programId,
+        'range' => $range,
+        'records' => count($recentPredictions),
+    ]);
     exit;
 }
 
@@ -411,5 +420,12 @@ header('Content-Disposition: ' . ($downloadMode ? 'attachment' : 'inline') . '; 
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
 echo $xmlOutput;
+opt_perf_log('export_predict_report', $perfStart, [
+    'format' => $format,
+    'download' => $downloadMode,
+    'program_id' => $programId,
+    'range' => $range,
+    'records' => count($recentPredictions),
+]);
 exit;
 ?>

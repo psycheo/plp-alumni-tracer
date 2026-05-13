@@ -21,6 +21,10 @@ function ml_forecast_script_path(): string
 
 function ml_python_executable(): ?string
 {
+    static $cached = null;
+    if ($cached !== null) {
+        return $cached;
+    }
     $root = ml_project_root();
     $venvCandidates = [
         $root . DIRECTORY_SEPARATOR . 'ml' . DIRECTORY_SEPARATOR . 'venv' . DIRECTORY_SEPARATOR . 'Scripts' . DIRECTORY_SEPARATOR . 'python.exe',
@@ -28,14 +32,17 @@ function ml_python_executable(): ?string
     ];
     foreach ($venvCandidates as $path) {
         if (is_file($path)) {
-            return $path;
+            $cached = $path;
+            return $cached;
         }
     }
     foreach (['python', 'python3'] as $bin) {
         $out = shell_exec(escapeshellcmd($bin) . ' --version 2>&1');
         if ($out !== null && $out !== false && preg_match('/Python\s+\d/i', (string) $out)) {
-            return $bin;
+            $cached = $bin;
+            return $cached;
         }
     }
-    return null;
+    $cached = null;
+    return $cached;
 }
