@@ -229,13 +229,13 @@ $second_title = ($second_match && isset($second_match['profession'])) ? htmlspec
             
         </div> <section class="insights-section" aria-labelledby="insights-heading">
             <h2 id="insights-heading" class="insights-title"><i class="fas fa-map-marked-alt"></i> Explore employers &amp; jobs</h2>
-            <p class="insights-lead">Places are sampled around <strong>Metro Manila</strong> via OpenStreetMap (Overpass). Jobs are searched on <strong>Careerjet Philippines</strong> using your top match title.</p>
+            <p class="insights-lead">Employers and job listings are recommended by the <strong>ML engine</strong> based on your predicted career: <strong><?= htmlspecialchars($profession_raw) ?></strong>.</p>
 
             <div class="insights-grid">
                 <div class="insights-card">
                     <div class="insights-card-head">
-                        <span class="insights-badge osm"><i class="fas fa-map"></i> Overpass / OSM</span>
-                        <h3>Places &amp; employers</h3>
+                        <span class="insights-badge osm"><i class="fas fa-building"></i> ML Dataset</span>
+                        <h3>Recommended employers</h3>
                     </div>
                     <div id="placesMount" class="insights-mount">
                         <p class="insights-loading"><i class="fas fa-spinner fa-spin"></i> Loading map places…</p>
@@ -243,8 +243,8 @@ $second_title = ($second_match && isset($second_match['profession'])) ? htmlspec
                 </div>
                 <div class="insights-card">
                     <div class="insights-card-head">
-                        <span class="insights-badge cj"><i class="fas fa-briefcase"></i> Careerjet PH</span>
-                        <h3>Job listings</h3>
+                        <span class="insights-badge cj"><i class="fas fa-robot"></i> ML Engine</span>
+                        <h3>Matched job listings</h3>
                     </div>
                     <div id="jobsMount" class="insights-mount">
                         <p class="insights-loading"><i class="fas fa-spinner fa-spin"></i> Loading jobs…</p>
@@ -270,18 +270,22 @@ $second_title = ($second_match && isset($second_match['profession'])) ? htmlspec
 
         function renderPlaces(list) {
             if (!list || list.length === 0) {
-                placesEl.innerHTML = '<p class="insights-empty">No places returned. Try again later or widen your search from the admin Companies page.</p>';
+                placesEl.innerHTML = '<p class="insights-empty">No matching employers found in the dataset.</p>';
                 return;
             }
-            const ul = document.createElement('ul');
-            ul.className = 'insights-list';
-            list.slice(0, 10).forEach(function (p) {
-                const li = document.createElement('li');
-                li.innerHTML = '<strong>' + esc(p.name) + '</strong><span class="meta">' + esc(p.type) + '</span>';
-                ul.appendChild(li);
+            const frag = document.createElement('div');
+            frag.className = 'insights-jobs';
+            list.forEach(function (c) {
+                const div = document.createElement('div');
+                div.className = 'insights-job';
+                div.innerHTML = '<div class="job-title">' + esc(c.name) + '</div>' +
+                    '<div class="job-co">' + esc(c.industry) + '</div>' +
+                    '<div class="job-meta"><i class="fas fa-map-marker-alt"></i> ' + esc(c.location) + '</div>' +
+                    '<div class="job-meta"><i class="fas fa-briefcase"></i> ' + esc(c.job_count) + ' listed job(s)</div>';
+                frag.appendChild(div);
             });
             placesEl.innerHTML = '';
-            placesEl.appendChild(ul);
+            placesEl.appendChild(frag);
         }
 
         function renderJobs(list, err) {
@@ -290,7 +294,7 @@ $second_title = ($second_match && isset($second_match['profession'])) ? htmlspec
                 return;
             }
             if (!list || list.length === 0) {
-                jobsEl.innerHTML = '<p class="insights-empty">No listings matched this search. Check <code>includes/careerjet_credentials.php</code> or try a broader keyword.</p>';
+                jobsEl.innerHTML = '<p class="insights-empty">No ML job matches found for your predicted career. Try adding more jobs to the dataset.</p>';
                 return;
             }
             const frag = document.createElement('div');
@@ -303,16 +307,17 @@ $second_title = ($second_match && isset($second_match['profession'])) ? htmlspec
                     : '';
                 a.innerHTML = '<div class="job-title">' + esc(j.title) + '</div>' +
                     '<div class="job-co">' + esc(j.company) + '</div>' +
-                    '<div class="job-meta"><i class="fas fa-map-marker-alt"></i> ' + esc(j.location) + ' · <i class="fas fa-money-bill-wave"></i> ' + esc(j.salary) + '</div>' +
-                    link;
+                    '<div class="job-meta"><i class="fas fa-map-marker-alt"></i> ' + esc(j.location) + '</div>' +
+                    '<div class="job-meta"><i class="fas fa-robot"></i> ' + j.match_percentage + '% ML match</div>';
                 frag.appendChild(a);
             });
             jobsEl.innerHTML = '';
             jobsEl.appendChild(frag);
         }
 
-        Promise.resolve({ ok: true, places: [], jobs: [], careerjet_error: null })
-        .then(function (data) { return data; })
+        console.log('Fetching ML jobs for keyword:', kw);
+        fetch('api_career_resources.php?keywords=' + encodeURIComponent(kw))
+        .then(function(r) { return r.json(); })
             .then(function (data) {
                 if (!data.ok) {
                     placesEl.innerHTML = '<p class="insights-empty">Could not load resources.</p>';

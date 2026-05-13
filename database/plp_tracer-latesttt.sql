@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 13, 2026 at 02:47 AM
+-- Generation Time: May 13, 2026 at 05:31 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -11761,10 +11761,7 @@ INSERT INTO `alumni_assessments` (`id`, `name`, `program_id`, `grad_year`, `empl
 (10788, 'Juan Carlos G. Jabson', 1, 2024, 'Employed', 'Synergy Corp', 'Cybersecurity', '12.0', 'Security Analyst', '40k-60k', 2, 2.16, 93.05, 80.40, 84.39, '', 'Good Match', 'Security Analyst', '2026-05-05 15:37:40', '22-01236'),
 (10789, 'Marilou G. Jara', 1, 2023, 'Unemployed', '', '', '', '', '', 0, 2.32, 89.71, 96.64, 91.19, '', 'Good Match', 'Network Engineer', '2026-05-05 15:37:40', '21-00946'),
 (10790, 'Ramon L. Monderin', 1, 2024, 'Employed', 'NextGen IT', 'Cybersecurity', '1.0', 'Security Analyst', 'Above 60k', 0, 1.47, 85.76, 92.93, 95.29, '', 'Good Match', 'Data Analyst', '2026-05-05 15:37:40', '22-01238'),
-(10791, 'Lea C. Santos', 1, 2022, 'Employed', 'TechCorp', 'Network Administration', '7.0', 'Network Engineer', '20k-40k', 0, 2.28, 92.83, 87.89, 96.15, '', 'Good Match', 'Data Analyst', '2026-05-05 15:37:40', '20-00852'),
-(10792, 'Anthony M. Loterte', 1, 2025, 'Unemployed', '', 'NULL', NULL, '', '', 0, 1.75, 90.00, 73.33, 78.62, '', 'Good Match', 'Cybersecurity Analyst', '2026-05-09 13:45:53', '23-00152'),
-(10793, 'Anthony M. Loterte', 1, 2025, 'Employed', 'Appdev', 'Development', '4', 'App Developer', '20k-40k', 4, 1.75, 90.00, 87.00, 93.26, '', 'Good Match', 'Cybersecurity Analyst', '2026-05-09 13:48:31', '23-00152'),
-(10794, 'Anthony M. Loterte', 1, 2025, 'Employed', 'Ada', 'DB Admin', NULL, 'Database Administrator', 'Below 20k', 7, 1.75, 90.00, 87.00, 84.19, '', 'Good Match', 'Cybersecurity Analyst', '2026-05-12 23:18:51', '23-00152');
+(10791, 'Lea C. Santos', 1, 2022, 'Employed', 'TechCorp', 'Network Administration', '7.0', 'Network Engineer', '20k-40k', 0, 2.28, 92.83, 87.89, 96.15, '', 'Good Match', 'Data Analyst', '2026-05-05 15:37:40', '20-00852');
 
 -- --------------------------------------------------------
 
@@ -11838,7 +11835,7 @@ CREATE TABLE `feedback_replies` (
 --
 
 INSERT INTO `feedback_replies` (`id`, `feedback_id`, `student_id`, `reply_text`, `is_seen`, `created_at`) VALUES
-(4, 22, 23, 'Thank you for this feedback!', 0, '2026-05-03 12:14:03');
+(4, 22, '23', 'Thank you for this feedback!', 0, '2026-05-03 12:14:03');
 
 -- --------------------------------------------------------
 
@@ -11861,7 +11858,27 @@ CREATE TABLE `ml_companies_dataset` (
 INSERT INTO `ml_companies_dataset` (`id`, `name`, `industry`, `location`, `description`) VALUES
 (1, 'TechNova Solutions', 'IT & Tech', 'Makati City', 'A leading software development company specializing in web and mobile applications.'),
 (2, 'CarePlus Hospital', 'Healthcare', 'Quezon City', 'A premium healthcare facility providing top-notch medical and nursing services.'),
-(3, 'Apex Financial Hub', 'Finance & Accountancy', 'Taguig City', 'Corporate banking and accounting firm dealing with investments and audits.');
+(3, 'Apex Financial Hub', 'Finance & Accountancy', 'Taguig City', 'Corporate banking and accounting firm dealing with investments and audits.'),
+(4, 'GlobalTech Solutions', 'IT & Tech', 'Pasig City', 'An enterprise software company providing cloud computing and cybersecurity solutions.'),
+(5, 'CodeCraft Studios', 'IT & Tech', 'Mandaluyong City', 'A creative tech agency specializing in mobile game development and UI/UX design.'),
+(6, 'DataSync Systems', 'IT & Tech', 'Makati City', 'Data analytics and machine learning firm helping businesses automate their pipelines.'),
+(7, 'Metro Medical Center', 'Healthcare', 'Manila City', 'A tertiary hospital providing comprehensive medical, surgical, and diagnostic services.'),
+(8, 'Prime Care Clinics', 'Healthcare', 'Quezon City', 'A network of outpatient clinics offering pediatric, dental, and general practice care.'),
+(9, 'WealthFront Bank', 'Finance & Accountancy', 'Taguig City', 'A commercial bank offering retail banking, loans, and corporate financial services.'),
+(10, 'AuditPro Associates', 'Finance & Accountancy', 'Makati City', 'An independent auditing and tax consulting firm for small to medium enterprises.'),
+(11, 'Horizon Academy', 'Education', 'Quezon City', 'A private educational institution offering K-12 and specialized vocational courses.'),
+(12, 'Global Learning Institute', 'Education', 'Manila City', 'A university known for its advanced research facilities and comprehensive IT and Nursing programs.'),
+(13, 'Grand Plaza Hotel', 'Hospitality', 'Pasay City', 'A 5-star luxury hotel offering premium accommodation, dining, and event management.'),
+(14, 'CloudNine Resorts', 'Hospitality', 'Makati City', 'A boutique hotel chain focusing on eco-friendly tourism and high-end customer service.'),
+(15, 'BuildRight Construction', 'Engineering', 'Quezon City', 'A civil engineering firm handling commercial buildings and public infrastructure projects.'),
+(16, 'MegaStruct Engineers', 'Engineering', 'Taguig City', 'An architectural and structural engineering company specializing in high-rise condominiums.'),
+(17, 'CreativeMind Agency', 'Marketing', 'Mandaluyong City', 'A digital marketing agency focused on social media management, SEO, and content creation.'),
+(18, 'Peak Sales Group', 'Corporate / Business', 'Pasig City', 'A B2B corporate sales and business development outsourcing company.'),
+(19, 'FutureWeb Dynamics', 'IT & Tech', 'Muntinlupa City', 'E-commerce platform developers focusing on React, Node.js, and scalable web apps.'),
+(20, 'BioHealth Labs', 'Healthcare', 'Pasig City', 'A state-of-the-art medical laboratory conducting blood tests, biometrics, and research.'),
+(21, 'TrustFund Corp', 'Finance & Accountancy', 'San Juan City', 'Investment and wealth management corporation dealing with stock brokering and mutual funds.'),
+(22, 'NextGen Educators', 'Education', 'Makati City', 'An ed-tech company developing online learning platforms and virtual classrooms.'),
+(23, 'OceanView Hospitality', 'Hospitality', 'Parañaque City', 'A hospitality management group overseeing multiple integrated resorts and casinos.');
 
 -- --------------------------------------------------------
 
@@ -11885,7 +11902,57 @@ INSERT INTO `ml_jobs_dataset` (`id`, `company_id`, `job_title`, `requirements_te
 (1, 1, 'Junior Software Engineer', 'Programming, Python, PHP, JavaScript, SQL, Web Development, Problem Solving', 'Makati City'),
 (2, 1, 'IT Support Specialist', 'Hardware troubleshooting, Networking, IT Helpdesk, Communication skills', 'Makati City'),
 (3, 2, 'Registered Nurse', 'Nursing, Patient Care, First Aid, Medical Charting, Compassion', 'Quezon City'),
-(4, 3, 'Junior Accountant', 'Accounting, Financial Analysis, Bookkeeping, Excel, Auditing', 'Taguig City');
+(4, 3, 'Junior Accountant', 'Accounting, Financial Analysis, Bookkeeping, Excel, Auditing', 'Taguig City'),
+(5, 4, 'Cloud Systems Administrator', 'AWS, Azure, Linux, Cloud Computing, Network Security, Troubleshooting', 'Pasig City'),
+(6, 4, 'Cybersecurity Analyst', 'Cybersecurity, Ethical Hacking, Firewall, Risk Assessment, CompTIA Security+', 'Pasig City'),
+(7, 5, 'Game Developer', 'Unity, C#, Game Design, 3D Modeling, C++, Mobile Games', 'Mandaluyong City'),
+(8, 5, 'UI/UX Designer', 'Figma, Adobe XD, User Research, Wireframing, Prototyping, CSS', 'Mandaluyong City'),
+(9, 6, 'Data Scientist', 'Python, R, Machine Learning, SQL, Data Visualization, Pandas, TensorFlow', 'Makati City'),
+(10, 6, 'Database Administrator', 'MySQL, PostgreSQL, Database Design, Optimization, Backup & Recovery', 'Makati City'),
+(11, 19, 'Front-End Web Developer', 'HTML, CSS, JavaScript, React, Vue.js, Responsive Design', 'Muntinlupa City'),
+(12, 19, 'Back-End Node.js Developer', 'Node.js, Express, MongoDB, API Development, Server-side logic', 'Muntinlupa City'),
+(13, 1, 'Senior PHP Developer', 'PHP, Laravel, CodeIgniter, MySQL, Git, RESTful APIs', 'Makati City'),
+(14, 1, 'Quality Assurance (QA) Tester', 'Software Testing, Selenium, Automation, Bug Tracking, Manual Testing', 'Makati City'),
+(15, 7, 'Medical Technologist', 'MedTech, Laboratory Analysis, Blood Banking, Clinical Chemistry, PRC License', 'Manila City'),
+(16, 7, 'Emergency Room Nurse', 'ER Nursing, Triage, BLS, ACLS, Patient Care, Critical Thinking', 'Manila City'),
+(17, 8, 'Clinic Receptionist', 'Customer Service, Scheduling, Microsoft Office, Interpersonal Skills, Admin tasks', 'Quezon City'),
+(18, 8, 'Pediatric Nurse', 'Pediatrics, Child Care, Vital Signs, Patient Compassion, PRC License', 'Quezon City'),
+(19, 20, 'Laboratory Technician', 'Lab Equipment, Specimen Collection, Biology, Chemistry, Safety Protocols', 'Pasig City'),
+(20, 20, 'Clinical Researcher', 'Data Analysis, Clinical Trials, Research Methodology, Medical Writing', 'Pasig City'),
+(21, 2, 'Healthcare Administrator', 'Hospital Management, Policy Implementation, Staff Scheduling, Healthcare Laws', 'Quezon City'),
+(22, 9, 'Bank Teller', 'Cash Handling, Customer Service, Basic Math, Banking Software, Communication', 'Taguig City'),
+(23, 9, 'Financial Analyst', 'Financial Modeling, Excel, Forecasting, Risk Management, Valuation', 'Taguig City'),
+(24, 10, 'Tax Consultant', 'Taxation, BIR Regulations, Auditing, Corporate Tax, CPA', 'Makati City'),
+(25, 10, 'Senior Auditor', 'External Audit, Financial Statements, Compliance, GAAP, CPA required', 'Makati City'),
+(26, 21, 'Investment Broker', 'Stock Market, Client Portfolio, Financial Advisory, Sales, Economics', 'San Juan City'),
+(27, 21, 'Payroll Specialist', 'Payroll Processing, Timesheets, Labor Code, HRIS, Data Entry', 'San Juan City'),
+(28, 3, 'Corporate Accountant', 'General Ledger, Month-end Close, Accounts Payable, SAP, Bookkeeping', 'Taguig City'),
+(29, 11, 'High School Teacher', 'Education, Lesson Planning, Classroom Management, English/Math Major, LET Passer', 'Quezon City'),
+(30, 11, 'Guidance Counselor', 'Counseling, Psychology, Student Development, Empathy, Communication', 'Quezon City'),
+(31, 12, 'College Professor (IT)', 'Teaching, Programming, Computer Science, Curriculum Development, Master’s Degree', 'Manila City'),
+(32, 12, 'University Librarian', 'Library Science, Cataloging, Information Management, Research Assistance', 'Manila City'),
+(33, 22, 'E-Learning Content Creator', 'Instructional Design, Video Editing, Canvas, Moodle, Writing', 'Makati City'),
+(34, 22, 'Online English Tutor', 'ESL, English Proficiency, Grammar, Video Conferencing, Patience', 'Makati City'),
+(35, 15, 'Civil Engineer', 'Civil Engineering, AutoCAD, Construction Management, Structural Design, PRC License', 'Quezon City'),
+(36, 15, 'Site Supervisor', 'Project Management, Safety Compliance, Manpower handling, Blueprint Reading', 'Quezon City'),
+(37, 16, 'Architect', 'Architecture, SketchUp, Revit, Design Planning, Building Codes', 'Taguig City'),
+(38, 16, 'Electrical Engineer', 'Power Distribution, Electrical Systems, Troubleshooting, AutoCAD Electrical', 'Taguig City'),
+(39, 17, 'Digital Marketing Specialist', 'SEO, SEM, Social Media Marketing, Google Analytics, Content Strategy', 'Mandaluyong City'),
+(40, 17, 'Graphic Designer', 'Photoshop, Illustrator, Branding, Typography, Visual Arts', 'Mandaluyong City'),
+(41, 18, 'Sales Account Executive', 'B2B Sales, Negotiation, CRM, Lead Generation, Presentation Skills', 'Pasig City'),
+(42, 18, 'Business Development Officer', 'Market Research, Strategic Planning, Partnership Building, Client Relations', 'Pasig City'),
+(43, 13, 'Hotel Receptionist', 'Front Desk, Opera PMS, Customer Service, Bilingual, Problem Solving', 'Pasay City'),
+(44, 13, 'Food & Beverage Manager', 'Restaurant Management, Inventory, Food Safety, Menu Planning, Leadership', 'Pasay City'),
+(45, 14, 'Event Coordinator', 'Event Planning, Budgeting, Vendor Management, Organization, Hospitality', 'Makati City'),
+(46, 14, 'Housekeeping Supervisor', 'Housekeeping, Cleaning Standards, Staff Training, Inventory Management', 'Makati City'),
+(47, 23, 'Casino Dealer', 'Table Games, Quick Math, Customer Entertainment, Alertness, Hand Dexterity', 'Parañaque City'),
+(48, 23, 'Concierge Specialist', 'Guest Relations, Local Tourism Knowledge, Booking, Communication', 'Parañaque City'),
+(49, 4, 'HR Specialist', 'Human Resources, Recruitment, Employee Relations, Onboarding, Labor Laws', 'Pasig City'),
+(50, 7, 'IT Support Engineer', 'Hardware Setup, Helpdesk, Networking, Troubleshooting, Healthcare IT', 'Manila City'),
+(51, 15, 'Project Accountant', 'Cost Accounting, Budgeting, Financial Reporting, Construction Finance', 'Quezon City'),
+(52, 13, 'Marketing Assistant', 'Social Media, Promotions, Event Assistance, Copywriting, Canva', 'Pasay City'),
+(53, 9, 'Software Engineer', 'Java, Spring Boot, Microservices, Banking Systems, Secure Coding', 'Taguig City'),
+(54, 22, 'Data Analyst', 'Excel, SQL, Student Data, PowerBI, Reporting', 'Makati City');
 
 -- --------------------------------------------------------
 
@@ -13018,7 +13085,7 @@ ALTER TABLE `alumni_academic_info`
 -- AUTO_INCREMENT for table `alumni_assessments`
 --
 ALTER TABLE `alumni_assessments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10795;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10799;
 
 --
 -- AUTO_INCREMENT for table `audit_logs`
@@ -13042,13 +13109,13 @@ ALTER TABLE `feedback_replies`
 -- AUTO_INCREMENT for table `ml_companies_dataset`
 --
 ALTER TABLE `ml_companies_dataset`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT for table `ml_jobs_dataset`
 --
 ALTER TABLE `ml_jobs_dataset`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
 
 --
 -- AUTO_INCREMENT for table `professions`

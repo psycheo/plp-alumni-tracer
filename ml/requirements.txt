@@ -3,3 +3,4 @@ pandas
 joblib
 numpy
 statsmodels>=0.14.0
+sqlalchemy
