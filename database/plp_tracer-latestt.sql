@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 07, 2026 at 08:35 AM
+-- Generation Time: May 13, 2026 at 02:47 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -11761,7 +11761,10 @@ INSERT INTO `alumni_assessments` (`id`, `name`, `program_id`, `grad_year`, `empl
 (10788, 'Juan Carlos G. Jabson', 1, 2024, 'Employed', 'Synergy Corp', 'Cybersecurity', '12.0', 'Security Analyst', '40k-60k', 2, 2.16, 93.05, 80.40, 84.39, '', 'Good Match', 'Security Analyst', '2026-05-05 15:37:40', '22-01236'),
 (10789, 'Marilou G. Jara', 1, 2023, 'Unemployed', '', '', '', '', '', 0, 2.32, 89.71, 96.64, 91.19, '', 'Good Match', 'Network Engineer', '2026-05-05 15:37:40', '21-00946'),
 (10790, 'Ramon L. Monderin', 1, 2024, 'Employed', 'NextGen IT', 'Cybersecurity', '1.0', 'Security Analyst', 'Above 60k', 0, 1.47, 85.76, 92.93, 95.29, '', 'Good Match', 'Data Analyst', '2026-05-05 15:37:40', '22-01238'),
-(10791, 'Lea C. Santos', 1, 2022, 'Employed', 'TechCorp', 'Network Administration', '7.0', 'Network Engineer', '20k-40k', 0, 2.28, 92.83, 87.89, 96.15, '', 'Good Match', 'Data Analyst', '2026-05-05 15:37:40', '20-00852');
+(10791, 'Lea C. Santos', 1, 2022, 'Employed', 'TechCorp', 'Network Administration', '7.0', 'Network Engineer', '20k-40k', 0, 2.28, 92.83, 87.89, 96.15, '', 'Good Match', 'Data Analyst', '2026-05-05 15:37:40', '20-00852'),
+(10792, 'Anthony M. Loterte', 1, 2025, 'Unemployed', '', 'NULL', NULL, '', '', 0, 1.75, 90.00, 73.33, 78.62, '', 'Good Match', 'Cybersecurity Analyst', '2026-05-09 13:45:53', '23-00152'),
+(10793, 'Anthony M. Loterte', 1, 2025, 'Employed', 'Appdev', 'Development', '4', 'App Developer', '20k-40k', 4, 1.75, 90.00, 87.00, 93.26, '', 'Good Match', 'Cybersecurity Analyst', '2026-05-09 13:48:31', '23-00152'),
+(10794, 'Anthony M. Loterte', 1, 2025, 'Employed', 'Ada', 'DB Admin', NULL, 'Database Administrator', 'Below 20k', 7, 1.75, 90.00, 87.00, 84.19, '', 'Good Match', 'Cybersecurity Analyst', '2026-05-12 23:18:51', '23-00152');
 
 -- --------------------------------------------------------
 
@@ -11836,6 +11839,53 @@ CREATE TABLE `feedback_replies` (
 
 INSERT INTO `feedback_replies` (`id`, `feedback_id`, `student_id`, `reply_text`, `is_seen`, `created_at`) VALUES
 (4, 22, 23, 'Thank you for this feedback!', 0, '2026-05-03 12:14:03');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `ml_companies_dataset`
+--
+
+CREATE TABLE `ml_companies_dataset` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `industry` varchar(100) DEFAULT NULL,
+  `location` varchar(255) DEFAULT NULL,
+  `description` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `ml_companies_dataset`
+--
+
+INSERT INTO `ml_companies_dataset` (`id`, `name`, `industry`, `location`, `description`) VALUES
+(1, 'TechNova Solutions', 'IT & Tech', 'Makati City', 'A leading software development company specializing in web and mobile applications.'),
+(2, 'CarePlus Hospital', 'Healthcare', 'Quezon City', 'A premium healthcare facility providing top-notch medical and nursing services.'),
+(3, 'Apex Financial Hub', 'Finance & Accountancy', 'Taguig City', 'Corporate banking and accounting firm dealing with investments and audits.');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `ml_jobs_dataset`
+--
+
+CREATE TABLE `ml_jobs_dataset` (
+  `id` int(11) NOT NULL,
+  `company_id` int(11) NOT NULL,
+  `job_title` varchar(255) NOT NULL,
+  `requirements_text` text DEFAULT NULL,
+  `location` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `ml_jobs_dataset`
+--
+
+INSERT INTO `ml_jobs_dataset` (`id`, `company_id`, `job_title`, `requirements_text`, `location`) VALUES
+(1, 1, 'Junior Software Engineer', 'Programming, Python, PHP, JavaScript, SQL, Web Development, Problem Solving', 'Makati City'),
+(2, 1, 'IT Support Specialist', 'Hardware troubleshooting, Networking, IT Helpdesk, Communication skills', 'Makati City'),
+(3, 2, 'Registered Nurse', 'Nursing, Patient Care, First Aid, Medical Charting, Compassion', 'Quezon City'),
+(4, 3, 'Junior Accountant', 'Accounting, Financial Analysis, Bookkeeping, Excel, Auditing', 'Taguig City');
 
 -- --------------------------------------------------------
 
@@ -12043,7 +12093,7 @@ INSERT INTO `users` (`id`, `student_id`, `full_name`, `email`, `password`, `role
 (19, '23-00220', 'Carl Aj G. Junio', 'junio_carlaj@plpasig.edu.ph', '$2y$10$xvPgqDilsSZv4gFt3EzuYO89UrazydtRX6pMGqikYVdwu.zbva4F6', 'alumni', 2025, '2026-05-03 12:04:19', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (20, '23-00161', 'Ron Michael C. Legaspi', 'legaspi_ronmichael@plpasig.edu.ph', '$2y$10$.UCp7RftZWk4pb0.JMnWNeAiiPelxK6Rk3AXtbKBqZRrF8qJnlJau', 'alumni', 2025, '2026-05-03 12:04:19', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (21, '23-00159', 'Kelly Rowland M. Lola', 'lola_kellyrowland@plpasig.edu.ph', '$2y$10$.WaIWyv1dGcIiRk1YZxJWOZtsn1ShrHyhn8cO3WhYxwe.4j5Co0EC', 'alumni', 2025, '2026-05-03 12:04:19', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(22, '23-00152', 'Anthony M. Loterte', 'loterte_anthony@plpasig.edu.ph', '$2y$10$WmKncL7wPtaEm9khLVND2edSgddv8lrSAiF3wPM6ckMGMqBqCsdP6', 'alumni', 2025, '2026-05-03 12:04:19', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(22, '23-00152', 'Anthony M. Loterte', 'loterte_anthony@plpasig.edu.ph', '$2y$10$HBE35RDLtCbUDbEAr9UYQ.3J8z7DddaJJjqQkyNODuf7qwHzIm9Qu', 'alumni', 2025, '2026-05-03 12:04:19', 0, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (23, '23-01095', 'Maverick S. Mabingnay', 'mabingnay_maverick@plpasig.edu.ph', '$2y$10$tsdYgyFHiklQjPIV5oEMVexHcjgVpU7ByIeCdRYGsS9.Zzb4gHC/K', 'alumni', 2025, '2026-05-03 12:04:20', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (24, '23-00245', 'Eugene Joezer B. Manlangit', 'manlangit_eugenejoezer@plpasig.edu.ph', '$2y$10$Baytoqe59uvSQiG3xrsxpuhyNFmktJqfx9Qf9BPhwdvyQEa6i.R.C', 'alumni', 2025, '2026-05-03 12:04:20', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (25, '23-00255', 'Prince Emir L. Manlogon', 'manlogon_princeemir@plpasig.edu.ph', '$2y$10$8VR99MM41xsMmcHvD9zEdOoVFLCsRM7n8l4aTtxsxzVguXxE4djzC', 'alumni', 2025, '2026-05-03 12:04:20', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
@@ -12903,6 +12953,19 @@ ALTER TABLE `feedback_replies`
   ADD KEY `alumni_id` (`student_id`);
 
 --
+-- Indexes for table `ml_companies_dataset`
+--
+ALTER TABLE `ml_companies_dataset`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `ml_jobs_dataset`
+--
+ALTER TABLE `ml_jobs_dataset`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `company_id` (`company_id`);
+
+--
 -- Indexes for table `professions`
 --
 ALTER TABLE `professions`
@@ -12955,7 +13018,7 @@ ALTER TABLE `alumni_academic_info`
 -- AUTO_INCREMENT for table `alumni_assessments`
 --
 ALTER TABLE `alumni_assessments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10792;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10795;
 
 --
 -- AUTO_INCREMENT for table `audit_logs`
@@ -12973,6 +13036,18 @@ ALTER TABLE `feedbacks`
 -- AUTO_INCREMENT for table `feedback_replies`
 --
 ALTER TABLE `feedback_replies`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT for table `ml_companies_dataset`
+--
+ALTER TABLE `ml_companies_dataset`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `ml_jobs_dataset`
+--
+ALTER TABLE `ml_jobs_dataset`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
@@ -13008,6 +13083,12 @@ ALTER TABLE `users`
 --
 ALTER TABLE `feedbacks`
   ADD CONSTRAINT `feedbacks_ibfk_user` FOREIGN KEY (`student_id`) REFERENCES `users` (`student_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `ml_jobs_dataset`
+--
+ALTER TABLE `ml_jobs_dataset`
+  ADD CONSTRAINT `ml_jobs_dataset_ibfk_1` FOREIGN KEY (`company_id`) REFERENCES `ml_companies_dataset` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
