@@ -254,6 +254,14 @@ require '../includes/db.php';
             .academic-record-line { font-size: 0.85rem; color: #4b5563; margin-top: 10px; padding: 10px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e5e7eb; max-width: 560px; }
             .academic-record-line.muted { color: #9ca3af; font-style: italic; }
             .academic-record-detail { font-size: 0.8rem; color: #6b7280; margin-top: 8px; line-height: 1.5; }
+            
+            /* Custom Modal Styles */
+            .cv-modal { display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.7); }
+            .cv-modal-content { background-color: #525659; margin: 3% auto; padding: 0; border: none; width: 90%; max-width: 1200px; height: 90vh; border-radius: 10px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 5px 25px rgba(0,0,0,0.5); }
+            .cv-modal-header { background: #ffffff; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e7eb; }
+            .cv-modal-header h3 { margin: 0; font-size: 1.25rem; color: #1f2937; display: flex; align-items: center; gap: 10px; }
+            .cv-close-btn { color: #9ca3af; font-size: 28px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+            .cv-close-btn:hover { color: #1f2937; }
         </style>
     </head>
     <body>
@@ -360,24 +368,51 @@ require '../includes/db.php';
                 </div>
 
                 <div class="content-card" style="margin-top: 20px;">
-                    <h3><i class="fas fa-compass"></i> Career Resources</h3>
-                    <div class="resource-links">
-                        <a href="#" class="resource-item">
-                            <i class="fas fa-file-alt"></i>
-                            <div>
-                                <strong>Resume guide</strong>
-                                <span>Advice for stronger applications</span>
+                    <h3><i class="fas fa-folder-open"></i> CV Storage</h3>
+                    
+                    <?php 
+                    // Automatically look for the user's uploaded CV file
+                    $cv_file_path = null;
+                    $display_name = "";
+                    
+                    // Uses absolute path mapping to ensure it finds the document correctly
+                    $possible_pdf = "../uploads/cvs/cv_" . $user_id . ".pdf";
+                    $possible_csv = "../uploads/cvs/cv_" . $user_id . ".csv";
+
+                    if (file_exists($possible_pdf)) {
+                        $cv_file_path = $possible_pdf;
+                        $display_name = "My_CV_Profile.pdf";
+                    } elseif (file_exists($possible_csv)) {
+                        $cv_file_path = $possible_csv;
+                        $display_name = "My_CV_Data.csv";
+                    }
+                    ?>
+
+                    <?php if (!empty($cv_file_path)): ?>
+                        <?php 
+                            $ext = pathinfo($cv_file_path, PATHINFO_EXTENSION);
+                            $icon_class = ($ext === 'csv') ? 'fa-file-csv' : 'fa-file-pdf';
+                            $icon_color = ($ext === 'csv') ? '#10b981' : '#ef4444'; // Green for CSV, Red for PDF
+                        ?>
+                        <div style="display: flex; align-items: center; padding: 15px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f8fafc; margin-top: 15px;">
+                            <i class="fas <?= $icon_class ?>" style="font-size: 2rem; color: <?= $icon_color ?>; margin-right: 15px;"></i>
+                            <div style="flex-grow: 1; overflow: hidden;">
+                                <h4 style="margin: 0; font-size: 0.95rem; color: #1f2937; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;"><?= htmlspecialchars($display_name) ?></h4>
+                                <span style="font-size: 0.8rem; color: #6b7280;">From Career Assessment</span>
                             </div>
-                        </a>
-                        <a href="#" class="resource-item">
-                            <i class="fas fa-briefcase"></i>
-                            <div>
-                                <strong>PLP Job Board</strong>
-                                <span>Exclusive listings for alumni</span>
-                            </div>
-                        </a>
-                    </div>
+                            <button onclick="openCvModal('<?= htmlspecialchars($cv_file_path) ?>')" style="padding: 6px 12px; background: white; border: 1px solid #0d5c34; color: #0d5c34; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: 600; margin-left: 10px; transition: 0.2s;">
+                                View
+                            </button>
+                        </div>
+                    <?php else: ?>
+                        <div style="text-align: center; padding: 20px; border: 1px dashed #d1d5db; border-radius: 8px; background: #f9fafb; margin-top: 15px;">
+                            <i class="fas fa-file-upload" style="font-size: 2rem; color: #9ca3af; margin-bottom: 10px;"></i>
+                            <p style="margin: 0; color: #6b7280; font-size: 0.9rem;">No CV uploaded yet.</p>
+                            <span style="font-size: 0.8rem; color: #9ca3af;">Upload your file via <a href="prediction_form.php" style="color: #0d5c34; text-decoration: none; font-weight: 600;">Assessment</a>.</span>
+                        </div>
+                    <?php endif; ?>
                 </div>
+
             </div>
 
             <div class="col-right">
@@ -427,39 +462,105 @@ require '../includes/db.php';
 
     </main>
 
+        <div id="cvPreviewModal" class="cv-modal">
+            <div class="cv-modal-content">
+                <div class="cv-modal-header">
+                    <h3><i class="fas fa-file-alt" style="color: #0d5c34;"></i> Document Viewer</h3>
+                    <span class="cv-close-btn" onclick="closeCvModal()">&times;</span>
+                </div>
+                <div style="flex-grow: 1; padding: 0; background-color: #525659; overflow: hidden; position: relative;">
+                    <iframe id="pdfViewer" src="" width="100%" height="100%" style="border: none; display: none;"></iframe>
+                    
+                    <div id="csvViewerContainer" style="display: none; background: white; width: 100%; height: 100%; padding: 20px; overflow-y: auto;">
+                        <pre id="csvViewer" style="margin: 0; font-family: monospace; white-space: pre-wrap; font-size: 14px; color: #333;"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <script src="../assets/js/dashboard.js?v=2.0"></script>
 
         <script>
-            // Security check for temporary password
-    const isTemporary = <?php echo $is_temporary ? 'true' : 'false'; ?>;
+            // CV Modal Script (PDF + CSV Support)
+            function openCvModal(url) {
+                document.getElementById('cvPreviewModal').style.display = 'block';
+                
+                const pdfViewer = document.getElementById('pdfViewer');
+                const csvContainer = document.getElementById('csvViewerContainer');
+                const csvViewer = document.getElementById('csvViewer');
+                
+                // Hide both initially
+                pdfViewer.style.display = 'none';
+                csvContainer.style.display = 'none';
+                pdfViewer.src = '';
+                csvViewer.textContent = 'Loading...';
 
-    if (isTemporary) {
-        Swal.fire({
-            title: 'Action Required',
-            html: 'You are currently logged in with a temporary password. Please update it to secure your official alumni record.',
-            icon: 'warning',
-            iconColor: '#f59e0b', 
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            allowEnterKey: true,
-            showCancelButton: false,
-            confirmButtonText: '<i class="fas fa-lock" style="margin-right: 6px;"></i> Update Password',
-            confirmButtonColor: '#0d5c34', 
-            buttonsStyling: false, 
-            backdrop: 'rgba(17, 24, 39, 0.7)', 
-            customClass: {
-                popup: 'swal-plp-popup',
-                title: 'swal-plp-title',
-                htmlContainer: 'swal-plp-html',
-                actions: 'swal-plp-actions',
-                confirmButton: 'swal-plp-confirm',
+                // Get file extension
+                const ext = url.split('.').pop().toLowerCase();
+
+                if (ext === 'pdf') {
+                    pdfViewer.style.display = 'block';
+                    pdfViewer.src = url + '#toolbar=0'; 
+                } else if (ext === 'csv') {
+                    csvContainer.style.display = 'block';
+                    fetch(url)
+                        .then(response => {
+                            if (!response.ok) throw new Error("Could not load file.");
+                            return response.text();
+                        })
+                        .then(data => {
+                            csvViewer.textContent = data;
+                        })
+                        .catch(error => {
+                            csvViewer.textContent = "Error: " + error.message;
+                        });
+                }
             }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = 'settings.php';
+
+            function closeCvModal() {
+                document.getElementById('cvPreviewModal').style.display = 'none';
+                document.getElementById('pdfViewer').src = ''; 
+                document.getElementById('csvViewer').textContent = ''; 
             }
-        });
-    }
+
+            // Close modal when user clicks outside the modal box
+            window.onclick = function(event) {
+                var modal = document.getElementById('cvPreviewModal');
+                if (event.target == modal) {
+                    closeCvModal();
+                }
+            }
+
+            // Security check for temporary password
+            const isTemporary = <?php echo $is_temporary ? 'true' : 'false'; ?>;
+
+            if (isTemporary) {
+                Swal.fire({
+                    title: 'Action Required',
+                    html: 'You are currently logged in with a temporary password. Please update it to secure your official alumni record.',
+                    icon: 'warning',
+                    iconColor: '#f59e0b', 
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    allowEnterKey: true,
+                    showCancelButton: false,
+                    confirmButtonText: '<i class="fas fa-lock" style="margin-right: 6px;"></i> Update Password',
+                    confirmButtonColor: '#0d5c34', 
+                    buttonsStyling: false, 
+                    backdrop: 'rgba(17, 24, 39, 0.7)', 
+                    customClass: {
+                        popup: 'swal-plp-popup',
+                        title: 'swal-plp-title',
+                        htmlContainer: 'swal-plp-html',
+                        actions: 'swal-plp-actions',
+                        confirmButton: 'swal-plp-confirm',
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = 'settings.php';
+                    }
+                });
+            }
         </script>
         
     </body>

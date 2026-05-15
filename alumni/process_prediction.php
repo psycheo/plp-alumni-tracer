@@ -194,13 +194,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // Handle File Upload
+   // Handle File Upload - Stores specifically by User ID for the Dashboard
     $cv_filename = "";
     if(isset($_FILES['cv_file']) && $_FILES['cv_file']['error'] == 0){
-        $upload_dir = 'uploads/';
+        $upload_dir = '../uploads/cvs/';
         if(!is_dir($upload_dir)) mkdir($upload_dir, 0777, true);
-        $cv_filename = time() . '_' . basename($_FILES['cv_file']['name']);
-        move_uploaded_file($_FILES['cv_file']['tmp_name'], $upload_dir . $cv_filename);
+        
+        $file_name = $_FILES['cv_file']['name'];
+        $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+
+        
+        if (in_array($file_ext, ['pdf', 'csv'])) {
+            
+            if (file_exists($upload_dir . 'cv_' . $user_id . '.pdf')) unlink($upload_dir . 'cv_' . $user_id . '.pdf');
+            if (file_exists($upload_dir . 'cv_' . $user_id . '.csv')) unlink($upload_dir . 'cv_' . $user_id . '.csv');
+
+            
+            $new_file_name = 'cv_' . $user_id . '.' . $file_ext;
+            move_uploaded_file($_FILES['cv_file']['tmp_name'], $upload_dir . $new_file_name);
+            $cv_filename = $new_file_name;
+        }
     }
 
     $employability_status_esc = $conn->real_escape_string($employability_status);
