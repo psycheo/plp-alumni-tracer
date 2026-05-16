@@ -1,9 +1,16 @@
 <?php
 session_start();
 require_once __DIR__ . '/includes/auth.php';
+
+// 1. Check if user is ALREADY logged in (FIXED THE FATAL ERROR HERE)
 if (!empty($_SESSION['loggedin'])) {
-    if (($_SESSION['role'] ?? '') === 'admin') {
+    $current_role = $_SESSION['role'] ?? '';
+    
+    if ($current_role === 'admin') {
         header('Location: ' . app_url('admin/pages/dashboard.php'));
+    } elseif ($current_role === 'partner') {
+        
+        header('Location: ' . app_url('partner/dashboard.php'));
     } else {
         header('Location: ' . app_url('alumni/dashboard.php'));
     }
@@ -44,9 +51,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $_SESSION['full_name'] = $user['full_name'];
                     $_SESSION['role'] = $user['role'];
 
-                    // Route based on role
+                    // 2. Route based on role after SUCCESSFUL login (FIXED MISSING PARTNER ROUTE)
                     if ($user['role'] === 'admin') {
                         header('Location: ' . app_url('admin/pages/dashboard.php'));
+                    } elseif ($user['role'] === 'partner') {
+                        // Adjust this path if your partner dashboard is inside a folder
+                        header('Location: ' . app_url('partner/dashboard.php'));
                     } else {
                         header('Location: ' . app_url('alumni/dashboard.php'));
                     }
@@ -110,7 +120,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <label for="student_id">PLP Student ID</label>
                         <div class="input-icon-wrap">
                             <i class="far fa-id-card"></i>
-                            <input type="text" id="student_id" name="student_id" placeholder="Enter your PLP Student ID" required>
+                            <input type="text" id="student_id" name="student_id" placeholder="Enter your ID" required>
                         </div>
                     </div>
 

@@ -1,7 +1,33 @@
 <?php
-  // Get the name of the current file (e.g., 'prediction_form.php')
   $currentPage = basename($_SERVER['PHP_SELF']);
+  // Safely determine the user's role
+  $navRole = $_SESSION['role'] ?? 'alumni';
 ?>
+
+<style>
+    /*
+        FIX: Visually hide star radio inputs so CSS-based star UI works,
+        but keep them accessible so FormData can read the selected value.
+        Using opacity+position instead of display:none so the browser
+        doesn't exclude them from form submission.
+    */
+    #submitFeedbackForm .star-rating-input input[type="radio"] {
+        position: absolute !important;
+        opacity: 0 !important;
+        width: 1px !important;
+        height: 1px !important;
+        pointer-events: none !important;
+        z-index: -1 !important;
+    }
+
+    /*
+        FIX: Guarantee feedback modal z-index is below the job modal (99999)
+        but above normal page content, so they never fight each other.
+    */
+    #feedbackModalUI {
+        z-index: 10000 !important;
+    }
+</style>
 
 <nav class="navbar">
     <div class="nav-brand">
@@ -15,26 +41,46 @@
     <div class="nav-actions">
         <div class="nav-links-container">
             <div class="nav-slider"></div> 
-            <a href="../alumni/dashboard.php" class="nav-link <?= ($currentPage == 'dashboard.php') ? 'active' : '' ?>">
-                <i class="fas fa-home"></i> Home
-            </a>
-            <a href="../alumni/analytics.php" class="nav-link <?= ($currentPage == 'analytics.php') ? 'active' : '' ?>">
-                <i class="fas fa-chart-line"></i> View Analytics
-            </a>
-            <a href="../alumni/settings.php" class="nav-link <?= ($currentPage == 'settings.php') ? 'active' : '' ?>">
-                <i class="fas fa-gear"></i> Settings
-            </a>
+
+            <?php if ($navRole === 'partner'): ?>
+                <a href="../partner/dashboard.php" class="nav-link <?= ($currentPage == 'dashboard.php') ? 'active' : '' ?>">
+                    <i class="fas fa-home"></i> Home
+                </a>
+                <a href="../partner/settings.php" class="nav-link <?= ($currentPage == 'settings.php') ? 'active' : '' ?>">
+                    <i class="fas fa-gear"></i> Settings
+                </a>
+            <?php else: ?>
+                <a href="../alumni/dashboard.php" class="nav-link <?= ($currentPage == 'dashboard.php') ? 'active' : '' ?>">
+                    <i class="fas fa-home"></i> Home
+                </a>
+                <a href="../alumni/analytics.php" class="nav-link <?= ($currentPage == 'analytics.php') ? 'active' : '' ?>">
+                    <i class="fas fa-chart-line"></i> View Analytics
+                </a>
+                <a href="../alumni/settings.php" class="nav-link <?= ($currentPage == 'settings.php') ? 'active' : '' ?>">
+                    <i class="fas fa-gear"></i> Settings
+                </a>
+            <?php endif; ?>
         </div>
 
         <a href="/plp-alumni-tracer/logout.php" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
     </div>
 </nav>
 
+<!--
+    Floating feedback button.
+    FIX: No inline onclick — dashboard.js handles the click via addEventListener.
+         Having both onclick + addEventListener caused a double-fire race condition.
+-->
 <button id="openFeedbackBtn" class="floating-feedback-btn">
     <i class="fas fa-comment-dots"></i> Feedback
 </button>
 
-<div id="feedbackModalUI" class="modal">
+<!--
+    Feedback modal.
+    FIX: display:none is inline so it never depends on dashboard-style.css
+         having a .modal { display:none } rule.
+-->
+<div id="feedbackModalUI" class="modal" style="display:none;">
     <div class="modal-content" style="max-width: 450px;">
         <span class="close-btn" id="closeFeedbackBtn">&times;</span>
         <div class="modal-header">
@@ -42,12 +88,18 @@
         </div>
         <div class="modal-body">
             <p style="color: #6b7280; margin-bottom: 20px;">Let us know how we can improve your portal experience.</p>
-            
-            <form id="submitFeedbackForm">
+
+            <!--
+                FIX: Added novalidate so browser native validation doesn't silently
+                     block the submit inside a modal. dashboard.js handles validation.
+                     Also removed `required` from radio inputs and textarea —
+                     validation is done in dashboard.js before the fetch fires.
+            -->
+            <form id="submitFeedbackForm" novalidate>
                 <div class="form-group" style="margin-bottom: 15px;">
                     <label>How would you rate your experience?</label>
                     <div class="star-rating-input">
-                        <input type="radio" id="star5" name="rating" value="5" required />
+                        <input type="radio" id="star5" name="rating" value="5" />
                         <label for="star5" title="5 stars"><i class="fas fa-star"></i></label>
                         <input type="radio" id="star4" name="rating" value="4" />
                         <label for="star4" title="4 stars"><i class="fas fa-star"></i></label>
@@ -62,7 +114,7 @@
 
                 <div class="form-group">
                     <label>Tell us more</label>
-                    <textarea name="message" rows="4" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font-family: 'Inter', sans-serif; resize: none;" placeholder="Found a bug? Have a suggestion? Let us know!" required></textarea>
+                    <textarea name="message" rows="4" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font-family: 'Inter', sans-serif; resize: none;" placeholder="Found a bug? Have a suggestion? Let us know!"></textarea>
                 </div>
 
                 <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 15px;">
@@ -70,8 +122,9 @@
                 </button>
             </form>
 
-            <div id="feedback-success">
-                <i class="fas fa-check-circle"></i> Thank you! Your feedback has been sent!
+            <div id="feedback-success" style="display:none; text-align:center; color:#0d5c34; padding: 20px;">
+                <i class="fas fa-check-circle" style="font-size: 2rem;"></i>
+                <p>Thank you! Your feedback has been sent!</p>
             </div>
         </div>
     </div>

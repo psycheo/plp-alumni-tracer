@@ -370,6 +370,7 @@ if ($prog_result = $conn->query("SELECT id, name FROM programs ORDER BY name ASC
         .role-badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
         .role-admin  { background: #fee2e2; color: #ef4444; }
         .role-alumni { background: #e0f2fe; color: #0284c7; }
+        .role-partner { background: #dcfce7; color: #166534; }
         .action-btn      { background: none; border: none; cursor: pointer; font-size: 1.1rem; margin: 0 5px; display: inline-block; pointer-events: auto !important; }
         .action-edit     { color: #f59e0b; }
         .action-delete   { color: #ef4444; }
@@ -622,6 +623,7 @@ if ($prog_result = $conn->query("SELECT id, name FROM programs ORDER BY name ASC
                     <option value="">All Roles</option>
                     <option value="alumni">Alumni</option>
                     <option value="admin">Administrator</option>
+                    <option value="partner">Partner</option>
                 </select>
             </div>
 
@@ -738,6 +740,35 @@ if ($prog_result = $conn->query("SELECT id, name FROM programs ORDER BY name ASC
     </div>
 </div>
 
+<div class="modal-overlay" id="companyModal">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+            <h2>Partner Company Info</h2>
+            <button type="button" class="close-btn" style="border: none; background: none; font-size: 1.5rem; cursor: pointer; color: #9ca3af;">&times;</button>
+        </div>
+        <p style="color: #6b7280; font-size: 0.9rem; margin-bottom: 20px;">Manage company details for <span id="companyUserName" style="font-weight: bold; color: #1f2937;"></span>.</p>
+        
+        <form action="process_partner_info.php" method="POST">
+            <input type="hidden" name="user_id" id="companyUserId">
+            
+            <div class="form-group">
+                <label>Company Name</label>
+                <input type="text" name="company_name" id="companyNameInput" placeholder="e.g. Innovate Solutions" required>
+            </div>
+            
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Industry</label>
+                <input type="text" name="industry" id="companyIndustryInput" placeholder="e.g. Information Technology" required>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="document.getElementById('companyModal').style.display='none'">Cancel</button>
+                <button type="submit" class="btn-save"><i class="fas fa-save"></i> Save Details</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <div class="modal-overlay" id="importModal">
     <div class="modal-wrapper">
         <div class="modal-content" style="max-width:600px; padding: 0; overflow: hidden;">
@@ -833,6 +864,7 @@ if ($prog_result = $conn->query("SELECT id, name FROM programs ORDER BY name ASC
                 <select name="role" id="add_role">
                     <option value="alumni">Alumni</option>
                     <option value="admin">Administrator</option>
+                    <option value="partner">Partner</option>
                 </select>
             </div>
             <div class="form-group"><label>Temporary Password</label><input type="password" name="temp_password" id="temp_password" value="alumni123" required></div>
@@ -928,10 +960,31 @@ document.addEventListener('DOMContentLoaded', () => {
         
         let html = '';
         users.forEach(user => {
-            const role = user.role || 'alumni'; 
-            const badgeClass = role === 'admin' ? 'role-admin' : 'role-alumni';
+            const role = (user.role || 'alumni').trim().toLowerCase(); 
+            
+            let badgeClass = 'role-alumni';
+            if (role === 'admin') badgeClass = 'role-admin';
+            if (role === 'partner') badgeClass = 'role-partner';
+
             const createdDate = user.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Unknown';
             
+            // 1. Build the Edit button (Everyone gets this)
+            let actionButtons = `<div><button type="button" class="action-btn action-edit" title="Edit Account" data-id="${escapeHtml(user.student_id)}" data-name="${escapeHtml(user.full_name)}" data-email="${escapeHtml(user.email)}" data-role="${role}"><i class="fas fa-edit"></i></button></div>`;
+            
+            // 2. Build the middle button based on role
+            if (role === 'alumni') {
+                actionButtons += `<div><button type="button" class="action-btn action-academic" title="Academic Information" data-id="${escapeHtml(user.student_id)}" data-name="${escapeHtml(user.full_name).toUpperCase()}"><i class="fas fa-graduation-cap" style="color: #0ea5e9;"></i></button></div>`;
+            } else if (role === 'partner') {
+                actionButtons += `<div><button type="button" class="action-btn action-company" title="Company Info" data-id="${user.id || user.student_id}" data-name="${escapeHtml(user.full_name)}"><i class="fas fa-building" style="color: #166534;"></i></button></div>`;
+            } else {
+                // If it's an Admin, we inject an empty invisible block so the Delete button stays pushed to the right!
+                actionButtons += `<div></div>`; 
+            }
+            
+            // 3. Build the Delete button (Everyone gets this)
+            actionButtons += `<div><a href="?delete_id=${encodeURIComponent(user.student_id)}" class="action-btn action-delete" title="Delete Account" onclick="handleDelete(event, this.href, '${role}')"><i class="fas fa-trash-alt" style="color: #ef4444;"></i></a></div>`;
+            
+            // 4. Inject into the table row using a CSS Grid
             html += `
                 <tr>
                     <td><strong>${escapeHtml(user.student_id)}</strong></td>
@@ -940,31 +993,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td style="text-align: center;"><span class="role-badge ${badgeClass}">${role.charAt(0).toUpperCase() + role.slice(1)}</span></td>
                     <td style="text-align: center;">${createdDate}</td>
                     <td style="text-align: center;">
-                        <button type="button" class="action-btn action-edit" title="Edit Account"
-                            data-id="${escapeHtml(user.student_id)}"
-                            data-name="${escapeHtml(user.full_name)}"
-                            data-email="${escapeHtml(user.email)}"
-                            data-role="${role}"
-                            onclick="window.openEditModalFromInline && window.openEditModalFromInline(this); return false;">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button type="button" class="action-btn action-academic" title="Academic Information"
-                            data-id="${escapeHtml(user.student_id)}"
-                            data-name="${escapeHtml(user.full_name).toUpperCase()}"
-                            onclick="window.openAcademicModalFromInline && window.openAcademicModalFromInline(this); return false;">
-                            <i class="fas fa-graduation-cap"></i>
-                        </button>
-                        <a href="?delete_id=${encodeURIComponent(user.student_id)}"
-                            class="action-btn action-delete" title="Delete Account"
-                            onclick="handleDelete(event, this.href, '${role}')">
-                            <i class="fas fa-trash-alt"></i>
-                        </a>
+                        <div style="display: grid; grid-template-columns: 32px 32px 32px; gap: 1px; justify-content: center; align-items: center;">
+                            ${actionButtons}
+                        </div>
                     </td>
                 </tr>
             `;
         });
+        
         tableBody.innerHTML = html;
-
         renderPagination(data.totalPages, data.currentPage);
     }
 
@@ -1068,6 +1105,33 @@ document.addEventListener('DOMContentLoaded', () => {
         if (academicBtn) {
             e.preventDefault();
             openAcademicModalFromButton(academicBtn);
+            return;
+        }
+
+        const companyBtn = e.target.closest('.action-company');
+        if (companyBtn) {
+            e.preventDefault();
+            const userId = companyBtn.getAttribute('data-id');
+            const name = companyBtn.getAttribute('data-name');
+
+            document.getElementById('companyUserId').value = userId;
+            document.getElementById('companyUserName').textContent = name;
+
+            fetch(`fetch_company_info.php?user_id=${userId}`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('companyNameInput').value = data.name || '';
+                    document.getElementById('companyIndustryInput').value = data.industry || '';
+                    document.getElementById('companyModal').style.display = 'flex';
+                })
+                .catch(err => {
+                    console.error('Error fetching company data:', err);
+                    document.getElementById('companyNameInput').value = '';
+                    document.getElementById('companyIndustryInput').value = '';
+                    document.getElementById('companyModal').style.display = 'flex';
+                });
+
+            return;
         }
     });
 
@@ -1232,6 +1296,14 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('programListSidePanel').style.display = 'none';
         });
     }
+
+    // Close company modal (Handles both the 'X' and 'Cancel' button)
+    const compModalCloseBtns = document.querySelectorAll('#companyModal .close-btn');
+    compModalCloseBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.getElementById('companyModal').style.display = 'none';
+        });
+    });
 });
 </script>
 </body>

@@ -5,15 +5,25 @@ require_admin();
 
 require '../../includes/db.php';
 
-// 1. Fetch only "Unresolved" feedbacks
-$sql = "SELECT feedbacks.*, users.full_name, users.student_id AS actual_student_id
-        FROM feedbacks 
-        JOIN users ON feedbacks.student_id = users.student_id 
-        WHERE feedbacks.status = 'Unresolved' 
-        AND feedbacks.student_id IS NOT NULL 
-        AND feedbacks.student_id != ''
-        ORDER BY feedbacks.created_at DESC";
+// 1. Fetch only "Unresolved" feedbacks (Smart Join for Alumni & Partners)
+$check_col = $conn->query("SHOW COLUMNS FROM feedbacks LIKE 'user_id'");
+$has_user_id = ($check_col && $check_col->num_rows > 0);
 
+if ($has_user_id) {
+    // If the database has user_id, fetch everyone perfectly
+    $sql = "SELECT f.*, u.full_name, u.student_id AS actual_student_id
+            FROM feedbacks f
+            LEFT JOIN users u ON f.user_id = u.id 
+            WHERE f.status = 'Unresolved' 
+            ORDER BY f.created_at DESC";
+} else {
+    // Fallback: Fetch Alumni by student_id, and Partners by the "Partner-" prefix
+    $sql = "SELECT f.*, u.full_name, u.student_id AS actual_student_id
+            FROM feedbacks f 
+            LEFT JOIN users u ON (f.student_id = u.student_id OR f.student_id = CONCAT('Partner-', u.id))
+            WHERE f.status = 'Unresolved' 
+            ORDER BY f.created_at DESC";
+}
 $feedbacks = $conn->query($sql);
 // 2. Fetch stats for the cards
 $total_reviews = $conn->query("SELECT COUNT(*) as total FROM feedbacks")->fetch_assoc()['total'];
