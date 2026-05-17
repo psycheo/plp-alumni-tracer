@@ -10,10 +10,14 @@ $check_col = $conn->query("SHOW COLUMNS FROM feedbacks LIKE 'user_id'");
 $has_user_id = ($check_col && $check_col->num_rows > 0);
 
 if ($has_user_id) {
-    // If the database has user_id, fetch everyone perfectly
+    // Smart Join: Fetch everyone perfectly, and fallback to student_id for older feedbacks
     $sql = "SELECT f.*, u.full_name, u.student_id AS actual_student_id
             FROM feedbacks f
-            LEFT JOIN users u ON f.user_id = u.id 
+            LEFT JOIN users u ON (
+                f.user_id = u.id 
+                OR 
+                (f.user_id IS NULL AND f.student_id = u.student_id AND f.student_id NOT IN ('', 'N/A', 'none', '0'))
+            )
             WHERE f.status = 'Unresolved' 
             ORDER BY f.created_at DESC";
 } else {
@@ -24,6 +28,7 @@ if ($has_user_id) {
             WHERE f.status = 'Unresolved' 
             ORDER BY f.created_at DESC";
 }
+
 $feedbacks = $conn->query($sql);
 // 2. Fetch stats for the cards
 $total_reviews = $conn->query("SELECT COUNT(*) as total FROM feedbacks")->fetch_assoc()['total'];

@@ -35,7 +35,8 @@ if ($company_id) {
         $conn->query("ALTER TABLE partner_jobs ADD is_active TINYINT(1) NOT NULL DEFAULT 1 AFTER mapping_status");
     }
 
-    $jobs_query = $conn->prepare("SELECT j.*, p.program_name FROM partner_jobs j LEFT JOIN programs p ON j.program_id = p.id WHERE j.company_id = ? ORDER BY j.created_at DESC");
+    // FIXED: Changed p.program_name to p.name AS program_name
+    $jobs_query = $conn->prepare("SELECT j.*, p.name AS program_name FROM partner_jobs j LEFT JOIN programs p ON j.program_id = p.id WHERE j.company_id = ? ORDER BY j.created_at DESC");
     $jobs_query->bind_param("i", $company_id);
     $jobs_query->execute();
     $jobs_result = $jobs_query->get_result();
@@ -44,15 +45,47 @@ if ($company_id) {
     }
 }
 
-// 3. Fetch Audit Logs for this user
-$audit_logs = [];
-$log_query = $conn->prepare("SELECT action, details, created_at FROM audit_logs WHERE admin_id = ? ORDER BY created_at DESC LIMIT 5");
-$log_query->bind_param("i", $user_id);
-$log_query->execute();
-$log_result = $log_query->get_result();
-while ($row = $log_result->fetch_assoc()) {
-    $audit_logs[] = $row;
+// 3. --- NATIVE PARTNER ACTIVITY FEED (No audit_logs table required!) ---
+$audit_parts = [];
+$audit_types = '';
+$audit_params = [];
+
+// Fetch Jobs Posted by this Partner's Company
+if (!empty($company_id)) {
+    $audit_parts[] = "SELECT 'job' AS type, created_at AS log_date, 'Job Listed' AS title, CONCAT('You posted a job: ', title) AS description FROM partner_jobs WHERE company_id = ?";
+    $audit_types .= 'i';
+    $audit_params[] = $company_id;
 }
+
+// Fetch Feedbacks Submitted by this Partner
+$audit_parts[] = "SELECT 'feedback' AS type, created_at AS log_date, 'Feedback Submitted' AS title, CONCAT('You rated the portal ', rating, '/5 stars.') AS description FROM feedbacks WHERE user_id = ?";
+$audit_types .= 'i';
+$audit_params[] = $user_id;
+
+// Fetch Admin Replies to this Partner's Feedbacks
+$audit_parts[] = "SELECT 'reply' AS type, r.created_at AS log_date, 'Admin Response Received' AS title, 'An admin has replied to your feedback.' AS description FROM feedback_replies r JOIN feedbacks f ON r.feedback_id = f.id WHERE f.user_id = ?";
+$audit_types .= 'i';
+$audit_params[] = $user_id;
+
+$audit_logs_rows = [];
+if (!empty($audit_parts)) {
+    // Stitch them all together and sort them by the newest date
+    $audit_sql = implode(' UNION ALL ', $audit_parts) . ' ORDER BY log_date DESC LIMIT 50';
+    $stmt_audit = $conn->prepare($audit_sql);
+    
+    if ($stmt_audit) {
+        $stmt_audit->bind_param($audit_types, ...$audit_params);
+        $stmt_audit->execute();
+        $audit_logs = $stmt_audit->get_result();
+        if ($audit_logs) {
+            while ($log_row = $audit_logs->fetch_assoc()) {
+                $audit_logs_rows[] = $log_row;
+            }
+        }
+        $stmt_audit->close();
+    }
+}
+// -----------------------------------------------------------------------
 ?>
 
 <!DOCTYPE html>
@@ -244,23 +277,23 @@ while ($row = $log_result->fetch_assoc()) {
                         </div>
                     </div>
 
-                    <?php if (empty($audit_logs)): ?>
+                    <?php if (empty($audit_logs_rows)): ?>
                         <div style="text-align: center; padding: 30px 0; color: #94a3b8;">
                             <p style="margin: 0; font-size: 0.9rem;">No recent activity found.</p>
                         </div>
                     <?php else: ?>
                         <div style="display: flex; flex-direction: column; gap: 15px;">
-                            <?php foreach ($audit_logs as $index => $log): 
+                            <?php foreach ($audit_logs_rows as $index => $log): 
                                 $icon = 'fa-check-circle'; 
                                 $iconBg = '#f0fdf4'; $iconColor = '#16a34a';
-                                $action = strtolower($log['action']);
                                 
-                                if (strpos($action, 'job') !== false) {
+                                // Color code the icons based on what kind of action it was
+                                if ($log['type'] == 'job') {
                                     $icon = 'fa-briefcase'; $iconBg = '#e0f2fe'; $iconColor = '#0284c7';
-                                } elseif (strpos($action, 'company') !== false || strpos($action, 'register') !== false) {
-                                    $icon = 'fa-building'; $iconBg = '#fef3c7'; $iconColor = '#d97706';
-                                } elseif (strpos($action, 'password') !== false || strpos($action, 'security') !== false) {
-                                    $icon = 'fa-shield-alt'; $iconBg = '#f3e8ff'; $iconColor = '#9333ea';
+                                } elseif ($log['type'] == 'feedback') {
+                                    $icon = 'fa-star'; $iconBg = '#fef3c7'; $iconColor = '#d97706';
+                                } elseif ($log['type'] == 'reply') {
+                                    $icon = 'fa-comment-dots'; $iconBg = '#f3e8ff'; $iconColor = '#9333ea';
                                 }
                             ?>
                                 <div class="activity-feed-item" style="display: <?php echo $index < 4 ? 'flex' : 'none'; ?>; gap: 15px; align-items: flex-start; padding-bottom: 15px; border-bottom: 1px solid #f3f4f6;">
@@ -268,17 +301,17 @@ while ($row = $log_result->fetch_assoc()) {
                                         <i class="fas <?php echo $icon; ?>"></i>
                                     </div>
                                     <div style="flex: 1;">
-                                        <div style="font-size: 0.9rem; font-weight: 600; color: #1f2937; margin-bottom: 2px;"><?php echo htmlspecialchars($log['action']); ?></div>
-                                        <div style="font-size: 0.8rem; color: #6b7280; margin-bottom: 4px;"><?php echo htmlspecialchars($log['details']); ?></div>
-                                        <div style="font-size: 0.75rem; color: #9ca3af;"><i class="far fa-clock"></i> <?php echo date('M d, Y • g:i A', strtotime($log['created_at'])); ?></div>
+                                        <div style="font-size: 0.9rem; font-weight: 600; color: #1f2937; margin-bottom: 2px;"><?php echo htmlspecialchars($log['title']); ?></div>
+                                        <div style="font-size: 0.8rem; color: #6b7280; margin-bottom: 4px;"><?php echo htmlspecialchars($log['description']); ?></div>
+                                        <div style="font-size: 0.75rem; color: #9ca3af;"><i class="far fa-clock"></i> <?php echo date('M d, Y • g:i A', strtotime($log['log_date'])); ?></div>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
                         </div>
                         
-                        <?php if (count($audit_logs) > 4): ?>
+                        <?php if (count($audit_logs_rows) > 4): ?>
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; padding-top: 15px;">
-                                <span style="font-size: 0.8rem; color: #6b7280;" id="pageInfo">Showing 1-4 of <?php echo count($audit_logs); ?></span>
+                                <span style="font-size: 0.8rem; color: #6b7280;" id="pageInfo">Showing 1-4 of <?php echo count($audit_logs_rows); ?></span>
                                 <div style="display: flex; gap: 5px;">
                                     <button id="prevActivity" disabled style="padding: 4px 10px; border: 1px solid #d1d5db; background: white; border-radius: 4px; cursor: pointer;"><i class="fas fa-chevron-left"></i></button>
                                     <button id="nextActivity" style="padding: 4px 10px; border: 1px solid #d1d5db; background: white; border-radius: 4px; cursor: pointer;"><i class="fas fa-chevron-right"></i></button>
@@ -330,7 +363,7 @@ while ($row = $log_result->fetch_assoc()) {
                 <button type="button" id="closeJobBtn" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #9ca3af;">&times;</button>
             </div>
 
-            <form id="postJobForm" novalidate style="display: flex; flex-direction: column; height: 100%; overflow: hidden;">
+            <form id="plpJobForm" novalidate style="display: flex; flex-direction: column; height: 100%; overflow: hidden;">
                 
                 <div class="plp-modal-body">
                     <input type="hidden" name="company_id" value="<?php echo $company_id; ?>">
@@ -593,7 +626,7 @@ while ($row = $log_result->fetch_assoc()) {
             if(postBtn) {
                 postBtn.addEventListener('click', () => {
                     document.getElementById('editJobId').value = '';
-                    document.getElementById('postJobForm').reset();
+                    document.getElementById('plpJobForm').reset();
                     document.querySelector('.plp-modal-header h2').textContent = 'Post a Job';
                     document.querySelector('.btn-solid-green').textContent = 'Save Job Listing';
                     document.getElementById('newTitleCheck').checked = false;
@@ -606,6 +639,53 @@ while ($row = $log_result->fetch_assoc()) {
 
             if (closeBtn) closeBtn.addEventListener('click', closeModal);
             if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+
+            // --- NATIVE FORM SUBMISSION TO BYPASS dashboard.js ---
+            const jobForm = document.getElementById('plpJobForm');
+            if (jobForm) {
+                jobForm.addEventListener('submit', function(e) {
+                    e.preventDefault(); 
+                    
+                    const submitBtn = this.querySelector('button[type="submit"]');
+                    const originalText = submitBtn.textContent;
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Saving...';
+
+                    const formData = new FormData(this);
+
+                    fetch('process_job.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(res => res.text())
+                    .then(data => {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = originalText;
+
+                        if (data.trim() === 'SUCCESS') {
+                            closeModal(); 
+                            Swal.fire({
+                                title: 'Success!',
+                                text: 'Job listing saved successfully.',
+                                icon: 'success',
+                                confirmButtonColor: '#0d5c34'
+                            }).then(() => {
+                                // Reloading guarantees it shows up in the Activity Feed immediately!
+                                window.location.reload(); 
+                            });
+                        } else {
+                            Swal.fire('Error', data, 'error');
+                        }
+                    })
+                    .catch(err => {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = originalText;
+                        Swal.fire('Error', 'Failed to connect to server.', 'error');
+                    });
+                });
+            }
+            // -----------------------------------------------------
+
         });
     </script>
 </body>

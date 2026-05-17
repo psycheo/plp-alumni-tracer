@@ -63,3 +63,5 @@
 {"ts":"2026-05-14T07:27:35+02:00","scope":"users_fetch","elapsed_ms":2.22,"meta":{"page":1,"search":false,"role_filter":"","program_filter":"","rows":10}}
 {"ts":"2026-05-14T15:53:27+02:00","scope":"users_fetch","elapsed_ms":4.22,"meta":{"page":1,"search":false,"role_filter":"","program_filter":"","rows":10}}
 {"ts":"2026-05-14T15:53:35+02:00","scope":"predict_report","elapsed_ms":30,"meta":{"range":"all","program_id":0,"rows":30,"page":1}}
+{"ts":"2026-05-17T07:12:07+02:00","scope":"users_fetch","elapsed_ms":4.1,"meta":{"page":1,"search":false,"role_filter":"","program_filter":"","rows":10}}
+{"ts":"2026-05-17T07:20:36+02:00","scope":"users_fetch","elapsed_ms":1.43,"meta":{"page":1,"search":false,"role_filter":"","program_filter":"","rows":10}}

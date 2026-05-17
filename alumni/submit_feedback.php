@@ -25,22 +25,22 @@ if (empty($user_id)) {
     exit;
 }
 
+// Generate a safe fallback ID for partners who don't have a student_id
+$insert_id = !empty($student_id) ? $student_id : "Partner-" . $user_id; 
+
 // Detect if the feedbacks table uses 'user_id'
 $check_col = $conn->query("SHOW COLUMNS FROM feedbacks LIKE 'user_id'");
 $has_user_id = ($check_col && $check_col->num_rows > 0);
 
 if ($has_user_id) {
     // Universal insert if user_id exists
-    $sql = "INSERT INTO feedbacks (user_id, rating, message) VALUES (?, ?, ?)";
+    $sql = "INSERT INTO feedbacks (user_id, student_id, rating, message) VALUES (?, ?, ?, ?)";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param('iis', $user_id, $rating, $message);
+    $stmt->bind_param('isis', $user_id, $insert_id, $rating, $message);
 } else {
     // Fallback if the table only accepts student_id
     $sql = "INSERT INTO feedbacks (student_id, rating, message) VALUES (?, ?, ?)";
     $stmt = $conn->prepare($sql);
-    
-    // If a partner has no student_id, label them as a partner so the DB accepts it
-    $insert_id = !empty($student_id) ? $student_id : "Partner-" . $user_id; 
     $stmt->bind_param('sis', $insert_id, $rating, $message);
 }
 

@@ -53,6 +53,10 @@
                 <a href="../alumni/dashboard.php" class="nav-link <?= ($currentPage == 'dashboard.php') ? 'active' : '' ?>">
                     <i class="fas fa-home"></i> Home
                 </a>
+                
+                <a href="../alumni/job_board.php" class="nav-link <?= ($currentPage == 'job_board.php') ? 'active' : '' ?>">
+                    <i class="fas fa-briefcase"></i> Job Listings
+                </a>
                 <a href="../alumni/analytics.php" class="nav-link <?= ($currentPage == 'analytics.php') ? 'active' : '' ?>">
                     <i class="fas fa-chart-line"></i> View Analytics
                 </a>
@@ -66,20 +70,10 @@
     </div>
 </nav>
 
-<!--
-    Floating feedback button.
-    FIX: No inline onclick — dashboard.js handles the click via addEventListener.
-         Having both onclick + addEventListener caused a double-fire race condition.
--->
 <button id="openFeedbackBtn" class="floating-feedback-btn">
     <i class="fas fa-comment-dots"></i> Feedback
 </button>
 
-<!--
-    Feedback modal.
-    FIX: display:none is inline so it never depends on dashboard-style.css
-         having a .modal { display:none } rule.
--->
 <div id="feedbackModalUI" class="modal" style="display:none;">
     <div class="modal-content" style="max-width: 450px;">
         <span class="close-btn" id="closeFeedbackBtn">&times;</span>
@@ -89,12 +83,6 @@
         <div class="modal-body">
             <p style="color: #6b7280; margin-bottom: 20px;">Let us know how we can improve your portal experience.</p>
 
-            <!--
-                FIX: Added novalidate so browser native validation doesn't silently
-                     block the submit inside a modal. dashboard.js handles validation.
-                     Also removed `required` from radio inputs and textarea —
-                     validation is done in dashboard.js before the fetch fires.
-            -->
             <form id="submitFeedbackForm" novalidate>
                 <div class="form-group" style="margin-bottom: 15px;">
                     <label>How would you rate your experience?</label>
