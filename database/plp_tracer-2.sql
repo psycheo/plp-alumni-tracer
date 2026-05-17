@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 16, 2026 at 06:00 PM
+-- Generation Time: May 17, 2026 at 12:22 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -12174,10 +12174,12 @@ CREATE TABLE `system_settings` (
 --
 
 INSERT INTO `system_settings` (`setting_key`, `setting_value`) VALUES
+('analytics_v2_enabled', '1'),
 ('ml_dataset_filename', 'plp_dataset_500.csv'),
 ('ml_linear_regression_metrics', '{\"mse\":0,\"r2\":1,\"row_count\":500}'),
 ('ml_linear_regression_model', '{\"uploaded_file\":\"plp_dataset_500.csv\",\"target_column\":\"Age\",\"feature_columns\":[\"Age\"],\"weights\":[0,1],\"trained_at\":\"2026-05-05T05:03:36+02:00\"}'),
 ('ml_model_last_training', '2026-05-05 05:03:36'),
+('performance_logging_enabled', '1'),
 ('report_limit', '30');
 
 -- --------------------------------------------------------
@@ -13100,7 +13102,9 @@ ALTER TABLE `alumni_assessments`
 -- Indexes for table `audit_logs`
 --
 ALTER TABLE `audit_logs`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_audit_created` (`created_at`),
+  ADD KEY `idx_audit_action_created` (`action`,`created_at`);
 
 --
 -- Indexes for table `etl_run_log`
@@ -13121,8 +13125,7 @@ ALTER TABLE `fact_metric_daily`
 ALTER TABLE `feedbacks`
   ADD PRIMARY KEY (`id`),
   ADD KEY `feedbacks_ibfk_user` (`student_id`),
-  ADD KEY `idx_feedbacks_status_created` (`status`,`created_at`),
-  ADD KEY `idx_feedbacks_student` (`student_id`);
+  ADD KEY `idx_feedbacks_status_created` (`status`,`created_at`);
 
 --
 -- Indexes for table `feedback_replies`
@@ -13130,8 +13133,7 @@ ALTER TABLE `feedbacks`
 ALTER TABLE `feedback_replies`
   ADD PRIMARY KEY (`id`),
   ADD KEY `feedback_id` (`feedback_id`),
-  ADD KEY `alumni_id` (`student_id`),
-  ADD KEY `idx_replies_feedback` (`feedback_id`);
+  ADD KEY `alumni_id` (`student_id`);
 
 --
 -- Indexes for table `ml_companies_dataset`
