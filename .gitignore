@@ -1,2 +1,3 @@
 /ml/venv
 /includes/careerjet_credentials.php
+tmp/logs/perf.log
