@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 17, 2026 at 02:42 PM
+-- Generation Time: May 19, 2026 at 09:27 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -11889,123 +11889,6 @@ INSERT INTO `feedback_replies` (`id`, `feedback_id`, `student_id`, `reply_text`,
 -- --------------------------------------------------------
 
 --
--- Table structure for table `ml_companies_dataset`
---
-
-CREATE TABLE `ml_companies_dataset` (
-  `id` int(11) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `industry` varchar(100) DEFAULT NULL,
-  `location` varchar(255) DEFAULT NULL,
-  `description` text DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `ml_companies_dataset`
---
-
-INSERT INTO `ml_companies_dataset` (`id`, `name`, `industry`, `location`, `description`) VALUES
-(1, 'TechNova Solutions', 'IT & Tech', 'Makati City', 'A leading software development company specializing in web and mobile applications.'),
-(2, 'CarePlus Hospital', 'Healthcare', 'Quezon City', 'A premium healthcare facility providing top-notch medical and nursing services.'),
-(3, 'Apex Financial Hub', 'Finance & Accountancy', 'Taguig City', 'Corporate banking and accounting firm dealing with investments and audits.'),
-(4, 'GlobalTech Solutions', 'IT & Tech', 'Pasig City', 'An enterprise software company providing cloud computing and cybersecurity solutions.'),
-(5, 'CodeCraft Studios', 'IT & Tech', 'Mandaluyong City', 'A creative tech agency specializing in mobile game development and UI/UX design.'),
-(6, 'DataSync Systems', 'IT & Tech', 'Makati City', 'Data analytics and machine learning firm helping businesses automate their pipelines.'),
-(7, 'Metro Medical Center', 'Healthcare', 'Manila City', 'A tertiary hospital providing comprehensive medical, surgical, and diagnostic services.'),
-(8, 'Prime Care Clinics', 'Healthcare', 'Quezon City', 'A network of outpatient clinics offering pediatric, dental, and general practice care.'),
-(9, 'WealthFront Bank', 'Finance & Accountancy', 'Taguig City', 'A commercial bank offering retail banking, loans, and corporate financial services.'),
-(10, 'AuditPro Associates', 'Finance & Accountancy', 'Makati City', 'An independent auditing and tax consulting firm for small to medium enterprises.'),
-(11, 'Horizon Academy', 'Education', 'Quezon City', 'A private educational institution offering K-12 and specialized vocational courses.'),
-(12, 'Global Learning Institute', 'Education', 'Manila City', 'A university known for its advanced research facilities and comprehensive IT and Nursing programs.'),
-(13, 'Grand Plaza Hotel', 'Hospitality', 'Pasay City', 'A 5-star luxury hotel offering premium accommodation, dining, and event management.'),
-(14, 'CloudNine Resorts', 'Hospitality', 'Makati City', 'A boutique hotel chain focusing on eco-friendly tourism and high-end customer service.'),
-(15, 'BuildRight Construction', 'Engineering', 'Quezon City', 'A civil engineering firm handling commercial buildings and public infrastructure projects.'),
-(16, 'MegaStruct Engineers', 'Engineering', 'Taguig City', 'An architectural and structural engineering company specializing in high-rise condominiums.'),
-(17, 'CreativeMind Agency', 'Marketing', 'Mandaluyong City', 'A digital marketing agency focused on social media management, SEO, and content creation.'),
-(18, 'Peak Sales Group', 'Corporate / Business', 'Pasig City', 'A B2B corporate sales and business development outsourcing company.'),
-(19, 'FutureWeb Dynamics', 'IT & Tech', 'Muntinlupa City', 'E-commerce platform developers focusing on React, Node.js, and scalable web apps.'),
-(20, 'BioHealth Labs', 'Healthcare', 'Pasig City', 'A state-of-the-art medical laboratory conducting blood tests, biometrics, and research.'),
-(21, 'TrustFund Corp', 'Finance & Accountancy', 'San Juan City', 'Investment and wealth management corporation dealing with stock brokering and mutual funds.'),
-(22, 'NextGen Educators', 'Education', 'Makati City', 'An ed-tech company developing online learning platforms and virtual classrooms.'),
-(23, 'OceanView Hospitality', 'Hospitality', 'Parañaque City', 'A hospitality management group overseeing multiple integrated resorts and casinos.');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `ml_jobs_dataset`
---
-
-CREATE TABLE `ml_jobs_dataset` (
-  `id` int(11) NOT NULL,
-  `company_id` int(11) NOT NULL,
-  `job_title` varchar(255) NOT NULL,
-  `requirements_text` text DEFAULT NULL,
-  `location` varchar(255) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `ml_jobs_dataset`
---
-
-INSERT INTO `ml_jobs_dataset` (`id`, `company_id`, `job_title`, `requirements_text`, `location`) VALUES
-(1, 1, 'Junior Software Engineer', 'Programming, Python, PHP, JavaScript, SQL, Web Development, Problem Solving', 'Makati City'),
-(2, 1, 'IT Support Specialist', 'Hardware troubleshooting, Networking, IT Helpdesk, Communication skills', 'Makati City'),
-(3, 2, 'Registered Nurse', 'Nursing, Patient Care, First Aid, Medical Charting, Compassion', 'Quezon City'),
-(4, 3, 'Junior Accountant', 'Accounting, Financial Analysis, Bookkeeping, Excel, Auditing', 'Taguig City'),
-(5, 4, 'Cloud Systems Administrator', 'AWS, Azure, Linux, Cloud Computing, Network Security, Troubleshooting', 'Pasig City'),
-(6, 4, 'Cybersecurity Analyst', 'Cybersecurity, Ethical Hacking, Firewall, Risk Assessment, CompTIA Security+', 'Pasig City'),
-(7, 5, 'Game Developer', 'Unity, C#, Game Design, 3D Modeling, C++, Mobile Games', 'Mandaluyong City'),
-(8, 5, 'UI/UX Designer', 'Figma, Adobe XD, User Research, Wireframing, Prototyping, CSS', 'Mandaluyong City'),
-(9, 6, 'Data Scientist', 'Python, R, Machine Learning, SQL, Data Visualization, Pandas, TensorFlow', 'Makati City'),
-(10, 6, 'Database Administrator', 'MySQL, PostgreSQL, Database Design, Optimization, Backup & Recovery', 'Makati City'),
-(11, 19, 'Front-End Web Developer', 'HTML, CSS, JavaScript, React, Vue.js, Responsive Design', 'Muntinlupa City'),
-(12, 19, 'Back-End Node.js Developer', 'Node.js, Express, MongoDB, API Development, Server-side logic', 'Muntinlupa City'),
-(13, 1, 'Senior PHP Developer', 'PHP, Laravel, CodeIgniter, MySQL, Git, RESTful APIs', 'Makati City'),
-(14, 1, 'Quality Assurance (QA) Tester', 'Software Testing, Selenium, Automation, Bug Tracking, Manual Testing', 'Makati City'),
-(15, 7, 'Medical Technologist', 'MedTech, Laboratory Analysis, Blood Banking, Clinical Chemistry, PRC License', 'Manila City'),
-(16, 7, 'Emergency Room Nurse', 'ER Nursing, Triage, BLS, ACLS, Patient Care, Critical Thinking', 'Manila City'),
-(17, 8, 'Clinic Receptionist', 'Customer Service, Scheduling, Microsoft Office, Interpersonal Skills, Admin tasks', 'Quezon City'),
-(18, 8, 'Pediatric Nurse', 'Pediatrics, Child Care, Vital Signs, Patient Compassion, PRC License', 'Quezon City'),
-(19, 20, 'Laboratory Technician', 'Lab Equipment, Specimen Collection, Biology, Chemistry, Safety Protocols', 'Pasig City'),
-(20, 20, 'Clinical Researcher', 'Data Analysis, Clinical Trials, Research Methodology, Medical Writing', 'Pasig City'),
-(21, 2, 'Healthcare Administrator', 'Hospital Management, Policy Implementation, Staff Scheduling, Healthcare Laws', 'Quezon City'),
-(22, 9, 'Bank Teller', 'Cash Handling, Customer Service, Basic Math, Banking Software, Communication', 'Taguig City'),
-(23, 9, 'Financial Analyst', 'Financial Modeling, Excel, Forecasting, Risk Management, Valuation', 'Taguig City'),
-(24, 10, 'Tax Consultant', 'Taxation, BIR Regulations, Auditing, Corporate Tax, CPA', 'Makati City'),
-(25, 10, 'Senior Auditor', 'External Audit, Financial Statements, Compliance, GAAP, CPA required', 'Makati City'),
-(26, 21, 'Investment Broker', 'Stock Market, Client Portfolio, Financial Advisory, Sales, Economics', 'San Juan City'),
-(27, 21, 'Payroll Specialist', 'Payroll Processing, Timesheets, Labor Code, HRIS, Data Entry', 'San Juan City'),
-(28, 3, 'Corporate Accountant', 'General Ledger, Month-end Close, Accounts Payable, SAP, Bookkeeping', 'Taguig City'),
-(29, 11, 'High School Teacher', 'Education, Lesson Planning, Classroom Management, English/Math Major, LET Passer', 'Quezon City'),
-(30, 11, 'Guidance Counselor', 'Counseling, Psychology, Student Development, Empathy, Communication', 'Quezon City'),
-(31, 12, 'College Professor (IT)', 'Teaching, Programming, Computer Science, Curriculum Development, Master’s Degree', 'Manila City'),
-(32, 12, 'University Librarian', 'Library Science, Cataloging, Information Management, Research Assistance', 'Manila City'),
-(33, 22, 'E-Learning Content Creator', 'Instructional Design, Video Editing, Canvas, Moodle, Writing', 'Makati City'),
-(34, 22, 'Online English Tutor', 'ESL, English Proficiency, Grammar, Video Conferencing, Patience', 'Makati City'),
-(35, 15, 'Civil Engineer', 'Civil Engineering, AutoCAD, Construction Management, Structural Design, PRC License', 'Quezon City'),
-(36, 15, 'Site Supervisor', 'Project Management, Safety Compliance, Manpower handling, Blueprint Reading', 'Quezon City'),
-(37, 16, 'Architect', 'Architecture, SketchUp, Revit, Design Planning, Building Codes', 'Taguig City'),
-(38, 16, 'Electrical Engineer', 'Power Distribution, Electrical Systems, Troubleshooting, AutoCAD Electrical', 'Taguig City'),
-(39, 17, 'Digital Marketing Specialist', 'SEO, SEM, Social Media Marketing, Google Analytics, Content Strategy', 'Mandaluyong City'),
-(40, 17, 'Graphic Designer', 'Photoshop, Illustrator, Branding, Typography, Visual Arts', 'Mandaluyong City'),
-(41, 18, 'Sales Account Executive', 'B2B Sales, Negotiation, CRM, Lead Generation, Presentation Skills', 'Pasig City'),
-(42, 18, 'Business Development Officer', 'Market Research, Strategic Planning, Partnership Building, Client Relations', 'Pasig City'),
-(43, 13, 'Hotel Receptionist', 'Front Desk, Opera PMS, Customer Service, Bilingual, Problem Solving', 'Pasay City'),
-(44, 13, 'Food & Beverage Manager', 'Restaurant Management, Inventory, Food Safety, Menu Planning, Leadership', 'Pasay City'),
-(45, 14, 'Event Coordinator', 'Event Planning, Budgeting, Vendor Management, Organization, Hospitality', 'Makati City'),
-(46, 14, 'Housekeeping Supervisor', 'Housekeeping, Cleaning Standards, Staff Training, Inventory Management', 'Makati City'),
-(47, 23, 'Casino Dealer', 'Table Games, Quick Math, Customer Entertainment, Alertness, Hand Dexterity', 'Parañaque City'),
-(48, 23, 'Concierge Specialist', 'Guest Relations, Local Tourism Knowledge, Booking, Communication', 'Parañaque City'),
-(49, 4, 'HR Specialist', 'Human Resources, Recruitment, Employee Relations, Onboarding, Labor Laws', 'Pasig City'),
-(50, 7, 'IT Support Engineer', 'Hardware Setup, Helpdesk, Networking, Troubleshooting, Healthcare IT', 'Manila City'),
-(51, 15, 'Project Accountant', 'Cost Accounting, Budgeting, Financial Reporting, Construction Finance', 'Quezon City'),
-(52, 13, 'Marketing Assistant', 'Social Media, Promotions, Event Assistance, Copywriting, Canva', 'Pasay City'),
-(53, 9, 'Software Engineer', 'Java, Spring Boot, Microservices, Banking Systems, Secure Coding', 'Taguig City'),
-(54, 22, 'Data Analyst', 'Excel, SQL, Student Data, PowerBI, Reporting', 'Makati City');
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `partner_companies`
 --
 
@@ -12014,7 +11897,6 @@ CREATE TABLE `partner_companies` (
   `user_id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
   `industry` varchar(100) DEFAULT NULL,
-  `is_synced_to_ml` tinyint(1) NOT NULL DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -12022,9 +11904,32 @@ CREATE TABLE `partner_companies` (
 -- Dumping data for table `partner_companies`
 --
 
-INSERT INTO `partner_companies` (`id`, `user_id`, `name`, `industry`, `is_synced_to_ml`, `created_at`) VALUES
-(3, 832, 'TechFlow Solutions', 'General', 0, '2026-05-17 10:55:48'),
-(4, 833, 'Global Web Systems', 'General', 0, '2026-05-17 12:14:52');
+INSERT INTO `partner_companies` (`id`, `user_id`, `name`, `industry`, `created_at`) VALUES
+(3, 832, 'TechFlow Solutions', 'General', '2026-05-17 10:55:48'),
+(4, 833, 'Global Web Systems', 'General', '2026-05-17 12:14:52'),
+(1001, 1001, 'TechNova Solutions', 'IT & Tech', '2026-05-19 04:21:47'),
+(1002, 1002, 'CarePlus Hospital', 'Healthcare', '2026-05-19 04:21:47'),
+(1003, 1003, 'Apex Financial Hub', 'Finance & Accountancy', '2026-05-19 04:21:47'),
+(1004, 1004, 'GlobalTech Solutions', 'IT & Tech', '2026-05-19 04:21:47'),
+(1005, 1005, 'CodeCraft Studios', 'IT & Tech', '2026-05-19 04:21:47'),
+(1006, 1006, 'DataSync Systems', 'IT & Tech', '2026-05-19 04:21:47'),
+(1007, 1007, 'Metro Medical Center', 'Healthcare', '2026-05-19 04:21:47'),
+(1008, 1008, 'Prime Care Clinics', 'Healthcare', '2026-05-19 04:21:47'),
+(1009, 1009, 'WealthFront Bank', 'Finance & Accountancy', '2026-05-19 04:21:47'),
+(1010, 1010, 'AuditPro Associates', 'Finance & Accountancy', '2026-05-19 04:21:47'),
+(1011, 1011, 'Horizon Academy', 'Education', '2026-05-19 04:21:47'),
+(1012, 1012, 'Global Learning Institute', 'Education', '2026-05-19 04:21:47'),
+(1013, 1013, 'Grand Plaza Hotel', 'Hospitality', '2026-05-19 04:21:47'),
+(1014, 1014, 'CloudNine Resorts', 'Hospitality', '2026-05-19 04:21:47'),
+(1015, 1015, 'BuildRight Construction', 'Engineering', '2026-05-19 04:21:47'),
+(1016, 1016, 'MegaStruct Engineers', 'Engineering', '2026-05-19 04:21:47'),
+(1017, 1017, 'CreativeMind Agency', 'Marketing', '2026-05-19 04:21:47'),
+(1018, 1018, 'Peak Sales Group', 'Corporate / Business', '2026-05-19 04:21:47'),
+(1019, 1019, 'FutureWeb Dynamics', 'IT & Tech', '2026-05-19 04:21:47'),
+(1020, 1020, 'BioHealth Labs', 'Healthcare', '2026-05-19 04:21:47'),
+(1021, 1021, 'TrustFund Corp', 'Finance & Accountancy', '2026-05-19 04:21:47'),
+(1022, 1022, 'NextGen Educators', 'Education', '2026-05-19 04:21:47'),
+(1023, 1023, 'OceanView Hospitality', 'Hospitality', '2026-05-19 04:21:47');
 
 -- --------------------------------------------------------
 
@@ -12041,8 +11946,6 @@ CREATE TABLE `partner_jobs` (
   `qualifications` text NOT NULL,
   `skills` varchar(255) NOT NULL,
   `salary` varchar(100) DEFAULT NULL,
-  `is_synced_to_ml` tinyint(1) NOT NULL DEFAULT 0,
-  `mapping_status` enum('auto_mapped','needs_mapping','manually_mapped') NOT NULL DEFAULT 'needs_mapping',
   `is_active` tinyint(1) NOT NULL DEFAULT 1,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -12051,16 +11954,70 @@ CREATE TABLE `partner_jobs` (
 -- Dumping data for table `partner_jobs`
 --
 
-INSERT INTO `partner_jobs` (`id`, `company_id`, `program_id`, `standard_profession_id`, `title`, `qualifications`, `skills`, `salary`, `is_synced_to_ml`, `mapping_status`, `is_active`, `created_at`) VALUES
-(2, 1, 1, NULL, 'Hacker', 'Refer to skills section.', 'Design Planning\r\nAPI Development\r\nInstructional Design', '20k-40k', 0, 'needs_mapping', 1, '2026-05-16 09:53:34'),
-(7, 1, 1, NULL, 'Tutor Associate', 'Refer to skills section.', 'CSS\r\nCurriculum Development\r\nInstructional Design', 'Below 20k', 0, 'needs_mapping', 1, '2026-05-16 11:46:37'),
-(8, 1, 1, NULL, 'IT Associate', 'Refer to skills section.', 'HTML', 'Below 20k', 0, 'needs_mapping', 1, '2026-05-16 12:03:04'),
-(9, 1, 1, NULL, 'IT Associate', 'Refer to skills section.', 'HTML', 'Below 20k', 0, 'needs_mapping', 1, '2026-05-16 12:03:07'),
-(10, 1, 0, NULL, 'Random Job', 'Refer to skills section.', 'Automation', 'Below 20k', 0, 'needs_mapping', 1, '2026-05-17 10:40:49'),
-(11, 3, 0, 0, 'Another Job', 'Refer to skills section.', 'Azure', 'Below 20k', 0, 'needs_mapping', 1, '2026-05-17 10:55:48'),
-(12, 3, 1, 0, 'Job 1', 'Refer to skills section.', 'Database Design\r\nData Analysis\r\nData Entry', 'Below 20k', 0, 'needs_mapping', 1, '2026-05-17 11:05:35'),
-(13, 4, 1, 0, 'Job 2', 'Refer to skills section.', 'Data Entry', 'Above 60k', 0, 'needs_mapping', 1, '2026-05-17 12:14:52'),
-(14, 4, 1, 0, 'Job 3', 'Refer to skills section.', 'Game Design', 'Above 60k', 0, 'needs_mapping', 1, '2026-05-17 12:18:03');
+INSERT INTO `partner_jobs` (`id`, `company_id`, `program_id`, `standard_profession_id`, `title`, `qualifications`, `skills`, `salary`, `is_active`, `created_at`) VALUES
+(2, 1, 1, NULL, 'Hacker', 'Refer to skills section.', 'Design Planning\r\nAPI Development\r\nInstructional Design', '20k-40k', 1, '2026-05-16 09:53:34'),
+(7, 1, 1, NULL, 'Tutor Associate', 'Refer to skills section.', 'CSS\r\nCurriculum Development\r\nInstructional Design', 'Below 20k', 1, '2026-05-16 11:46:37'),
+(8, 1, 1, NULL, 'IT Associate', 'Refer to skills section.', 'HTML', 'Below 20k', 1, '2026-05-16 12:03:04'),
+(9, 1, 1, NULL, 'IT Associate', 'Refer to skills section.', 'HTML', 'Below 20k', 1, '2026-05-16 12:03:07'),
+(10, 1, 0, NULL, 'Random Job', 'Refer to skills section.', 'Automation', 'Below 20k', 1, '2026-05-17 10:40:49'),
+(11, 3, 0, 0, 'Another Job', 'Refer to skills section.', 'Azure', 'Below 20k', 1, '2026-05-17 10:55:48'),
+(12, 3, 1, 0, 'Job 1', 'Refer to skills section.', 'Database Design\r\nData Analysis\r\nData Entry', 'Below 20k', 1, '2026-05-17 11:05:35'),
+(13, 4, 1, 0, 'Job 2', 'Refer to skills section.', 'Data Entry', 'Above 60k', 1, '2026-05-17 12:14:52'),
+(14, 4, 1, 0, 'Job 3', 'Refer to skills section.', 'Game Design', 'Above 60k', 1, '2026-05-17 12:18:03'),
+(1001, 1001, 1, NULL, 'Junior Software Engineer', 'Bachelor\'s degree in relevant field. Experience with: JavaScript, SQL, Web Development, Problem Solving', 'Programming, Python, PHP', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1002, 1001, 1, NULL, 'IT Support Specialist', 'Refer to skills section.', 'Hardware troubleshooting, Networking, IT Helpdesk', '', 1, '2026-05-19 04:21:47'),
+(1003, 1002, 7, NULL, 'Registered Nurse', 'Bachelor\'s degree in relevant field. Experience with: Medical Charting, Compassion', 'Nursing, Patient Care, First Aid', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1004, 1003, 3, NULL, 'Junior Accountant', 'Bachelor\'s degree in relevant field. Experience with: Excel, Auditing', 'Accounting, Financial Analysis, Bookkeeping', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1005, 1004, 1, NULL, 'Cloud Systems Administrator', 'Bachelor\'s degree in relevant field. Experience with: Cloud Computing, Network Security, Troubleshooting', 'AWS, Azure, Linux', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1006, 1004, 1, NULL, 'Cybersecurity Analyst', 'Bachelor\'s degree in relevant field. Experience with: Risk Assessment, CompTIA Security+', 'Cybersecurity, Ethical Hacking, Firewall', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1007, 1005, 1, NULL, 'Game Developer', 'Bachelor\'s degree in relevant field. Experience with: 3D Modeling, C++, Mobile Games', 'Unity, C#, Game Design', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1008, 1005, 1, NULL, 'UI/UX Designer', 'Bachelor\'s degree in relevant field. Experience with: Wireframing, Prototyping, CSS', 'Figma, Adobe XD, User Research', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1009, 1006, 1, NULL, 'Data Scientist', 'Bachelor\'s degree in relevant field. Experience with: SQL, Data Visualization, Pandas, TensorFlow', 'Python, R, Machine Learning', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1010, 1006, 1, NULL, 'Database Administrator', 'Bachelor\'s degree in relevant field. Experience with: Optimization, Backup & Recovery', 'MySQL, PostgreSQL, Database Design', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1011, 1019, 1, NULL, 'Front-End Web Developer', 'Bachelor\'s degree in relevant field. Experience with: React, Vue.js, Responsive Design', 'HTML, CSS, JavaScript', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1012, 1019, 1, NULL, 'Back-End Node.js Developer', 'Bachelor\'s degree in relevant field. Experience with: API Development, Server-side logic', 'Node.js, Express, MongoDB', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1013, 1001, 1, NULL, 'Senior PHP Developer', 'Bachelor\'s degree in relevant field. Experience with: MySQL, Git, RESTful APIs', 'PHP, Laravel, CodeIgniter', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1014, 1001, 1, NULL, 'Quality Assurance (QA) Tester', 'Bachelor\'s degree in relevant field. Experience with: Bug Tracking, Manual Testing', 'Software Testing, Selenium, Automation', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1015, 1007, 7, NULL, 'Medical Technologist', 'Bachelor\'s degree in relevant field. Experience with: Clinical Chemistry, PRC License', 'MedTech, Laboratory Analysis, Blood Banking', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1016, 1007, 7, NULL, 'Emergency Room Nurse', 'Bachelor\'s degree in relevant field. Experience with: ACLS, Patient Care, Critical Thinking', 'ER Nursing, Triage, BLS', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1017, 1008, 7, NULL, 'Clinic Receptionist', 'Bachelor\'s degree in relevant field. Experience with: Interpersonal Skills, Admin tasks', 'Customer Service, Scheduling, Microsoft Office', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1018, 1008, 7, NULL, 'Pediatric Nurse', 'Bachelor\'s degree in relevant field. Experience with: Patient Compassion, PRC License', 'Pediatrics, Child Care, Vital Signs', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1019, 1020, 1, NULL, 'Laboratory Technician', 'Bachelor\'s degree in relevant field. Experience with: Chemistry, Safety Protocols', 'Lab Equipment, Specimen Collection, Biology', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1020, 1020, 1, NULL, 'Clinical Researcher', 'Bachelor\'s degree in relevant field. Experience with: Medical Writing', 'Data Analysis, Clinical Trials, Research Methodology', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1021, 1002, 7, NULL, 'Healthcare Administrator', 'Bachelor\'s degree in relevant field. Experience with: Healthcare Laws', 'Hospital Management, Policy Implementation, Staff Scheduling', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1022, 1009, 1, NULL, 'Bank Teller', 'Bachelor\'s degree in relevant field. Experience with: Banking Software, Communication', 'Cash Handling, Customer Service, Basic Math', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1023, 1009, 1, NULL, 'Financial Analyst', 'Bachelor\'s degree in relevant field. Experience with: Risk Management, Valuation', 'Financial Modeling, Excel, Forecasting', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1024, 1010, 3, NULL, 'Tax Consultant', 'Bachelor\'s degree in relevant field. Experience with: Corporate Tax, CPA', 'Taxation, BIR Regulations, Auditing', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1025, 1010, 3, NULL, 'Senior Auditor', 'Bachelor\'s degree in relevant field. Experience with: GAAP, CPA required', 'External Audit, Financial Statements, Compliance', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1026, 1021, 4, NULL, 'Investment Broker', 'Bachelor\'s degree in relevant field. Experience with: Sales, Economics', 'Stock Market, Client Portfolio, Financial Advisory', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1027, 1021, 1, NULL, 'Payroll Specialist', 'Bachelor\'s degree in relevant field. Experience with: HRIS, Data Entry', 'Payroll Processing, Timesheets, Labor Code', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1028, 1003, 3, NULL, 'Corporate Accountant', 'Bachelor\'s degree in relevant field. Experience with: SAP, Bookkeeping', 'General Ledger, Month-end Close, Accounts Payable', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1029, 1011, 9, NULL, 'High School Teacher', 'Bachelor\'s degree in relevant field. Experience with: English/Math Major, LET Passer', 'Education, Lesson Planning, Classroom Management', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1030, 1011, 9, NULL, 'Guidance Counselor', 'Bachelor\'s degree in relevant field. Experience with: Empathy, Communication', 'Counseling, Psychology, Student Development', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1031, 1012, 1, NULL, 'College Professor (IT)', 'Bachelor\'s degree in relevant field. Experience with: Curriculum Development, Master’s Degree', 'Teaching, Programming, Computer Science', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1032, 1012, 1, NULL, 'University Librarian', 'Bachelor\'s degree in relevant field. Experience with: Research Assistance', 'Library Science, Cataloging, Information Management', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1033, 1022, 1, NULL, 'E-Learning Content Creator', 'Bachelor\'s degree in relevant field. Experience with: Moodle, Writing', 'Instructional Design, Video Editing, Canvas', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1034, 1022, 9, NULL, 'Online English Tutor', 'Bachelor\'s degree in relevant field. Experience with: Video Conferencing, Patience', 'ESL, English Proficiency, Grammar', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1035, 1015, 8, NULL, 'Civil Engineer', 'Bachelor\'s degree in relevant field. Experience with: Structural Design, PRC License', 'Civil Engineering, AutoCAD, Construction Management', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1036, 1015, 1, NULL, 'Site Supervisor', 'Bachelor\'s degree in relevant field. Experience with: Blueprint Reading', 'Project Management, Safety Compliance, Manpower handling', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1037, 1016, 8, NULL, 'Architect', 'Bachelor\'s degree in relevant field. Experience with: Design Planning, Building Codes', 'Architecture, SketchUp, Revit', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1038, 1016, 8, NULL, 'Electrical Engineer', 'Bachelor\'s degree in relevant field. Experience with: AutoCAD Electrical', 'Power Distribution, Electrical Systems, Troubleshooting', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1039, 1017, 4, NULL, 'Digital Marketing Specialist', 'Bachelor\'s degree in relevant field. Experience with: Google Analytics, Content Strategy', 'SEO, SEM, Social Media Marketing', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1040, 1017, 1, NULL, 'Graphic Designer', 'Bachelor\'s degree in relevant field. Experience with: Typography, Visual Arts', 'Photoshop, Illustrator, Branding', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1041, 1018, 4, NULL, 'Sales Account Executive', 'Bachelor\'s degree in relevant field. Experience with: Lead Generation, Presentation Skills', 'B2B Sales, Negotiation, CRM', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1042, 1018, 4, NULL, 'Business Development Officer', 'Bachelor\'s degree in relevant field. Experience with: Client Relations', 'Market Research, Strategic Planning, Partnership Building', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1043, 1013, 6, NULL, 'Hotel Receptionist', 'Bachelor\'s degree in relevant field. Experience with: Bilingual, Problem Solving', 'Front Desk, Opera PMS, Customer Service', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1044, 1013, 6, NULL, 'Food & Beverage Manager', 'Bachelor\'s degree in relevant field. Experience with: Menu Planning, Leadership', 'Restaurant Management, Inventory, Food Safety', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1045, 1014, 6, NULL, 'Event Coordinator', 'Bachelor\'s degree in relevant field. Experience with: Organization, Hospitality', 'Event Planning, Budgeting, Vendor Management', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1046, 1014, 1, NULL, 'Housekeeping Supervisor', 'Bachelor\'s degree in relevant field. Experience with: Inventory Management', 'Housekeeping, Cleaning Standards, Staff Training', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1047, 1023, 6, NULL, 'Casino Dealer', 'Bachelor\'s degree in relevant field. Experience with: Alertness, Hand Dexterity', 'Table Games, Quick Math, Customer Entertainment', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1048, 1023, 1, NULL, 'Concierge Specialist', 'Bachelor\'s degree in relevant field. Experience with: Communication', 'Guest Relations, Local Tourism Knowledge, Booking', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1049, 1004, 1, NULL, 'HR Specialist', 'Bachelor\'s degree in relevant field. Experience with: Onboarding, Labor Laws', 'Human Resources, Recruitment, Employee Relations', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1050, 1007, 1, NULL, 'IT Support Engineer', 'Bachelor\'s degree in relevant field. Experience with: Troubleshooting, Healthcare IT', 'Hardware Setup, Helpdesk, Networking', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1051, 1015, 3, NULL, 'Project Accountant', 'Bachelor\'s degree in relevant field. Experience with: Construction Finance', 'Cost Accounting, Budgeting, Financial Reporting', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1052, 1013, 4, NULL, 'Marketing Assistant', 'Bachelor\'s degree in relevant field. Experience with: Copywriting, Canva', 'Social Media, Promotions, Event Assistance', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1053, 1009, 1, NULL, 'Software Engineer', 'Bachelor\'s degree in relevant field. Experience with: Banking Systems, Secure Coding', 'Java, Spring Boot, Microservices', 'Negotiable', 1, '2026-05-19 04:21:47'),
+(1054, 1022, 1, NULL, 'Data Analyst', 'Bachelor\'s degree in relevant field. Experience with: PowerBI, Reporting', 'Excel, SQL, Student Data', 'Negotiable', 1, '2026-05-19 04:21:47');
 
 -- --------------------------------------------------------
 
@@ -13082,7 +13039,30 @@ INSERT INTO `users` (`id`, `student_id`, `full_name`, `email`, `password`, `role
 (831, '20-00852', 'LEA C. SANTOS', 'santos_lea@plpasig.edu.ph', '$2y$10$8jbgsQwcVxeF616r/AsSquG2AuBclY1B6R1pH6ObtAZWbwQ/5yQcG', 'alumni', 2022, '2026-05-06 02:20:04', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (832, 'PARTNER-100', 'TechFlow Solutions', 'contact@techflow.com', '$2y$10$NlhgGg5lfbl.gs5S4HiULOdt9L1sKgnpJtaUPPly6WjDp1Cz0pH8K', 'partner', NULL, '2026-05-14 04:40:26', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (833, 'PARTNER-200', 'Global Web Systems', 'hr@globalweb.com', '$2y$10$N7Z1BJrzWR6Rczc3O6Eum.hNwl0vyJ.15EjOurG9ohpHhsEL5hDrG', 'partner', NULL, '2026-05-14 04:40:26', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
-(834, 'PARTNER-300', 'Cyber Defense Corp', 'careers@cyberdefense.com', '$2y$10$uN1neF.iahyZ0C2pqsLQWubCtK6.cg85Q2zaqQoY4EALQAMxih1v2', 'partner', NULL, '2026-05-14 04:40:26', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+(834, 'PARTNER-300', 'Cyber Defense Corp', 'careers@cyberdefense.com', '$2y$10$uN1neF.iahyZ0C2pqsLQWubCtK6.cg85Q2zaqQoY4EALQAMxih1v2', 'partner', NULL, '2026-05-14 04:40:26', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(1001, 'PARTNER-1001', 'TechNova Solutions', 'technovasolutions@example.com', '$2y$10$NlhgGg5lfbl.gs5S4HiULOdt9L1sKgnpJtaUPPly6WjDp1Cz0pH8K', 'partner', NULL, '2026-05-19 04:21:47', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(1002, 'PARTNER-1002', 'CarePlus Hospital', 'careplushospital@example.com', '$2y$10$NlhgGg5lfbl.gs5S4HiULOdt9L1sKgnpJtaUPPly6WjDp1Cz0pH8K', 'partner', NULL, '2026-05-19 04:21:47', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(1003, 'PARTNER-1003', 'Apex Financial Hub', 'apexfinancialhub@example.com', '$2y$10$NlhgGg5lfbl.gs5S4HiULOdt9L1sKgnpJtaUPPly6WjDp1Cz0pH8K', 'partner', NULL, '2026-05-19 04:21:47', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(1004, 'PARTNER-1004', 'GlobalTech Solutions', 'globaltechsolutions@example.com', '$2y$10$NlhgGg5lfbl.gs5S4HiULOdt9L1sKgnpJtaUPPly6WjDp1Cz0pH8K', 'partner', NULL, '2026-05-19 04:21:47', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(1005, 'PARTNER-1005', 'CodeCraft Studios', 'codecraftstudios@example.com', '$2y$10$NlhgGg5lfbl.gs5S4HiULOdt9L1sKgnpJtaUPPly6WjDp1Cz0pH8K', 'partner', NULL, '2026-05-19 04:21:47', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(1006, 'PARTNER-1006', 'DataSync Systems', 'datasyncsystems@example.com', '$2y$10$NlhgGg5lfbl.gs5S4HiULOdt9L1sKgnpJtaUPPly6WjDp1Cz0pH8K', 'partner', NULL, '2026-05-19 04:21:47', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(1007, 'PARTNER-1007', 'Metro Medical Center', 'metromedicalcenter@example.com', '$2y$10$NlhgGg5lfbl.gs5S4HiULOdt9L1sKgnpJtaUPPly6WjDp1Cz0pH8K', 'partner', NULL, '2026-05-19 04:21:47', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(1008, 'PARTNER-1008', 'Prime Care Clinics', 'primecareclinics@example.com', '$2y$10$NlhgGg5lfbl.gs5S4HiULOdt9L1sKgnpJtaUPPly6WjDp1Cz0pH8K', 'partner', NULL, '2026-05-19 04:21:47', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(1009, 'PARTNER-1009', 'WealthFront Bank', 'wealthfrontbank@example.com', '$2y$10$NlhgGg5lfbl.gs5S4HiULOdt9L1sKgnpJtaUPPly6WjDp1Cz0pH8K', 'partner', NULL, '2026-05-19 04:21:47', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(1010, 'PARTNER-1010', 'AuditPro Associates', 'auditproassociates@example.com', '$2y$10$NlhgGg5lfbl.gs5S4HiULOdt9L1sKgnpJtaUPPly6WjDp1Cz0pH8K', 'partner', NULL, '2026-05-19 04:21:47', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(1011, 'PARTNER-1011', 'Horizon Academy', 'horizonacademy@example.com', '$2y$10$NlhgGg5lfbl.gs5S4HiULOdt9L1sKgnpJtaUPPly6WjDp1Cz0pH8K', 'partner', NULL, '2026-05-19 04:21:47', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(1012, 'PARTNER-1012', 'Global Learning Institute', 'globallearninginstitute@example.com', '$2y$10$NlhgGg5lfbl.gs5S4HiULOdt9L1sKgnpJtaUPPly6WjDp1Cz0pH8K', 'partner', NULL, '2026-05-19 04:21:47', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(1013, 'PARTNER-1013', 'Grand Plaza Hotel', 'grandplazahotel@example.com', '$2y$10$NlhgGg5lfbl.gs5S4HiULOdt9L1sKgnpJtaUPPly6WjDp1Cz0pH8K', 'partner', NULL, '2026-05-19 04:21:47', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(1014, 'PARTNER-1014', 'CloudNine Resorts', 'cloudnineresorts@example.com', '$2y$10$NlhgGg5lfbl.gs5S4HiULOdt9L1sKgnpJtaUPPly6WjDp1Cz0pH8K', 'partner', NULL, '2026-05-19 04:21:47', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(1015, 'PARTNER-1015', 'BuildRight Construction', 'buildrightconstruction@example.com', '$2y$10$NlhgGg5lfbl.gs5S4HiULOdt9L1sKgnpJtaUPPly6WjDp1Cz0pH8K', 'partner', NULL, '2026-05-19 04:21:47', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(1016, 'PARTNER-1016', 'MegaStruct Engineers', 'megastructengineers@example.com', '$2y$10$NlhgGg5lfbl.gs5S4HiULOdt9L1sKgnpJtaUPPly6WjDp1Cz0pH8K', 'partner', NULL, '2026-05-19 04:21:47', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(1017, 'PARTNER-1017', 'CreativeMind Agency', 'creativemindagency@example.com', '$2y$10$NlhgGg5lfbl.gs5S4HiULOdt9L1sKgnpJtaUPPly6WjDp1Cz0pH8K', 'partner', NULL, '2026-05-19 04:21:47', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(1018, 'PARTNER-1018', 'Peak Sales Group', 'peaksalesgroup@example.com', '$2y$10$NlhgGg5lfbl.gs5S4HiULOdt9L1sKgnpJtaUPPly6WjDp1Cz0pH8K', 'partner', NULL, '2026-05-19 04:21:47', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(1019, 'PARTNER-1019', 'FutureWeb Dynamics', 'futurewebdynamics@example.com', '$2y$10$NlhgGg5lfbl.gs5S4HiULOdt9L1sKgnpJtaUPPly6WjDp1Cz0pH8K', 'partner', NULL, '2026-05-19 04:21:47', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(1020, 'PARTNER-1020', 'BioHealth Labs', 'biohealthlabs@example.com', '$2y$10$NlhgGg5lfbl.gs5S4HiULOdt9L1sKgnpJtaUPPly6WjDp1Cz0pH8K', 'partner', NULL, '2026-05-19 04:21:47', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(1021, 'PARTNER-1021', 'TrustFund Corp', 'trustfundcorp@example.com', '$2y$10$NlhgGg5lfbl.gs5S4HiULOdt9L1sKgnpJtaUPPly6WjDp1Cz0pH8K', 'partner', NULL, '2026-05-19 04:21:47', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(1022, 'PARTNER-1022', 'NextGen Educators', 'nextgeneducators@example.com', '$2y$10$NlhgGg5lfbl.gs5S4HiULOdt9L1sKgnpJtaUPPly6WjDp1Cz0pH8K', 'partner', NULL, '2026-05-19 04:21:47', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(1023, 'PARTNER-1023', 'OceanView Hospitality', 'oceanviewhospitality@example.com', '$2y$10$NlhgGg5lfbl.gs5S4HiULOdt9L1sKgnpJtaUPPly6WjDp1Cz0pH8K', 'partner', NULL, '2026-05-19 04:21:47', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
 --
 -- Indexes for dumped tables
@@ -13149,19 +13129,6 @@ ALTER TABLE `feedback_replies`
   ADD KEY `feedback_id` (`feedback_id`),
   ADD KEY `alumni_id` (`student_id`),
   ADD KEY `idx_replies_feedback` (`feedback_id`);
-
---
--- Indexes for table `ml_companies_dataset`
---
-ALTER TABLE `ml_companies_dataset`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `ml_jobs_dataset`
---
-ALTER TABLE `ml_jobs_dataset`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `company_id` (`company_id`);
 
 --
 -- Indexes for table `partner_companies`
@@ -13232,7 +13199,7 @@ ALTER TABLE `alumni_academic_info`
 -- AUTO_INCREMENT for table `alumni_assessments`
 --
 ALTER TABLE `alumni_assessments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10799;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10808;
 
 --
 -- AUTO_INCREMENT for table `audit_logs`
@@ -13253,28 +13220,16 @@ ALTER TABLE `feedback_replies`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
--- AUTO_INCREMENT for table `ml_companies_dataset`
---
-ALTER TABLE `ml_companies_dataset`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
-
---
--- AUTO_INCREMENT for table `ml_jobs_dataset`
---
-ALTER TABLE `ml_jobs_dataset`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
-
---
 -- AUTO_INCREMENT for table `partner_companies`
 --
 ALTER TABLE `partner_companies`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1024;
 
 --
 -- AUTO_INCREMENT for table `partner_jobs`
 --
 ALTER TABLE `partner_jobs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1055;
 
 --
 -- AUTO_INCREMENT for table `professions`
@@ -13298,7 +13253,7 @@ ALTER TABLE `upload_history`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=835;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1024;
 
 --
 -- Constraints for dumped tables
@@ -13309,12 +13264,6 @@ ALTER TABLE `users`
 --
 ALTER TABLE `feedbacks`
   ADD CONSTRAINT `feedbacks_user_id_fk` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `ml_jobs_dataset`
---
-ALTER TABLE `ml_jobs_dataset`
-  ADD CONSTRAINT `ml_jobs_dataset_ibfk_1` FOREIGN KEY (`company_id`) REFERENCES `ml_companies_dataset` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
