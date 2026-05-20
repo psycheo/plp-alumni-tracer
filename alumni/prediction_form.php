@@ -522,61 +522,46 @@ $programs = $conn->query('SELECT * FROM programs ORDER BY name ASC');
                         <button type="button" class="btn-primary" onclick="validateAndNext(4)">Continue <i class="fas fa-arrow-right"></i></button>
                     </div>
                 </div>
-
                 <div class="wizard-step" id="step5">
-            <div class="step-header">
-                <h2><i class="fas fa-file-alt"></i> Final Step - Finish Your Profile</h2>
-                <p>Upload your professional documents to complete the assessment.</p>
-            </div>
+                    <div class="step-icon"><i class="fas fa-file-upload"></i></div>
+                    <h3 class="text-center">Final Step - Finish Your Profile</h3>
+                    <p class="text-center sub-label">Upload your professional documents to complete the assessment.</p>
 
-            <div class="form-section mt-4">
-                <div class="input-group">
-                    <label style="font-weight: 600; margin-bottom: 10px; display: block;"><i class="fas fa-file-upload" style="color: #0d5c34;"></i> Curriculum Vitae (Optional)</label>
-                    
-                    <?php 
-                    // Check if the user already has a CV stored
-                    $has_existing_cv = false;
-                    $existing_type = "";
-                    $possible_pdf = "../uploads/cvs/cv_" . $uid . ".pdf";
-                    $possible_csv = "../uploads/cvs/cv_" . $uid . ".csv";
-
-                    if (file_exists($possible_pdf)) {
-                        $has_existing_cv = true;
-                        $existing_type = "PDF";
-                    } elseif (file_exists($possible_csv)) {
-                        $has_existing_cv = true;
-                        $existing_type = "CSV";
-                    }
-                    ?>
-
-                    <?php if ($has_existing_cv): ?>
-                        <div style="background: #e0f2fe; border: 1px solid #bae6fd; padding: 12px; border-radius: 6px; margin-bottom: 15px;">
-                            <i class="fas fa-check-circle" style="color: #0284c7;"></i> 
-                            <strong style="color: #0369a1;">CV already on file (<?= $existing_type ?>)</strong>
-                            <p style="margin: 5px 0 0 0; font-size: 0.85rem; color: #0c4a6e;">
-                                You can submit the assessment using your existing CV. If you want to update it, upload a new file below.
-                            </p>
-                        </div>
+                    <div class="input-group mt-4">
+                        <label>Curriculum Vitae (Optional)</label>
                         
-                        <input type="file" name="cv_file" accept=".pdf,.csv" class="file-input">
-                        <small class="text-muted" style="display: block; margin-top: 5px; color: #6b7280;">Upload a new .pdf or .csv only if you wish to overwrite your current CV.</small>
+                        <?php 
+                        // Check if the user already has a CV stored
+                        $has_existing_cv = false;
+                        $existing_type = "";
+                        $possible_pdf = "../uploads/cvs/cv_" . $uid . ".pdf";
+                        $possible_csv = "../uploads/cvs/cv_" . $uid . ".csv";
 
-                    <?php else: ?>
-                        <input type="file" name="cv_file" accept=".pdf,.csv" class="file-input">
-                        <small class="text-muted" style="display: block; margin-top: 5px; color: #6b7280;">You can optionally upload your .pdf or .csv file to be saved in your dashboard.</small>
-                    <?php endif; ?>
+                        if (file_exists($possible_pdf)) {
+                            $has_existing_cv = true;
+                            $existing_type = "PDF";
+                        } elseif (file_exists($possible_csv)) {
+                            $has_existing_cv = true;
+                            $existing_type = "CSV";
+                        }
+                        ?>
+
+                        <?php if ($has_existing_cv): ?>
+                            <div class="readonly-field" style="margin-bottom: 15px; border-color: #bafdcb; background-color: #e0fee0; color: #0d5c34;">
+                                <i class="fas fa-check-circle"></i> <strong>CV already on file (<?= $existing_type ?>)</strong>
+                                <small style="display: block; color: #0d5c34; margin-top: 5px; font-size: 0.85rem;">You can submit the assessment using your existing CV. If you want to update it, upload a new file below.</small>
+                            </div>
+                        <?php endif; ?>
+                        
+                        <input type="file" name="cv_file" accept=".pdf,.csv" class="file-input" style="width: 100%; padding: 10px; border: 1px dashed #cbd5e1; border-radius: 8px; background: #f8fafc; cursor: pointer;">
+                        <small>Upload a new .pdf or .csv <?= $has_existing_cv ? 'only if you wish to overwrite your current CV.' : 'file to be saved in your dashboard.' ?></small>
+                    </div>
+
+                    <div class="wizard-footer" style="display: flex; justify-content: space-between;">
+                        <button type="button" class="btn-secondary" onclick="updateWizardUI(4)">Back</button>
+                        <button type="submit" class="btn-primary">Complete Assessment <i class="fas fa-check-circle"></i></button>
+                    </div>
                 </div>
-            </div>
-
-            <div class="step-navigation" style="margin-top: 30px; display: flex; justify-content: space-between;">
-                <button type="button" class="btn-prev" onclick="updateWizardUI(4)" style="background: #e5e7eb; color: #4b5563; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">
-                    <i class="fas fa-chevron-left"></i> Previous
-                </button>
-                <button type="submit" class="btn-submit" style="background: #0d5c34; color: white; padding: 10px 25px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 1rem;">
-                    Complete Assessment <i class="fas fa-check-circle" style="margin-left: 5px;"></i>
-                </button>
-            </div>
-        </div>
 
             </form>
         </div>

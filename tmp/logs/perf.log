@@ -65,3 +65,14 @@
 {"ts":"2026-05-14T15:53:35+02:00","scope":"predict_report","elapsed_ms":30,"meta":{"range":"all","program_id":0,"rows":30,"page":1}}
 {"ts":"2026-05-17T07:12:07+02:00","scope":"users_fetch","elapsed_ms":4.1,"meta":{"page":1,"search":false,"role_filter":"","program_filter":"","rows":10}}
 {"ts":"2026-05-17T07:20:36+02:00","scope":"users_fetch","elapsed_ms":1.43,"meta":{"page":1,"search":false,"role_filter":"","program_filter":"","rows":10}}
+{"ts":"2026-05-20T03:34:59+02:00","scope":"alumni_analytics_get_data","elapsed_ms":1238.95,"meta":{"program_id":1,"careers":13,"graduates":5963}}
+{"ts":"2026-05-20T03:36:02+02:00","scope":"alumni_analytics_get_data","elapsed_ms":39.51,"meta":{"program_id":3,"careers":0,"graduates":0}}
+{"ts":"2026-05-20T03:36:06+02:00","scope":"alumni_analytics_get_data","elapsed_ms":171.11,"meta":{"program_id":2,"careers":13,"graduates":4827}}
+{"ts":"2026-05-20T03:36:21+02:00","scope":"alumni_analytics_get_data","elapsed_ms":74.38,"meta":{"program_id":4,"careers":0,"graduates":0}}
+{"ts":"2026-05-20T03:36:24+02:00","scope":"alumni_analytics_get_data","elapsed_ms":325.84,"meta":{"program_id":2,"careers":13,"graduates":4827}}
+{"ts":"2026-05-20T03:36:30+02:00","scope":"alumni_analytics_get_data","elapsed_ms":74.91,"meta":{"program_id":5,"careers":0,"graduates":0}}
+{"ts":"2026-05-20T03:36:33+02:00","scope":"alumni_analytics_get_data","elapsed_ms":82.69,"meta":{"program_id":7,"careers":0,"graduates":0}}
+{"ts":"2026-05-20T03:36:35+02:00","scope":"alumni_analytics_get_data","elapsed_ms":103.2,"meta":{"program_id":10,"careers":0,"graduates":0}}
+{"ts":"2026-05-20T03:36:36+02:00","scope":"alumni_analytics_get_data","elapsed_ms":71.36,"meta":{"program_id":9,"careers":0,"graduates":0}}
+{"ts":"2026-05-20T03:36:40+02:00","scope":"alumni_analytics_get_data","elapsed_ms":99.59,"meta":{"program_id":12,"careers":0,"graduates":0}}
+{"ts":"2026-05-20T03:39:23+02:00","scope":"prediction_result","elapsed_ms":6803.98,"meta":{"cache_hit":false,"has_result":true,"assessment_id":10799}}
