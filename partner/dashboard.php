@@ -336,10 +336,13 @@ if (!empty($audit_parts)) {
     $skills_list = []; 
     $skills_lower = [];
     
-    $sq = $conn->query("SELECT DISTINCT requirements_text FROM ml_jobs_dataset WHERE requirements_text IS NOT NULL AND requirements_text != ''");
+ // Updated to fetch from the new partner_jobs table
+    $sq = $conn->query("SELECT DISTINCT skills FROM partner_jobs WHERE skills IS NOT NULL AND skills != ''");
     if($sq && $sq->num_rows > 0) {
         while($r = $sq->fetch_assoc()) {
-            $arr = explode(',', $r['requirements_text']);
+            $skills_string = str_replace(array("\r", "\n"), ',', $r['skills']);
+            $arr = explode(',', $skills_string);
+            
             foreach($arr as $a) {
                 $t = trim($a); 
                 if($t !== '') {
