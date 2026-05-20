@@ -155,7 +155,7 @@ $second_title = ($second_match && !empty($second_match['profession']))
 
     <div class="results-wrapper">
 
-    <div class="results-banner">
+        <div class="results-banner">
             <a href="prediction_form.php" class="back-link"><i class="fas fa-arrow-left"></i> Start Over</a>
             <div class="banner-title">
                 <i class="fas fa-sparkles"></i>
@@ -163,7 +163,9 @@ $second_title = ($second_match && !empty($second_match['profession']))
             </div>
             <p><?= $header_subtext ?></p>
             <?php if ($model_degree_label !== ''): ?>
-                <p style="font-size:0.85rem;color:#a7f3d0;margin-top:0.5rem;opacity:0.8;">Model: <?= $model_degree_label ?> · Score reflects top predicted class probability.</p>
+                <p style="font-size:0.85rem;color:#a7f3d0;margin-top:0.5rem;opacity:0.8;">
+                    Model: <?= $model_degree_label ?> · Score reflects top predicted class probability.
+                </p>
             <?php endif; ?>
         </div>
 
@@ -185,7 +187,7 @@ $second_title = ($second_match && !empty($second_match['profession']))
                     </div>
                     <div class="match-score-circle">
                         <div class="circle" style="background-color: <?= $score_color ?>;">
-                            <span><?= htmlspecialchars((string) round($match_score)) ?>%</span>
+                            <span><?= (int) round($match_score) ?>%</span>
                         </div>
                         <span class="score-label">Fit Score</span>
                     </div>
@@ -208,9 +210,8 @@ $second_title = ($second_match && !empty($second_match['profession']))
                 <a href="prediction_form.php" class="btn-full-green">Take assessment again</a>
             </div>
 
-            <div class="results-sidebar" style="display: flex; flex-direction: column; gap: 20px;">
-                
-                    <div class="other-options-section" style="flex: 1; margin: 0;">
+            <div class="results-sidebar" style="display:flex;flex-direction:column;gap:20px;">
+                <div class="other-options-section" style="flex:1;margin:0;">
                     <h3>Other career options</h3>
 
                     <div class="option-card" style="margin-bottom:15px;">
@@ -220,7 +221,7 @@ $second_title = ($second_match && !empty($second_match['profession']))
                                 <h4><?= $second_title ?></h4>
                             </div>
                             <div class="small-score-pill">
-                                <i class="far fa-star"></i> ~<?= (int) $second_pct ?>%
+                                <i class="far fa-star"></i> ~<?= $second_pct ?>%
                             </div>
                         </div>
                         <p>Second-ranked label from the same random forest model.</p>
